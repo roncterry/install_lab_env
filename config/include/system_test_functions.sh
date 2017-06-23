@@ -1,6 +1,6 @@
 ##############  System Test Functions #####################################
-# version: 3.0.1
-# date: 2016-08-08
+# version: 3.0.2
+# date: 2017-06-23
 
 #=========  Hardware Test Functions  =============
 
@@ -28,8 +28,8 @@ test_memory() {
 test_disk_space() {
   if df -h | grep -q "/home/VMs"
   then
-    #if [ "$(df -h | grep /home/VMs | awk '{ print $4 }' | sed 's/[A-Z]//' | cut -d . -f 1)" -ge "${MIN_DISK_FREE}" ]
-    if [ "$(df -GB | grep /home/VMs | awk '{ print $4 }' | sed 's/[A-Z]//' | cut -d . -f 1)" -ge "${MIN_DISK_FREE}" ]
+    #if [ "$(df -h | grep /home/VMs | awk '{ print $4 }' | sed 's/[A-Z]//' | cut -d . -f 1 | head -1)" -ge "${MIN_DISK_FREE}" ]
+    if [ "$(df -BG | grep /home/VMs | awk '{ print $4 }' | sed 's/[A-Z]//' | cut -d . -f 1 | head -1)" -ge "${MIN_DISK_FREE}" ]
     then
       ENOUGH_DISKSPACE=Y
     else
@@ -37,16 +37,16 @@ test_disk_space() {
     fi
   elif df -h | grep -q "/home"
   then
-    #if [ "$(df -h | grep /home | awk '{ print $4 }' | sed 's/[A-Z]//' | cut -d . -f 1)" -ge "${MIN_DISK_FREE}" ]
-    if [ "$(df -BG | grep /home | awk '{ print $4 }' | sed 's/[A-Z]//' | cut -d . -f 1)" -ge "${MIN_DISK_FREE}" ]
+    #if [ "$(df -h | grep /home | awk '{ print $4 }' | sed 's/[A-Z]//' | cut -d . -f 1 | head -1)" -ge "${MIN_DISK_FREE}" ]
+    if [ "$(df -BG | grep /home | awk '{ print $4 }' | sed 's/[A-Z]//' | cut -d . -f 1 | head -1)" -ge "${MIN_DISK_FREE}" ]
     then
       ENOUGH_DISKSPACE=Y
     else
       ENOUGH_DISKSPACE=N
     fi
   else
-    #if [ "$(df -h | grep '/$' | awk '{ print $4 }' | sed 's/[A-Z]//' | cut -d . -f 1)" -ge "${MIN_DISK_FREE}" ]
-    if [ "$(df -BG | grep '/$' | awk '{ print $4 }' | sed 's/[A-Z]//' | cut -d . -f 1)" -ge "${MIN_DISK_FREE}" ]
+    #if [ "$(df -h | grep '/$' | awk '{ print $4 }' | sed 's/[A-Z]//' | cut -d . -f 1 | head -1)" -ge "${MIN_DISK_FREE}" ]
+    if [ "$(df -BG | grep '/$' | awk '{ print $4 }' | sed 's/[A-Z]//' | cut -d . -f 1 | head -1)" -ge "${MIN_DISK_FREE}" ]
     then
       ENOUGH_DISKSPACE=Y
     else
