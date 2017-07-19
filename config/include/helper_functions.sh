@@ -540,8 +540,8 @@ edit_libvirt_domxml() {
 
     #--- machine type ---
     local MACHINE_TYPE_STRING=$(grep "machine=" ${VM_DEST_DIR}/"${VM}"/"${VM_CONFIG}" | awk '{ print $3 }' | cut -d \> -f 1 | cut -d \' -f 2)
-    local MACHINE_TYPE=$(echo ${MACHINE_TYPE} | cut -d \- -f 2)
-    local MACHINE_TYPE_VER=$(echo ${MACHINE_TYPE} | cut -d \- -f 3)
+    local MACHINE_TYPE=$(echo ${MACHINE_TYPE_STRING} | cut -d \- -f 2)
+    local MACHINE_TYPE_VER=$(echo ${MACHINE_TYPE_STRING} | cut -d \- -f 3)
 
     case ${MACHINE_TYPE} in
       i440fx)
