@@ -1,6 +1,6 @@
 ##############  Helper Functions #############################################
-# version: 3.0.0
-# date: 2016-11-30
+# version: 3.1.0
+# date: 2017-07-19
 #
 
 configure_nic() {
@@ -537,6 +537,15 @@ edit_libvirt_domxml() {
         echo
       ;;
     esac
+
+    #--- features ---
+    QEMUKVM_VER=$(qemu-kvm -version | cut -d ' ' -f 4 | sed 's/,//g')
+    if ! echo ${QEMUKVM_VER}>2.3.0 | bc -l
+    then
+      echo -e "${LTCYAN}Removing vmport parameter ...${NC}"
+      run sed -i "/vmport/d"  ${VM_DEST_DIR}/"${VM}"/"${VM_CONFIG}"
+      echo
+    fi
 
     #--- machine type ---
     local MACHINE_TYPE_STRING=$(grep "machine=" ${VM_DEST_DIR}/"${VM}"/"${VM_CONFIG}" | awk '{ print $3 }' | cut -d \> -f 1 | cut -d \' -f 2)
