@@ -545,7 +545,7 @@ edit_libvirt_domxml() {
 
     case ${MACHINE_TYPE} in
       i440fx)
-        if ! echo ${AVAILABLE_440FX_VERS} | grep ${MACHINE_TYPE_VER}
+        if ! echo ${AVAILABLE_440FX_VERS} | grep -q ${MACHINE_TYPE_VER}
         then
           echo -e "${LTCYAN}Changing machine type to highest supported version ...${NC}"
           run sed -i "s/pc-i440fx-.../pc-i440fx-${HIGHEST_440FX_VER}/"  ${VM_DEST_DIR}/"${VM}"/"${VM_CONFIG}"
@@ -553,7 +553,7 @@ edit_libvirt_domxml() {
         fi
       ;;
       q35)
-        if ! echo ${AVAILABLE_Q35_VERS} | grep ${MACHINE_TYPE_VER}
+        if ! echo ${AVAILABLE_Q35_VERS} | grep -q ${MACHINE_TYPE_VER}
         then
           echo -e "${LTCYAN}Changing machine type to highest supported version ...${NC}"
           run sed -i "s/pc-q35-.../pc-q35-${HIGHEST_Q35_VER}/"  ${VM_DEST_DIR}/"${VM}"/"${VM_CONFIG}"
