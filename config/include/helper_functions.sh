@@ -1,5 +1,5 @@
 ##############  Helper Functions #############################################
-# version: 3.2.1
+# version: 3.2.2
 # date: 2017-07-20
 #
 
@@ -543,21 +543,55 @@ edit_libvirt_domxml() {
         y|Y|yes|Yes)
           echo -e "  ${LTCYAN}Changing CPU to Hypervisor Default ...${NC}"
           run sed -i -e '/<cpu/,/cpu>/ d' ${VM_DEST_DIR}/"${VM}"/"${VM_CONFIG}"
+          echo
         ;;
         *)
           echo -e "  ${LTCYAN}Keeping existing CPU type.${NC}"
+          echo
         ;;
       esac
  
       #--- features ---
       QEMUKVM_VER=$(qemu-kvm -version | cut -d ' ' -f 4 | sed 's/,//g')
-      if ! echo ${QEMUKVM_VER}>2.3.0 | bc -l
+      QEMUKVM_VER_MAJ=$(echo ${QEMUKVM_VER} | cut -d . -f 1)
+      QEMUKVM_VER_MIN=$(echo ${QEMUKVM_VER} | cut -d . -f 2)
+      QEMUKVM_VER_REL=$(echo ${QEMUKVM_VER} | cut -d . -f 3)
+
+      # check for vmport support
+      if [ "${QEMUKVM_VER_MAJ}" -gt 2 ]
       then
-        echo -e "  ${LTCYAN}Removing vmport parameter ...${NC}"
-        run sed -i "/vmport/d"  ${VM_DEST_DIR}/"${VM}"/"${VM_CONFIG}"
+        local VMPORT=Y
+      elif [ "${QEMUKVM_VER_MAJ}" -eq 2 ]
+      then
+        if [ "${QEMUKVM_VER_MIN}" -gt 3 ]
+        then
+          local VMPORT=Y
+        elif [ "${QEMUKVM_VER_MIN}" -eq 3 ]
+        then
+          if [ "${QEMUKVM_VER_REL}" -ge 0 ]
+          then
+            local VMPORT=Y
+          else
+            local VMPORT=N
+          fi
+        else
+          local VMPORT=N
+        fi
       else
-        echo -e "  ${LTCYAN}QEMU suports vmport parameter, not removing it.${NC}"
+        local VMPORT=N
       fi
+ 
+      case ${VMPORT} in
+        Y)
+          echo -e "  ${LTCYAN}QEMU version ${GRAY}${QEMUKVM_VER}${LTCYAN} supports vmport parameter, not removing it.${NC}"
+          echo
+        ;;
+        N)
+          echo -e "  ${LTCYAN}Removing vmport parameter ...${NC}"
+          run sed -i "/vmport/d"  ${VM_DEST_DIR}/"${VM}"/"${VM_CONFIG}"
+          echo
+        ;;
+      esac
  
       #--- machine type ---
       local MACHINE_TYPE_STRING=$(grep "machine=" ${VM_DEST_DIR}/"${VM}"/"${VM_CONFIG}" | awk '{ print $3 }' | cut -d \> -f 1 | cut -d \' -f 2)
@@ -570,8 +604,10 @@ edit_libvirt_domxml() {
           then
             echo -e "  ${LTCYAN}Changing machine type to highest supported version ...${NC}"
             run sed -i "s/pc-i440fx-.../pc-i440fx-${HIGHEST_440FX_VER}/"  ${VM_DEST_DIR}/"${VM}"/"${VM_CONFIG}"
+            echo
           else
             echo -e "  ${LTCYAN}Machine type is a supported version: ${GRAY}${MACHINE_TYPE_VER} ${NC}"
+            echo
           fi
         ;;
         q35)
@@ -579,8 +615,10 @@ edit_libvirt_domxml() {
           then
             echo -e "  ${LTCYAN}Changing machine type to highest supported version ...${NC}"
             run sed -i "s/pc-q35-.../pc-q35-${HIGHEST_Q35_VER}/"  ${VM_DEST_DIR}/"${VM}"/"${VM_CONFIG}"
+            echo
           else
             echo -e "  ${LTCYAN}Machine type is a supported version: ${GRAY}${MACHINE_TYPE_VER} ${NC}"
+            echo
           fi
         ;;
       esac
@@ -593,6 +631,7 @@ edit_libvirt_domxml() {
         then
           echo -e "  ${LTCYAN}Changing network= to bridge= ...${NC}"
           run sed -i "s/network=${BRIDGE_NAME}/bridge=${BRIDGE_NAME}/g" ${VM_DEST_DIR}/"${VM}"/"${VM_CONFIG}"
+          echo
         fi
       done
  
