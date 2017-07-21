@@ -1,5 +1,5 @@
 ##############  Helper Functions #############################################
-# version: 3.2.0
+# version: 3.2.1
 # date: 2017-07-20
 #
 
@@ -510,7 +510,7 @@ install_vmware() {
 }
 
 get_libvirt_capabilities() {
-  AVAILABLE_440FX_VERS=$(virsh capabilities | grep -o "pc-i440fx-..." | cut -d - -f 3 | sort | uniq)
+  AVAILABLE_440FX_VERS=$(virsh capabilities | grep -o "pc-i440fx-....." | sed "s/<//g" | sed "s/'//g" | sed "s+/++g" | cut -d - -f 3 | sort | uniq)
   HIGHEST_440FX_VER=$(echo ${AVAILABLE_440FX_VERS} | cut -d " " -f $(echo ${AVAILABLE_440FX_VERS} | wc -w))
   AVAILABLE_Q35_VERS=$(virsh capabilities | grep -o "pc-q35-..." | cut -d - -f 3 | sort | uniq)
   HIGHEST_Q35_VER=$(echo ${AVAILABLE_Q35_VERS} | tail -n 1)
