@@ -1,5 +1,5 @@
 ##############  Helper Functions #############################################
-# version: 3.2.2
+# version: 3.2.3
 # date: 2017-07-20
 #
 
@@ -510,14 +510,18 @@ install_vmware() {
 }
 
 get_libvirt_capabilities() {
-  AVAILABLE_440FX_VERS=$(virsh capabilities | grep -o "pc-i440fx-....." | sed "s/<//g" | sed "s/'//g" | sed "s+/++g" | cut -d - -f 3 | sort | uniq)
+  AVAILABLE_440FX_VERS=$(virsh capabilities | grep -o "pc-i440fx-[0-9]*\.[0-9]*" | cut -d - -f 3 | sort | uniq)
   HIGHEST_440FX_VER=$(echo ${AVAILABLE_440FX_VERS} | cut -d " " -f $(echo ${AVAILABLE_440FX_VERS} | wc -w))
-  AVAILABLE_Q35_VERS=$(virsh capabilities | grep -o "pc-q35-..." | cut -d - -f 3 | sort | uniq)
+  AVAILABLE_Q35_VERS=$(virsh capabilities | grep -o "pc-q35-[0-9]*\.[0-9]*" | cut -d - -f 3 | sort | uniq)
   HIGHEST_Q35_VER=$(echo ${AVAILABLE_Q35_VERS} | tail -n 1)
+  AVAILABLE_PC_VERS=$(virsh capabilities | grep -o "pc-[0-9]*\.[0-9]*" | cut -d - -f 2 | sort | uniq)
+  HIGHEST_PC_VER=$(echo ${AVAILABLE_PC_VERS} | cut -d " " -f $(echo ${AVAILABLE_PC_VERS} | wc -w))
   #echo "AVAILABLE_440FX_VERS=${AVAILABLE_440FX_VERS}"
   #echo "HIGHEST_440FX_VER=${HIGHEST_440FX_VER}"
-  #echo "AVAILABLE_Q35_VERS=${AVAILABLE_440FX_VERS}"
-  #echo "HIGHEST_Q35_VER=${HIGHEST_440FX_VER}"
+  #echo "AVAILABLE_Q35_VERS=${AVAILABLE_Q35_VERS}"
+  #echo "HIGHEST_Q35_VER=${HIGHEST_Q35_VER}"
+  #echo "AVAILABLE_PC_VERS=${AVAILABLE_PC_VERS}"
+  #echo "HIGHEST_PC_VER=${HIGHEST_PC_VER}"
   #read
 }
 
