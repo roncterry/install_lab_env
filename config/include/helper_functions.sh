@@ -1,6 +1,6 @@
 ##############  Helper Functions #############################################
-# version: 3.1.0
-# date: 2017-07-19
+# version: 3.2.0
+# date: 2017-07-20
 #
 
 configure_nic() {
@@ -511,9 +511,14 @@ install_vmware() {
 
 get_libvirt_capabilities() {
   AVAILABLE_440FX_VERS=$(virsh capabilities | grep -o "pc-i440fx-..." | cut -d - -f 3 | sort | uniq)
-  HIGHEST_440FX_VER=$(echo ${AVAILABLE_440FX_VERS} | tail -n 1)
+  HIGHEST_440FX_VER=$(echo ${AVAILABLE_440FX_VERS} | cut -d " " -f $(echo ${AVAILABLE_440FX_VERS} | wc -w))
   AVAILABLE_Q35_VERS=$(virsh capabilities | grep -o "pc-q35-..." | cut -d - -f 3 | sort | uniq)
   HIGHEST_Q35_VER=$(echo ${AVAILABLE_Q35_VERS} | tail -n 1)
+  #echo "AVAILABLE_440FX_VERS=${AVAILABLE_440FX_VERS}"
+  #echo "HIGHEST_440FX_VER=${HIGHEST_440FX_VER}"
+  #echo "AVAILABLE_Q35_VERS=${AVAILABLE_440FX_VERS}"
+  #echo "HIGHEST_Q35_VER=${HIGHEST_440FX_VER}"
+  #read
 }
 
 edit_libvirt_domxml() {
@@ -529,59 +534,70 @@ edit_libvirt_domxml() {
       ;;
     esac
 
-    #--- cpu ---
-    case ${LIBVIRT_SET_CPU_TO_HYPERVISOR_DEFUALT} in
-      y|Y|yes|Yes)
-        echo -e "${LTCYAN}Seting CPU to Hypervisor Default ...${NC}"
-        run sed -i -e '/<cpu/,/cpu>/ d' ${VM_DEST_DIR}/"${VM}"/"${VM_CONFIG}"
-        echo
-      ;;
-    esac
-
-    #--- features ---
-    QEMUKVM_VER=$(qemu-kvm -version | cut -d ' ' -f 4 | sed 's/,//g')
-    if ! echo ${QEMUKVM_VER}>2.3.0 | bc -l
+    if [ -e ${VM_DEST_DIR}/"${VM}"/"${VM_CONFIG}" ]
     then
-      echo -e "${LTCYAN}Removing vmport parameter ...${NC}"
-      run sed -i "/vmport/d"  ${VM_DEST_DIR}/"${VM}"/"${VM_CONFIG}"
+      echo -e "${LTBLUE}Updating VM configuration file ...${NC}"
+
+      #--- cpu ---
+      case ${LIBVIRT_SET_CPU_TO_HYPERVISOR_DEFUALT} in
+        y|Y|yes|Yes)
+          echo -e "  ${LTCYAN}Changing CPU to Hypervisor Default ...${NC}"
+          run sed -i -e '/<cpu/,/cpu>/ d' ${VM_DEST_DIR}/"${VM}"/"${VM_CONFIG}"
+        ;;
+        *)
+          echo -e "  ${LTCYAN}Keeping existing CPU type.${NC}"
+        ;;
+      esac
+ 
+      #--- features ---
+      QEMUKVM_VER=$(qemu-kvm -version | cut -d ' ' -f 4 | sed 's/,//g')
+      if ! echo ${QEMUKVM_VER}>2.3.0 | bc -l
+      then
+        echo -e "  ${LTCYAN}Removing vmport parameter ...${NC}"
+        run sed -i "/vmport/d"  ${VM_DEST_DIR}/"${VM}"/"${VM_CONFIG}"
+      else
+        echo -e "  ${LTCYAN}QEMU suports vmport parameter, not removing it.${NC}"
+      fi
+ 
+      #--- machine type ---
+      local MACHINE_TYPE_STRING=$(grep "machine=" ${VM_DEST_DIR}/"${VM}"/"${VM_CONFIG}" | awk '{ print $3 }' | cut -d \> -f 1 | cut -d \' -f 2)
+      local MACHINE_TYPE=$(echo ${MACHINE_TYPE_STRING} | cut -d \- -f 2)
+      local MACHINE_TYPE_VER=$(echo ${MACHINE_TYPE_STRING} | cut -d \- -f 3)
+ 
+      case ${MACHINE_TYPE} in
+        i440fx)
+          if ! echo ${AVAILABLE_440FX_VERS} | grep -q ${MACHINE_TYPE_VER}
+          then
+            echo -e "  ${LTCYAN}Changing machine type to highest supported version ...${NC}"
+            run sed -i "s/pc-i440fx-.../pc-i440fx-${HIGHEST_440FX_VER}/"  ${VM_DEST_DIR}/"${VM}"/"${VM_CONFIG}"
+          else
+            echo -e "  ${LTCYAN}Machine type is a supported version: ${GRAY}${MACHINE_TYPE_VER} ${NC}"
+          fi
+        ;;
+        q35)
+          if ! echo ${AVAILABLE_Q35_VERS} | grep -q ${MACHINE_TYPE_VER}
+          then
+            echo -e "  ${LTCYAN}Changing machine type to highest supported version ...${NC}"
+            run sed -i "s/pc-q35-.../pc-q35-${HIGHEST_Q35_VER}/"  ${VM_DEST_DIR}/"${VM}"/"${VM_CONFIG}"
+          else
+            echo -e "  ${LTCYAN}Machine type is a supported version: ${GRAY}${MACHINE_TYPE_VER} ${NC}"
+          fi
+        ;;
+      esac
+ 
+      #--- network to bridge ---
+      for BRIDGE in ${BRIDGE_LIST}
+      do
+        local BRIDGE_NAME="$(echo ${BRIDGE} | cut -d , -f 1)"
+        if grep -q "network=${BRIDGE_NAME}" ${VM_DEST_DIR}/"${VM}"/"${VM_CONFIG}"
+        then
+          echo -e "  ${LTCYAN}Changing network= to bridge= ...${NC}"
+          run sed -i "s/network=${BRIDGE_NAME}/bridge=${BRIDGE_NAME}/g" ${VM_DEST_DIR}/"${VM}"/"${VM_CONFIG}"
+        fi
+      done
+ 
       echo
     fi
-
-    #--- machine type ---
-    local MACHINE_TYPE_STRING=$(grep "machine=" ${VM_DEST_DIR}/"${VM}"/"${VM_CONFIG}" | awk '{ print $3 }' | cut -d \> -f 1 | cut -d \' -f 2)
-    local MACHINE_TYPE=$(echo ${MACHINE_TYPE_STRING} | cut -d \- -f 2)
-    local MACHINE_TYPE_VER=$(echo ${MACHINE_TYPE_STRING} | cut -d \- -f 3)
-
-    case ${MACHINE_TYPE} in
-      i440fx)
-        if ! echo ${AVAILABLE_440FX_VERS} | grep -q ${MACHINE_TYPE_VER}
-        then
-          echo -e "${LTCYAN}Changing machine type to highest supported version ...${NC}"
-          run sed -i "s/pc-i440fx-.../pc-i440fx-${HIGHEST_440FX_VER}/"  ${VM_DEST_DIR}/"${VM}"/"${VM_CONFIG}"
-          echo
-        fi
-      ;;
-      q35)
-        if ! echo ${AVAILABLE_Q35_VERS} | grep -q ${MACHINE_TYPE_VER}
-        then
-          echo -e "${LTCYAN}Changing machine type to highest supported version ...${NC}"
-          run sed -i "s/pc-q35-.../pc-q35-${HIGHEST_Q35_VER}/"  ${VM_DEST_DIR}/"${VM}"/"${VM_CONFIG}"
-          echo
-        fi
-      ;;
-    esac
-
-    #--- network to bridge ---
-    for BRIDGE in ${BRIDGE_LIST}
-    do
-      local BRIDGE_NAME="$(echo ${BRIDGE} | cut -d , -f 1)"
-      if grep -q "network=${BRIDGE_NAME}" ${VM_DEST_DIR}/"${VM}"/"${VM_CONFIG}"
-      then
-        echo -e "${LTCYAN}Changing network= to bridge= ...${NC}"
-        run sed -i "s/network=${BRIDGE_NAME}/bridge=${BRIDGE_NAME}/g" ${VM_DEST_DIR}/"${VM}"/"${VM_CONFIG}"
-        echo
-      fi
-    done
 }
 
 create_vm_snapshot() {

@@ -1,6 +1,6 @@
 ##############  Remove Lab Env Functions ##################################
-# version: 4.0.0
-# date: 2017-05-12
+# version: 4.0.1
+# date: 2017-07-20
 #
 
 remove_libvirt_networks() {
@@ -200,8 +200,9 @@ remove_libvirt_vms() {
   echo -e "${LTBLUE}---------------------------------------------------------${NC}"
   for VM in ${LIBVIRT_VM_LIST}
   do
+    echo -e "${LTCYAN}---------------------------------------------------------------${NC}"
     echo -e "${LTCYAN}VM Name:${GREEN} ${VM}${NC}"
-    echo -e "${LTCYAN}---------------------${NC}"
+    echo -e "${LTCYAN}---------------------------------------------------------------${NC}"
     run sudo virsh destroy ${VM}
     run sudo virsh undefine --remove-all-storage --snapshots-metadata --wipe-storage ${VM}
     echo

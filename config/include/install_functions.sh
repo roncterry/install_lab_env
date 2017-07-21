@@ -1,6 +1,6 @@
 ##############  Lab Env Install and Configure Functions ######################
 # version: 4.0.1
-# date: 2017-06-29
+# date: 2017-07-20
 #
 
 create_directories() {
@@ -207,11 +207,9 @@ copy_iso_images() {
   for ISO in ${ISO_LIST}
   do
     #-- Use cp instead of rsync 
-    #run cp -R ${ISO_SRC_DIR}/${ISO} ${ISO_DEST_DIR}/${COURSE_NUM}/
     #run cp -R ${ISO_SRC_DIR}/${COURSE_NUM}/${ISO} ${ISO_DEST_DIR}/${COURSE_NUM}/ > /dev/null 2>&1
     #-- Use rsync instead of cp 
-    run rsync -a ${ISO_SRC_DIR}/${ISO} ${ISO_DEST_DIR}/${COURSE_NUM}
-    #run rsync -a ${ISO_SRC_DIR}/${COURSE_NUM}/${ISO} ${ISO_DEST_DIR}/${COURSE_NUM} > /dev/null 2>&1
+    run rsync -a ${ISO_SRC_DIR}/${COURSE_NUM}/${ISO} ${ISO_DEST_DIR}/${COURSE_NUM} > /dev/null 2>&1
   done
   echo
 }
@@ -439,11 +437,13 @@ extract_register_libvirt_vms() {
   echo -e "${LTBLUE}---------------------------------------------------------${NC}"
   for VM in ${LIBVIRT_VM_LIST}
   do
+    echo -e "${LTCYAN}---------------------------------------------------------------${NC}"
     echo -e "${LTCYAN}VM Name:${GREEN} ${VM}${NC}"
-    echo -e "${LTCYAN}---------------------${NC}"
+    echo -e "${LTCYAN}---------------------------------------------------------------${NC}"
 
     local ARCHIVE_TYPE=$(get_archive_type ${VM_SRC_DIR}/${VM})
 
+    echo -e "${LTBLUE}Extracting VM ...${NC}"
     extract_archive "${VM_SRC_DIR}/${VM}" ${VM_DEST_DIR} ${ARCHIVE_TYPE}
 
     echo
@@ -465,6 +465,7 @@ extract_register_libvirt_vms() {
       y|Y|yes|Yes|YES|t|T|true|True|TRUE)
         if [ -e ${VM_DEST_DIR}/"${VM}"/"${VM_CONFIG}" ]
         then
+          echo -e "${LTBLUE}Registering VM with Libvirt ...${NC}"
           run sudo virsh define ${VM_DEST_DIR}/"${VM}"/"${VM_CONFIG}"
         fi
         echo
@@ -472,6 +473,7 @@ extract_register_libvirt_vms() {
       *)
         if [ -e ${VM_DEST_DIR}/"${VM}"/"${VM_CONFIG}" ]
         then
+          echo -e "${LTBLUE}Registering VM with Libvirt ...${NC}"
           run sudo virsh define ${VM_DEST_DIR}/"${VM}"/"${VM_CONFIG}"
         fi
         echo
