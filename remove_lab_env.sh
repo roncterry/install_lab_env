@@ -1,8 +1,6 @@
 #!/bin/bash
-# Version: 2.4.0
-# Date: 2017-05-12
-
-source config/include/colors.sh
+# Version: 2.5.0
+# Date: 2017-07-20
 
 DEFAULT_CONFIG="config/lab_env.cfg"
 
@@ -22,6 +20,13 @@ then
 else
   #echo -e ${LTBLUE}CONFIG=${NC}${CONFIG}
   source ${CONFIG}
+fi
+
+if echo $* | grep -q "nocolor"
+then
+  echo "[Not using colors]"
+else
+  source config/include/colors.sh
 fi
 
 ##############################################################################
