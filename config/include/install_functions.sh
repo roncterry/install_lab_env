@@ -1,6 +1,6 @@
 ##############  Lab Env Install and Configure Functions ######################
-# version: 4.0.1
-# date: 2017-07-20
+# version: 4.0.2
+# date: 2017-07-25
 #
 
 create_directories() {
@@ -360,6 +360,16 @@ copy_course_files() {
 
 install_ssh_keys() {
   local DOIT
+
+  if [ -e ${CONFIG_SRC_DIR}/ssh ]
+  then
+    echo -e "${LTBLUE}Copying ssh files ...${NC}"
+    echo -e "${LTBLUE}---------------------------------------------------------${NC}"
+    echo
+    run cp -R ${CONFIG_SRC_DIR}/ssh  ${SCRIPTS_DEST_DIR}/${COURSE_NUM}/config/
+    echo
+  fi
+
   case ${INSTALL_SSH_KEYS} in
     y|Y|yes|Yes|YES)
       if ! [ -z "${SSH_FILE_LIST}" ]
