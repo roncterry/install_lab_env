@@ -1,6 +1,6 @@
 ##############  Lab Env Install and Configure Functions ######################
-# version: 4.0.2
-# date: 2017-07-25
+# version: 4.0.3
+# date: 2017-07-31
 #
 
 create_directories() {
@@ -59,7 +59,7 @@ create_libvirt_virtual_networks() {
   echo -e "${LTBLUE}---------------------------------------------------------${NC}"
   for VNET in ${LIBVIRT_VNET_LIST}
   do
-    if ! sudo virsh net-list | grep -q ${VNET}
+    if ! sudo virsh net-list | grep -q "${VNET}$"
     then
       run sudo virsh net-define ${VNET_CONFIG_DIR}/${VNET}.xml
       run sudo virsh net-autostart ${VNET}
