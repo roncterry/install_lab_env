@@ -244,7 +244,7 @@ This variable is used in the case of multi lab machine environments to specify t
 
 Because multi lab machine environments require a different networking configuration than single lab machine environment, VMs will need to have a different XML definition file that will be used when registering them with Libvirt. This additional file will contain the extension specified in this variable in their file names.
 
-***Example:***
+_**Example:**_
 
 For a VM named **admin**, 
 
