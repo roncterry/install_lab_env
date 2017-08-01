@@ -50,9 +50,9 @@ The directory structure is as follows:
 
 This is the main directory that contains all files belonging to the course (or hands-on session). In the case of training courses, this directory should be named the course ID of the course. In the case of hands-on sessions (i.e. SUSECon) this directory should be named the session ID of the session.
 
-***Example 1 (course)***: A course with a course ID of **SOC201**, would have a directory name of **SOC201**.
+*Example 1 (course)*: A course with a course ID of **SOC201**, would have a directory name of **SOC201**.
 
-***Example 2 (conference session)***: A conerence session with a session ID of **HO77572**, would have a directory name of **HO77572**.
+*Example 2 (conference session)*: A conerence session with a session ID of **HO77572**, would have a directory name of **HO77572**.
 
 **config/**
 
