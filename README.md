@@ -1,8 +1,8 @@
 # Introduction
 
-The lab environment installer framework is a set of scripts and script libraries that can be used to install and remove everything pertaining to al lab environment to and from a lab machine. This framework can dramatically simplify the deployment and then cleanup of lab environments used during training courses or hands-on sessions at conferences. The things related to the installer frameworks and the corresponding course and lab environment files are commonly referred to as the **student media** for a course.
+The lab environment Installer Framework is a set of scripts and script libraries that can be used to install and remove everything pertaining to al lab environment to and from a lab machine. This framework can dramatically simplify the deployment and then cleanup of lab environments used during training courses or hands-on sessions at conferences. The things related to the Installer Frameworks and the corresponding course and lab environment files are commonly referred to as the **student media** for a course.
 
-The installer framework comprises the following:
+The Installer Framework comprises the following:
 
 * Installation and removal scripts and their corresponding include files
 * A standardized directory structure for the course, its lab environment and related files
@@ -41,7 +41,7 @@ bash ./remove_lab_env.sh
 
 # Directory Structure
 
-The installation and removal scripts in the installer framework rely on the files for the course and its lab environment to be organized in a specific directory structure.
+The installation and removal scripts in the Installer Framework rely on the files for the course and its lab environment to be organized in a specific directory structure.
 
 ## Directory Structure Example
 
@@ -87,23 +87,23 @@ _**Example 2 (conference session)**_: A conerence session with a session ID of *
 
 **config/**
 
-This directory contains all configuration files for both the installer framework and the lab environment. Common files that will reside in this directory are the installation/removal script configuration file (**lab_env.cfg**) and custom include files for the installation/removal script (**custom-\*.sh**). This directory will also have some standard subdirectories.
+This directory contains all configuration files for both the Installer Framework and the lab environment. Common files that will reside in this directory are the installation/removal script configuration file (**lab_env.cfg**) and custom include files for the installation/removal script (**custom-\*.sh**). This directory will also have some standard subdirectories.
 
 **config/include**
 
-This subdirectory of the **config/** directory contains the function libraries that are included by the installation and removal scripts. These files should not be modified as they are part of the installer framework.
+This subdirectory of the **config/** directory contains the function libraries that are included by the installation and removal scripts. These files should not be modified as they are part of the Installer Framework.
 
 **config/libvirt.cfg/**
 
-This subdirectory of the **config/** directory contains the Libvirt configuration files used by the lab environment such as the network definition XML files. These files are related to the lab environment and are not part of the installer framework.
+This subdirectory of the **config/** directory contains the Libvirt configuration files used by the lab environment such as the network definition XML files. These files are related to the lab environment and are not part of the Installer Framework.
 
 **config/ssh/**
 
-This subdirectory of the **config/** directory contains ssh related files such as ssh keys and authorized_keys files. These files are related to the lab environment and are not part of the installer framework.
+This subdirectory of the **config/** directory contains ssh related files such as ssh keys and authorized_keys files. These files are related to the lab environment and are not part of the Installer Framework.
 
 **config/lab_env.cfg**
 
-This file is the configuration file for the installer framework. It should be edited to reference the specific files that are part of the course/session lab environment. 
+This file is the configuration file for the Installer Framework. It should be edited to reference the specific files that are part of the course/session lab environment. 
 
 *NOTE: This is the file that you edit*
 
