@@ -353,17 +353,17 @@ The p7zip formats are **strongly recommended** because they split the archive in
 Because this script creates, as its backup, an installer package using the Lab Environment Installer Framework you can also use the script to create the initial installer package for a lab environment. As long as the VMs and ISO image (and cloud images) are in the appropriate directory structure as described earlier all you need to do is create a directory **~/scripts/<COURSE_ID>/** that contains the following files from the Installer Framework in the following directory structure (this matches the installed directory structure created when installing a course):
 ```
 ~/scripts/<COURSE_ID>/
-		|-install_lab_env.sh
-		|-remove_lab_env.sh
-		|-backup_lab_env.sh
-		|-restore-virtualization-environment.sh
-		|-config/
-			|-lab_env.cfg
-			|-custom-functions.sh
-			|-custom-install-functions.sh
-			|-custom-remove-functions.sh
-			|-libvirt.cfg/
-				|-(your libvirt network XML definition files)
+                     |-install_lab_env.sh
+                     |-remove_lab_env.sh
+                     |-backup_lab_env.sh
+                     |-restore-virtualization-environment.sh
+                     |-config/
+                             |-lab_env.cfg
+                             |-custom-functions.sh
+                             |-custom-install-functions.sh
+                             |-custom-remove-functions.sh
+                             |-libvirt.cfg/
+                                          |-(your libvirt network XML definition files)
 ```
 Once this directory structure is created, simply running the command:
 ```
