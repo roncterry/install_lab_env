@@ -5,8 +5,37 @@ The lab environment installer framework is a set of scripts and script libraries
 The installer framework comprises the following:
 
 * Installation and removal scripts and their corresponding include files
-
 * A standardized directory structure for the course, its lab environment and related files
+
+# Usage - TL:DR
+
+**Install a Lab Environment**
+
+Open a command promt in the installer directory and run the folloiwng commnad:
+```
+bash ./install_lab_env.sh
+```
+
+**Remove a Lab Environment**
+
+Open a command prompt in the **~/scripts/<COURSE_ID>/** directory (or the installer directory) and run the following command:
+```
+bash ./remove_lab_env.sh
+```
+
+
+**Create a New Lab Environment Installer Package**
+
+1. Check out the files from github
+2. Rename **config/lab_env.cfg.example** to **config/lab_env.cfg**
+3. Edit the **lab_env.cfg** as described later in this document
+4. Make sure your VMs have been created following the lab environment standards as decribed in the **roncterry/lab_env_tools** git repo
+5. Create archives of your VMs and put the archives in the **VMs** directory
+6. Export/create network definition XML files and pit them in the **config/libvirt.cfg/** directory
+7. Put any other files in theire corresponding directories
+8. Test installing and removing your lab environment on another machine
+
+(The **backup_lab_env.sh** script can help you automate this process. See instructions later on in this document.)
 
 # Directory Structure
 
@@ -283,5 +312,61 @@ The most common use of this feature is to create VLANs on the network that inter
 This variable is used to have the installation script create Linux bridges when the lab environment is installed. It is a space delimited list of Linux bridge definitions which are in turn comma delimited lists. The YaST LAN module is used to create these Linux bridges. The description of the fields in the Linux bridge definition are described in the comments in the **lab_env.cfg** file.
 
 The most common use of this feature is to create Linux bridges on the VLANs. These bridges will be used as the virtual networks the VMs are connected to.
+
+# Use the *backup_lab_env.sh* Script
+
+## Intro:
+
+This script is part of the Lab Environment Installer Framework but is also provided as part of the **lab_env_tools** scripts because it is usable and useful outside of the Framework as well.
+
+This script can be used to backup the current state of a currently installed lab environment. For the backup, it creates an installer package (using the Lab Environment Installer Framework) for the lab environment that includes archives of the current state of the VMs, ISO images, cloud images, course files, scripts, etc. These backups are created in **/install/courses/** and the directories that map to the backup/installer package are named using the following format: 
+
+**<COURSE_ID>-backup-<DATE_STAMP>.<UNIX_TIME_STAMP>** 
+
+
+## Usage:
+```
+backup_lab_env.sh <COURSE_ID> [<ARCHIVE_FORMAT>] 
+```
+
+## Detailed Description:
+
+By default VM archives are created using **p7zip** with the compression format of **LZMA2**. This can be overridden at the command line using the **<ARCHIVE_FORMAT>** shown in the example above. The supported archive formats are:
+
+Archive Format | Description
+------------ | -------------
+**7zma2** |		p7zip with LZMA2 compression split into 2G files (default)
+**7z** |		p7zip with LZMA compression split into 2G files
+**7zcopy** |	p7zip with no compression split into 2G files
+**tar** |		tar archive with no compression and not split
+**tgz** |		gzip compressed tar archive and not split
+**tbz** |		bzip2 compressed tar archive and not split
+**txz** |		xz compressed tar archive and not split
+
+The p7zip formats are **strongly recommended** because they split the archive into smaller chunks that can reside on a FAT filesystem that is used by default when creating student media flash drives. For quicker backup operations where the size of the backup (installer package) is not as important, using the **7zcopy** archive format is recommended.
+
+
+## Creating the Initial Installer Package:
+
+Because this script creates, as its backup, an installer package using the Lab Environment Installer Framework you can also use the script to create the initial installer package for a lab environment. As long as the VMs and ISO image (and cloud images) are in the appropriate directory structure as described earlier all you need to do is create a directory **~/scripts/<COURSE_ID>/** that contains the following files from the Installer Framework in the following directory structure (this matches the installed directory structure created when installing a course):
+```
+~/scripts/<COURSE_ID>/
+		|-install_lab_env.sh
+		|-remove_lab_env.sh
+		|-backup_lab_env.sh
+		|-restore-virtualization-environment.sh
+		|-config/
+			|-lab_env.cfg
+			|-custom-functions.sh
+			|-custom-install-functions.sh
+			|-custom-remove-functions.sh
+			|-libvirt.cfg/
+				|-(your libvirt network XML definition files)
+```
+Once this directory structure is created, simply running the command:
+```
+ backup_lab_env.sh <COURSE_ID> 
+```
+will create a usable installer package in the **/install/courses/** directory.
 
 
