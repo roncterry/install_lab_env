@@ -11,14 +11,14 @@ The Installer Framwork used the lab environment standars defined in the **https:
 
 # Usage - TL:DR
 
-**Install a Lab Environment**
+## Install a Lab Environment
 
 Open a command promt in the installer directory and run the folloiwng commnad:
 ```
 bash ./install_lab_env.sh
 ```
 
-**Remove a Lab Environment**
+## Remove a Lab Environment
 
 Open a command prompt in the **~/scripts/<COURSE_ID>/** directory (or the installer directory) and run the following command:
 ```
@@ -26,7 +26,7 @@ bash ./remove_lab_env.sh
 ```
 
 
-**Create a New Lab Environment Installer Package**
+## Create a New Lab Environment Installer Package
 
 1. Check out the files from github
 2. Rename **config/lab_env.cfg.example** to **config/lab_env.cfg**
