@@ -7,6 +7,8 @@ The installer framework comprises the following:
 * Installation and removal scripts and their corresponding include files
 * A standardized directory structure for the course, its lab environment and related files
 
+The Installer Framwork used the lab environment standars defined in the **https://github.com/roncterry/lab_env_tools** git repository.
+
 # Usage - TL:DR
 
 **Install a Lab Environment**
@@ -29,7 +31,7 @@ bash ./remove_lab_env.sh
 1. Check out the files from github
 2. Rename **config/lab_env.cfg.example** to **config/lab_env.cfg**
 3. Edit the **lab_env.cfg** as described later in this document
-4. Make sure your VMs have been created following the lab environment standards as decribed in the **roncterry/lab_env_tools** git repo
+4. Make sure your VMs have been created following the lab environment standards as decribed in the **https://github.com/roncterry/lab_env_tools** git repository
 5. Create archives of your VMs and put the archives in the **VMs** directory
 6. Export/create network definition XML files and pit them in the **config/libvirt.cfg/** directory
 7. Put any other files in theire corresponding directories
@@ -75,9 +77,9 @@ The directory structure is as follows:
 ## File and Directory Descriptions
 
 
-**COURSE_DIRECTORY** 
+**<COURSE_DIRECTORY>** 
 
-This is the main directory that contains all files belonging to the course (or hands-on session). In the case of training courses, this directory should be named the course ID of the course. In the case of hands-on sessions (i.e. SUSECon) this directory should be named the session ID of the session.
+This is the main directory that contains all files belonging to the course (or hands-on session). In the case of training courses, this directory should be named the **Course ID** of the course. In the case of hands-on sessions (i.e. SUSECon) this directory should be named the **Session ID** of the session.
 
 _**Example 1 (course)**_: A course with a course ID of **SOC201**, would have a directory name of **SOC201**.
 
@@ -103,7 +105,7 @@ This subdirectory of the **config/** directory contains ssh related files such a
 
 This file is the configuration file for the installer framework. It should be edited to reference the specific files that are part of the course/session lab environment. 
 
-*NOTE: THIS IS THE FILE THAT YOU EDIT*
+*NOTE: This is the file that you edit*
 
 **course_files/**
 
@@ -115,15 +117,15 @@ This directory contains any virtual machine images such as cloud disk image file
 
 **iso/**
 
-This directory contains any ISO images that are used in the lab environment. These get copied to the **/home/iso/** directory when the lab environment is installed.
+This directory contains any ISO images that are used in the lab environment. These get copied to the **/home/iso/<COURSE_ID>/** directory when the lab environment is installed.
 
 **pdf/**
 
-This directory contains the PDF manuals and any other PDF files related to the lab environment or the course, for example the lecture and lab manuals. These get copied to the **~/pdf/** directory when the lab environment is installed.
+This directory contains the PDF manuals and any other PDF files related to the lab environment or the course, for example the lecture and lab manuals. These get copied to the **~/pdf/<COURSE_ID>/** directory when the lab environment is installed.
 
 **scripts/**
 
-This directory contains any scripts that are used in the course/session or lab environment such as lab automations scripts or automated VM creation scripts. These get copied to the **~/scripts/** directory when the lab environment is installed.
+This directory contains any scripts that are used in the course/session or lab environment such as lab automations scripts or automated VM creation scripts. These get copied to the **~/scripts/<COURSE_ID>/** directory when the lab environment is installed.
 
 **VMs/**
 
@@ -136,7 +138,7 @@ Example archive creation commands:
 ```bash
 7z a -t7z -m0=LZMA2 -mmt=on -v2g <VM_NAME>.7z <VM_DIRECTORY>
 ```
-(This creates an archive in 7z format, compressed with LZMA2 and split into files no larger than 2GB. The file names will be VM_NAME.7z.00# - where # is the number of the file that is part of the archive. This is good for creating a smaller student media package but takes longer to unpack when installing the lab environment.)
+(This creates an archive in 7z format, compressed with LZMA2 and split into files no larger than 2GB. The file names will be VM_NAME.7z.00# - where # is the number of the file that is part of the archive. This is good for creating a smaller student media package but takes slightly longer to unpack when installing the lab environment.)
 
 ```bash
 7z a -t7z -m0=0 -mmt=on -v2g <VM_NAME>.7z <VM_DIRECTORY>
@@ -144,7 +146,7 @@ Example archive creation commands:
 
 (This creates an archive in 7z format, uncompressed and split into files no larger than 2GB. The file names will be VM_NAME.7z.00# - where # is the number of the file that is part of the archive. This unpacks quicker and is good for situations where you need to install the lab environment quicker but it creates a larger student media package.)
 
-These archives are extracted into **/home/VMs/****_COURSE_NUM_****/** when the lab environment is installed and each VM is registered with Libvirt.
+These archives are extracted into **/home/VMs/<COURSE_ID>/** when the lab environment is installed and each VM is registered with Libvirt.
 
 **install_lab_env.sh**
 
@@ -153,14 +155,14 @@ This is the script that is run to install the lab environment. To execute this s
 
 **remove_lab_env.sh**  
 
-This is the script that is run to remove an installed lab environment. It is copied to the **~/scripts/** directory when the lab environment is installed so that the original student media is not required to remove an installed lab environment. (
+This is the script that is run to remove an installed lab environment. It is copied to the **~/scripts/<COURSE_ID>/** directory when the lab environment is installed so that the original student media is not required to remove an installed lab environment. (
 NOTE- DO NOT EDIT THIS FILE)
 
 
 
 **backup_lab_env.sh**
 
-This script can be used to back up the current state of an installed lab environment creating a new installer package from the backed up files. The installer package that is created will be located in **/install/courses/** and will be named "**_COURSE_NUM_****-backup_****_TIMESTAMP_**". 
+This script can be used to back up the current state of an installed lab environment creating a new installer package from the backed up files. The installer package that is created will be located in **/install/courses/** and will be named "**<COURSE_ID>-backup.\<TIMESTAMP>**". 
 (NOTE- DO NOT EDIT THIS FILE)
 
 # The lab_env.cfg Configuration File
@@ -175,7 +177,7 @@ This variable contains the friendly or short descriptive name of the course or h
 
 **COURSE_NUM**
 
-This variable contains the course number or session ID of the course/session. It is use to create the subdirectory in **/home/VMs/** that contains the course/session specific VMS as well as other in other places where things need to be kept separate from other courses/sessions. It is critical that this be unique to the course or session and not contain spaces.
+This variable contains the course number (i.e. Course ID) or Session ID of the course/session. It is use to create the subdirectory in **/home/VMs/** that contains the course/session specific VMS as well as other in other places where things need to be kept separate from other courses/sessions. It is critical that this be unique to the course or session and not contain spaces.
 
 **REQUIRE_VT_ENABLED**
 
@@ -221,11 +223,11 @@ When creating a lab environment, it is important to remember to allow for the ho
 
 **ISO_LIST**
 
-This variable allows you to specify a list of ISO images that you want to provide to your students. These ISO image can either be used directly by the VMs in the lab environment or just be ISO images that you want your students to have. These ISO images must exist in the **/home/iso/****_COURSE_NUM_** directory. The only exception to this rule is that if an ISO image is only used by a single VM then it can reside in that VM’s directory and will them be treated as just another one of the VM’s disks.
+This variable allows you to specify a list of ISO images that you want to provide to your students. These ISO image can either be used directly by the VMs in the lab environment or just be ISO images that you want your students to have. These ISO images must exist in the **/home/iso/<COURSE_ID>/** directory. The only exception to this rule is that if an ISO image is only used by a single VM then it can reside in that VM’s directory and will them be treated as just another one of the VM’s disks.
 
 **CLOUD_IMAGE_LIST**
 
-This variable allows you to specify a list of cloud images that you want to provide to your students. These ISO images must exist in the **/home/iso/****_COURSE_NUM_** directory.
+This variable allows you to specify a list of cloud images that you want to provide to your students. These ISO images must exist in the **/home/iso/<COURSE_ID>** directory.
 
 **LIBVIRT_VM_LIST**
 
@@ -245,11 +247,11 @@ The installation framework supports the ability to spread a single lab environme
 
 ## Interconnecting the Lab Machines
 
-To spread the lab environment across multiple lab machines, the lab machines must be connected to each other on a network. Typically this will be done by adding a second NIC to each lab machine and then connecting these NICs to a separate network from the one connected to the first NICs. It is important to understand that each student’s lab environment is identical to every other student. For this reason the network that the second NICs in the group of lab machines that correspond to single student’s lab environment are connected to is isolated from the other student’s secondary networks*.
+To spread the lab environment across multiple lab machines, the lab machines must be connected to each other on a network. Typically this will be done by adding a second NIC to each lab machine and then connecting these NICs to a separate network from the one connected to the first NICs. It is important to understand that each student’s lab environment is identical to every other student. For this reason the network that the second NICs in the group of lab machines that correspond to single student’s lab environment are connected to is isolated from the other student’s secondary networks\*.
 
 Gigabit Ethernet is required for the interconnecting links between the lab machines. These can be USB3 gigabit Ethernet adapters however.
 
-*Because of how the VLANs and Bridges can be defined, it is possible to use only a single network that all students are connected to. To do this, each student’s **lab_env.cfg** file would need to be edited separately to specify a unique set of VLAN IDs for each student. This will not be covered in this document but the description of how to do it for **VLAN_LIST** and **BRIDGE_LIST** variable is in the comments for those variable in the **lab_env.cfg** file.
+\*Because of how the VLANs and Bridges can be defined, it is possible to use only a single network that all students are connected to. To do this, each student’s **lab_env.cfg** file would need to be edited separately to specify a unique set of VLAN IDs for each student. This will not be covered in this document but the description of how to do it for **VLAN_LIST** and **BRIDGE_LIST** variable is in the comments for those variable in the **lab_env.cfg** file.
 
 ## Multi Lab Machine Configuration Files
 
@@ -297,9 +299,7 @@ This variable is used to determine if SSH keys should be installed in the user�
 
 This variable works in conjunction with the **INSTALL_SSH_KEYS** variable. It is a space delimited list of files that reside in config/ssh/ that should be copied into **~/.ssh/** when the lab environment is installed.
 
-**IMPORTANT**
-
-It is important to note that if there are files that already exist in the **~/.ssh/** directory that have the same names as the files in this list, the existing files will be overwritten by the files listed in this configuration file. This is why it is a best practice to install lab environments as a dedicated lab user rather than the user you may use as your everyday user.
+**_IMPORTANT_**: It is important to note that if there are files that already exist in the **~/.ssh/** directory that have the same names as the files in this list, the existing files will be overwritten by the files listed in this configuration file. This is why it is a best practice to install lab environments as a dedicated lab user rather than the user you may use as your everyday user.
 
 **VLAN_LIST**
 
