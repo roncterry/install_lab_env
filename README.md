@@ -83,7 +83,7 @@ This is the main directory that contains all files belonging to the course (or h
 
 _**Example 1 (course)**_: A course with a course ID of **SOC201**, would have a directory name of **SOC201**.
 
-_**Example 2 (conference session)**_: A conerence session with a session ID of **HO77572**, would have a directory name of **HO77572**.
+_**Example 2 (conference session)**_: A conference session with a session ID of **HO77572**, would have a directory name of **HO77572**.
 
 **config/**
 
