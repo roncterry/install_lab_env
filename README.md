@@ -56,7 +56,7 @@ The directory structure is as follows:
     |    	|
     |	    |-ssh/
     |	    |
-    |	    |-lab_env.cfg**
+    |	    |-lab_env.cfg
     |
     |-course_files/
     |
