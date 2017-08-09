@@ -53,7 +53,7 @@ The directory structure is as follows:
     |	    |-include/
     |	    |
     |	    |-libvirt.cfg/
-    |    	|
+    |       |
     |	    |-ssh/
     |	    |
     |	    |-lab_env.cfg
