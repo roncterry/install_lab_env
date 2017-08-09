@@ -43,7 +43,7 @@ bash ./remove_lab_env.sh
 
 The installation and removal scripts in the Installer Framework rely on the files for the course and its lab environment to be organized in a specific directory structure.
 
-## Directory Structure Example
+## Installer Package Directory Structure Example
 
 The directory structure is as follows:
 
