@@ -1,6 +1,6 @@
 ##############  Remove Lab Env Functions ##################################
-# version: 4.1.0
-# date: 2017-08-20
+# version: 4.1.1
+# date: 2017-09-05
 #
 
 remove_libvirt_networks() {
@@ -115,7 +115,7 @@ remove_iso_images() {
   fi
   echo -e "${LTBLUE}Removing ISO images ...${NC}"
   echo -e "${LTBLUE}---------------------------------------------------------${NC}"
-  run rm -rf ${ISO_DEST_DIR}/${COURSE_ID}
+  run rm -rf ${ISO_DEST_DIR}/${COURSE_NUM}
   echo
 }
 
@@ -126,7 +126,7 @@ remove_cloud_images() {
   fi
   echo -e "${LTBLUE}Remove Cloud images ...${NC}"
   echo -e "${LTBLUE}---------------------------------------------------------${NC}"
-  run rm -rf ${IMAGE_DEST_DIR}/${COURSE_ID}
+  run rm -rf ${IMAGE_DEST_DIR}/${COURSE_NUM}
   echo
 }
 
