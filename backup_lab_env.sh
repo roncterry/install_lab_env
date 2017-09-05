@@ -1,5 +1,5 @@
 #!/bin/bash
-# version: 1.1.0
+# version: 1.1.1
 # date: 2017-09-05
 
 ### Colors ###
@@ -21,9 +21,9 @@ WHITE='\e[1;37m'
 NC='\e[0m'
 ##############
 
-SCRIPTS_DIR="~/scripts"
-COURSE_FILES_DIR="~/course_files"
-PDF_DIR="~/pdf"
+SCRIPTS_DIR="${HOME}/scripts"
+COURSE_FILES_DIR="${HOME}/course_files"
+PDF_DIR="${HOME}/pdf"
 VM_DIR="/home/VMs"
 ISO_DIR="/home/iso"
 IMAGES_DIR="/home/images"
@@ -137,6 +137,12 @@ COURSE_VM_DIR="${VM_DIR}/${COURSE_ID}"
 #echo COURSE_BACKUP_BASE_DIR=${COURSE_BACKUP_BASE_DIR}
 #echo COURSE_BACKUP_DIR=${COURSE_BACKUP_DIR}
 #echo COURSE_VM_DIR=${COURSE_VM_DIR}
+#echo "---------------------------------"
+#echo Source scripts dir=${SCRIPTS_DIR}/${COURSE_ID}/
+#echo Source course_files dir=${COURSE_FILES_DIR}/${COURSE_ID}/
+#echo Source PDF dir=${PDF_DIR}/${COURSE_ID}/
+#echo Source ISO dir=${ISO_DIR}/${COURSE_ID}/
+#echo Source Images dir=${IMAGES_DIR}/${COURSE_ID}/
 #echo
 #read
 
