@@ -1,6 +1,6 @@
 #!/bin/bash
-# Version: 1.0.1
-# Date: 2016-07-07
+# Version: 2.0.0
+# Date: 2017-08-24
 
 ### Colors ###
 RED='\e[0;31m'
@@ -70,10 +70,8 @@ ISO_DEST_DIR="/home/iso"
 IMAGE_SRC_DIR="./images"
 IMAGE_DEST_DIR="/home/images"
 
-VNET_CONFIG_DIR="${CONFIG_SRC_DIR}/libvirt.cfg"
-LOCAL_VNET_CONFIG_DIR="${SCRIPTS_DEST_DIR}/config/libvirt.cfg"
-#-- TODO: reserved for upcoming update --DO NOT UNCOMMENT--
-#LOCAL_VNET_CONFIG_DIR="${SCRIPTS_DEST_DIR}/${COURSE_NUM}/config/libvirt.cfg"
+LIBVIRT_CONFIG_DIR="${CONFIG_SRC_DIR}/libvirt.cfg"
+LOCAL_LIBVIRT_CONFIG_DIR="${SCRIPTS_DEST_DIR}/${COURSE_NUM}/config/libvirt.cfg"
 
 RPM_DIR="./rpms"
   
@@ -83,8 +81,12 @@ VMWARE_INSTALLER_DIR="./vmware"
 #                          Functions
 ##############################################################################
 
+run () {
+  echo -e "${LTGREEN}COMMAND: ${GRAY}$*${NC}"
+  "$@"
+}
+
 activate_libvirt_virtual_networks() {
-  #local LIBVIRT_VNET_LIST=$(cd ~/${LOCAL_VNET_CONFIG_DIR} ; ls *.xml | sed 's/.xml//g')
   if [ -z "${LIBVIRT_VNET_LIST}" ]
   then
     return
@@ -95,20 +97,42 @@ activate_libvirt_virtual_networks() {
   do
     if ! sudo virsh net-list | grep -q ${VNET}
     then
-      echo -e "${LTGREEN}COMMAND: ${GRAY}sudo virsh net-define ${LOCAL_VNET_CONFIG_DIR}/${VNET}.xml${NC}"
-      sudo virsh net-define ${LOCAL_VNET_CONFIG_DIR}/${VNET}.xml
-      echo -e "${LTGREEN}COMMAND: ${GRAY}sudo virsh net-autostart ${VNET}${NC}"
-      sudo virsh net-autostart ${VNET}
-      echo -e "${LTGREEN}COMMAND: ${GRAY}sudo virsh net-start ${VNET}${NC}"
-      sudo virsh net-start ${VNET}
+      run sudo virsh net-define ${LOCAL_LIBVIRT_CONFIG_DIR}/${VNET}.xml
+      run sudo virsh net-autostart ${VNET}
+      run sudo virsh net-start ${VNET}
     elif [ "$(sudo virsh net-list | grep  ${VNET} | awk '{ print $2 }')" != active ]
     then
-      echo -e "${LTGREEN}COMMAND: ${GRAY}sudo virsh net-autostart ${VNET}${NC}"
-      sudo virsh net-autostart ${VNET}
+      run sudo virsh net-autostart ${VNET}
       if [ "$(sudo virsh net-list | grep  ${VNET} | awk '{ print $3 }')" != yes ]
       then
-        echo -e "${LTGREEN}COMMAND: ${GRAY}sudo virsh net-start ${VNET}${NC}"
-        sudo virsh net-start ${VNET}
+        run sudo virsh net-start ${VNET}
+      fi
+    fi
+  done
+  echo
+}
+
+activate_libvirt_storage_pools() {
+  if [ -z "${LIBVIRT_POOL_LIST}" ]
+  then
+    return
+  fi
+  echo -e "${LTBLUE}Activating Libvirt storage pool(s) ...${NC}"
+  echo -e "${LTBLUE}---------------------------------------------------------${NC}"
+  for VNET in ${LIBVIRT_POOL_LIST}
+  do
+    if ! sudo virsh pool-list | grep -q ${POOL}
+    then
+      run sudo virsh pool-define ${LOCAL_LIBVIRT_CONFIG_DIR}/${POOL}.xml
+      #run sudo virsh pool-build ${POOL}
+      run sudo virsh pool-autostart ${POOL}
+      run sudo virsh pool-start ${POOL}
+    elif [ "$(sudo virsh pool-list | grep  ${VNET} | awk '{ print $2 }')" != active ]
+    then
+      run sudo virsh pool-autostart ${POOL}
+      if [ "$(sudo virsh pool-list | grep  ${POOL} | awk '{ print $3 }')" != yes ]
+      then
+        run sudo virsh pool-start ${POOL}
       fi
     fi
   done
@@ -122,12 +146,10 @@ define_virtual_machines() {
   do
     case ${MULTI_LAB_MACHINE} in
       y|Y|Yes|Yes|YES)
-        echo -e "${LTGREEN}COMMAND: ${GRAY} sudo virsh define ${VM_DEST_DIR}/${VM}/${VM}-${MULTI_LM_EXT}.xml${NC}"
-        sudo virsh define ${VM_DEST_DIR}/${VM}/${VM}-${MULTI_LM_EXT}.xml
+        run sudo virsh define ${VM_DEST_DIR}/${VM}/${VM}-${MULTI_LM_EXT}.xml
       ;;
       *)
-        echo -e "${LTGREEN}COMMAND: ${GRAY} sudo virsh define ${VM_DEST_DIR}/${VM}/${VM}.xml${NC}"
-        sudo virsh define ${VM_DEST_DIR}/${VM}/${VM}.xml
+        run sudo virsh define ${VM_DEST_DIR}/${VM}/${VM}.xml
       ;;
     esac
   done
@@ -144,6 +166,7 @@ echo -e "${LTCYAN}--------------------------------------------------------------
 echo
 
 activate_libvirt_virtual_networks
+activate_libvirt_storage_pools
 define_virtual_machines
 
 echo -e "${LTCYAN}---------------------------------------------------------------------------${NC}"
