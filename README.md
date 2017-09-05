@@ -13,7 +13,7 @@ The Installer Framwork used the lab environment standars defined in the **https:
 
 ## Install a Lab Environment
 
-Open a command promt in the installer directory and run the folloiwng commnad:
+Open a command promt in the installer directory and run the following command:
 ```
 bash ./install_lab_env.sh
 ```
@@ -31,13 +31,13 @@ bash ./remove_lab_env.sh
 1. Check out the files from github
 2. Rename **config/lab_env.cfg.example** to **config/lab_env.cfg**
 3. Edit the **lab_env.cfg** as described later in this document
-4. Make sure your VMs have been created following the lab environment standards as decribed in the **https://github.com/roncterry/lab_env_tools** git repository
+4. Make sure your VMs have been created following the lab environment standards as described in the **https://github.com/roncterry/lab_env_tools** git repository
 5. Create archives of your VMs and put the archives in the **VMs** directory
-6. Export/create network definition XML files and pit them in the **config/libvirt.cfg/** directory
-7. Put any other files in theire corresponding directories
+6. Export/create network definition XML files and put them in the **config/libvirt.cfg/** directory
+7. Put any other files in their corresponding directories
 8. Test installing and removing your lab environment on another machine
 
-(The **backup_lab_env.sh** script can help you automate this process. See instructions later on in this document.)
+(**Hint**: The **backup_lab_env.sh** script can help you automate this process. See instructions later on in this document.)
 
 # Directory Structure
 
@@ -197,6 +197,10 @@ This variable contains the course number (i.e. Course ID) or Session ID of the c
 
 **REQUIRE_LIBVIRT**
 
+**REQUIRE_LIBVIRT_TCP_LISTEN**
+
+**REQUIRE_VNC_SPICE_LISTEN**
+
 These variables specify which tests to run on the lab machine before attempting to install the lab environment onto the lab machine. The default behaviour is to run all tests unless specifically told not to. This behaviour allows additional tests to be added to the installation script yet still have older configuration files still work. If you are not sure which tests you need for your lab environment, just allow all tests to run.
 
 To disable a test, set the variable's value to **N**.
@@ -352,18 +356,25 @@ The p7zip formats are **strongly recommended** because they split the archive in
 
 Because this script creates, as its backup, an installer package using the Lab Environment Installer Framework you can also use the script to create the initial installer package for a lab environment. As long as the VMs and ISO image (and cloud images) are in the appropriate directory structure as described earlier all you need to do is create a directory **~/scripts/<COURSE_ID>/** that contains the following files from the Installer Framework in the following directory structure (this matches the installed directory structure created when installing a course):
 ```
-~/scripts/<COURSE_ID>/
-                     |-install_lab_env.sh
-                     |-remove_lab_env.sh
-                     |-backup_lab_env.sh
-                     |-restore-virtualization-environment.sh
-                     |-config/
-                             |-lab_env.cfg
-                             |-custom-functions.sh
-                             |-custom-install-functions.sh
-                             |-custom-remove-functions.sh
-                             |-libvirt.cfg/
-                                          |-(your libvirt network XML definition files)
+~/
+ |-scripts/<COURSE_ID>/
+ |                   |-install_lab_env.sh
+ |                   |-remove_lab_env.sh
+ |                   |-backup_lab_env.sh
+ |                   |-restore-virtualization-environment.sh
+ |                   |-config/
+ |                           |-lab_env.cfg
+ |                           |-custom-functions.sh
+ |                           |-custom-install-functions.sh
+ |                           |-custom-remove-functions.sh
+ |                           |-libvirt.cfg/
+ |                                        |-(your libvirt network/pool/volume XML definition files)
+ |
+ |-pdf/<COURSE_ID>/
+ |                |-(your course manuals - lecture/lab/etc.)
+ |
+ |-course_files/<COURSE_ID>/
+                           |-(your additional course files)
 ```
 Once this directory structure is created, simply running the command:
 ```

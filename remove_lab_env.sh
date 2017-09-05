@@ -1,6 +1,6 @@
 #!/bin/bash
-# Version: 2.5.0
-# Date: 2017-07-20
+# Version: 2.6.0
+# Date: 2017-08-24
 
 DEFAULT_CONFIG="config/lab_env.cfg"
 
@@ -84,6 +84,10 @@ echo -e "${LTCYAN}--------------------------------------------------------------
 echo
 
 remove_libvirt_vms
+
+remove_libvirt_volumes
+
+remove_libvirt_pools
 
 remove_libvirt_networks
 
