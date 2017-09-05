@@ -1,5 +1,5 @@
 ##############  Lab Env Install and Configure Functions ######################
-# version: 4.1.1
+# version: 4.1.2
 # date: 2017-09-05
 #
 
@@ -259,9 +259,9 @@ copy_iso_images() {
   for ISO in ${ISO_LIST}
   do
     #-- Use cp instead of rsync 
-    #run cp -R ${ISO_SRC_DIR}/${ISO} ${ISO_DEST_DIR}/${COURSE_NUM}/ > /dev/null 2>&1
+    run cp -R ${ISO_SRC_DIR}/${ISO} ${ISO_DEST_DIR}/${COURSE_NUM}/
     #-- Use rsync instead of cp 
-    run rsync -a ${ISO_SRC_DIR}/${ISO} ${ISO_DEST_DIR}/${COURSE_NUM} > /dev/null 2>&1
+    #run rsync -a ${ISO_SRC_DIR}/${ISO} ${ISO_DEST_DIR}/${COURSE_NUM} > /dev/null 2>&1
   done
   echo
 }
