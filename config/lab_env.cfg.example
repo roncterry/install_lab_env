@@ -71,6 +71,24 @@ COURSE_NUM="TEST101"
 #   VMS/virtual networks.etc.). If you are using KVM virtual machine this should
 #   definitly be set to Y.
 #
+# REQUIRE_LIBVIRT_TCP_LISTEN
+#   This checks to make sure Libvirt is listening via TCP with no authentication.
+#   This can be required if you are having VMs talk to the Libvirt daemon for
+#   things such as STONTIH fencing in a cluster or Virt-Manager in a VM that can
+#   see and manage VMs on the host.
+#   NOTE: This can be considered a security risk. If possible you should also
+#         run a host firewall and allow only the networks you want to access
+#         Libvirt and your VMs.
+#
+# REQUIRE_LIBVIRT_QEMU_VNC_SPICE_LISTEN
+#   This checks to see if the Libvirt QEMU driver is allowing VNC and Spice 
+#   connections from all public network interfaces. This can be required if you
+#   are allowing Virt-manager running in a VM to access the graphical consoles
+#   of your running VMs.
+#   NOTE: This can be concidered a security risk. If possible you should also
+#         run a host firewall and allow only the networks you want to access
+#         graphical consoles of your VMs.
+#
 REQUIRE_VT_ENABLED=Y
 REQUIRE_MIN_MEMORY=Y
 REQUIRE_MIN_DISKSPACE=Y
@@ -79,6 +97,8 @@ REQUIRE_P7ZIP=Y
 REQUIRE_KVM_VIRT=Y
 REQUIRE_KVM_NESTED=Y
 REQUIRE_LIBVIRT=Y
+REQUIRE_LIBVIRT_TCP_LISTEN=Y
+REQUIRE_LIBVIRT_QEMU_VNC_SPICE_LISTEN=Y
 
 
 # Will the lab environment be spread accross multiple lab machines?
@@ -116,7 +136,7 @@ MIN_DISK_FREE=10
 MIN_MEMORY=1
 
 
-# List of ISO Images
+# A space delimited list of ISO Images
 #
 # A space delimited list of ISO image that are either used by the VMs or that
 # you wish to provide to the student as part of the lab environment.
@@ -126,7 +146,7 @@ MIN_MEMORY=1
 ISO_LIST=
 
 
-# List of Cloud Image
+# A space delimited list of Cloud Images
 #
 # A space delimited list of disk image files that are either used as 
 # cloud images in the labs or that you wish to provide to the student as part
@@ -137,7 +157,7 @@ ISO_LIST=
 CLOUD_IMAGE_LIST=
 
 
-# List of Libvirt VMs
+# A space delimited list of Libvirt VMs
 #
 # VMs should exist in a single directory and contain the disk images and a
 # XML config. 
@@ -170,7 +190,9 @@ LIBVIRT_CREATE_INITIAL_SNAPSHOT=""
 LIBVIRT_INITIAL_SNAPSHOT_NAME=""
 
 
-# List of Libvirt VM names that should be started by the installation script.
+# A space delimieted list of Libvirt VM names that should be started by 
+# the installation script.
+#
 # These VMs should only be VMs that are listed in $LIBVIRT_VM_LIST.
 #
 LIBVIRT_START_VM_LIST=""
@@ -190,12 +212,30 @@ LIBVIRT_START_VM_LIST=""
 LIBVIRT_AUTOBUILD_VM_CONFIG=""
 
 
-# The network configs in LIBVIRT_VNET_LIST should be the names of the Libvirt 
-# virtual networks.
+# A space delimited list of Libvirt virtual networks. The network configs in 
+# LIBVIRT_VNET_LIST should be the names of the Libvirt virtual networks.
 #
 # The config files that define these networks should be named <vnet_name>.xml
 #
 LIBVIRT_VNET_LIST=""
+
+
+# A space delimited list of Libvirt storage pools. The pool configs in 
+# LIBVIRT_POOL_LIST should be the names of the Libvirt storage pools.
+#
+# The config files that define these pools should be named <pool_name>.xml
+#
+LIBVIRT_POOL_LIST=""
+
+
+# A space delimited list of Libvirt volumes to be created/defined in the
+# storage pools. The volume configs in LIBVIRT_VOLUME_LIST should be the 
+# names of the Libvirt volumes to be created/defined in the storage pools.
+#
+# The config files that define these networks should be named 
+# <pool_name>:<volume_name>.xml
+#
+LIBVIRT_VOLUME_LIST=""
 
 
 # Change the VM's config file to set the CPU to the hypervisor default.
