@@ -1,5 +1,5 @@
 ##############  Remove Lab Env Functions ##################################
-# version: 4.1.1
+# version: 4.1.2
 # date: 2017-09-05
 #
 
@@ -333,10 +333,11 @@ remove_ssh_keys() {
       then
         echo -e "${LTBLUE}Removing SSH keys ...${NC}"
         echo -e "${LTBLUE}---------------------------------------------------------${NC}"
-        for FILE in $(cat ~/.ssh/.installed_files)
+        for FILE in $(cat ~/.ssh/.${COURSE_NUM}-installed_files)
         do
           run rm -f ~/.ssh/${FILE}
         done
+          run rm -f ~/.ssh/${COURSE_NUM}-installed_files
         echo
       fi
     ;;

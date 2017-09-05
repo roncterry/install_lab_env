@@ -1,5 +1,5 @@
 ##############  Lab Env Install and Configure Functions ######################
-# version: 4.1.2
+# version: 4.1.3
 # date: 2017-09-05
 #
 
@@ -452,7 +452,7 @@ install_ssh_keys() {
               y|Y)
                 echo
                 run cp ${CONFIG_SRC_DIR}/ssh/${FILE} ~/.ssh/
-                echo  "${FILE}" >> ~/.ssh/.installed_files
+                echo  "${FILE}" >> ~/.ssh/.${COURSE_NUM}-installed_files
               ;;
               *)
                 read DOIT
@@ -463,7 +463,7 @@ install_ssh_keys() {
                   *)
                     echo
                     run cp ${CONFIG_SRC_DIR}/ssh/${FILE} ~/.ssh/
-                    echo  "${FILE}" >> ~/.ssh/.installed_files
+                    echo  "${FILE}" >> ~/.ssh/.${COURSE_NUM}-installed_files
                   ;;
                 esac
               ;;
@@ -471,7 +471,7 @@ install_ssh_keys() {
 
           else
             run cp ${CONFIG_SRC_DIR}/ssh/${FILE} ~/.ssh/
-            echo  "${FILE}" >> ~/.ssh/.installed_files
+            echo  "${FILE}" >> ~/.ssh/.${COURSE_NUM}-installed_files
           fi
         done
         echo
@@ -480,7 +480,7 @@ install_ssh_keys() {
         chmod 600 ~/.ssh/id_*
         test -e ~/.ssh/known_hosts && chmod 644 ~/.ssh/known_hosts
         chmod 644 ~/.ssh/*.pub
-        test -e ~/.ssh/.installed_files && chmod 644 ~/.ssh/.installed_files
+        test -e ~/.ssh/.${COURSE_NUM}-installed_files && chmod 644 ~/.ssh/.${COURSE_NUM}-installed_files
       fi
     ;;
     *)
