@@ -1,6 +1,6 @@
 ##############  System Test Functions #####################################
-# version: 3.0.2
-# date: 2017-06-23
+# version: 3.1.1
+# date: 2017-09-05
 
 #=========  Hardware Test Functions  =============
 
@@ -227,7 +227,10 @@ test_libvirt_config() {
   else
     EDIT_LIBVIRTD_CONFIG=Y
   fi
+}
 
+test_for_libvirt_tcp_listen() {
+  LIBVIRT_CFG=/etc/libvirt/libvirtd.conf
   if sudo grep -q "^listen_tcp = 1" ${LIBVIRT_CFG}
   then
     LISTEN_TCP_SET=Y
@@ -239,7 +242,24 @@ test_libvirt_config() {
   then
     AUTH_TCP_NONE_SET=Y
   else
-    EDIT_LIBVIRTD_CONFIG=Y
+    EDIT_LIBVIRTD_CONFIG_TCP_LISTEN=Y
+  fi
+}
+
+test_for_vnc_spice_listen() {
+  LIBVIRT_QEMU_CFG=/etc/libvirt/qemu.conf
+  if sudo grep -q "^vnc_listen = \"0.0.0.0\"" ${LIBVIRT_QEMU_CFG}
+  then
+    VNC_LISTEN_ALL_SET=Y
+  else
+    EDIT_QEMUD_CONFIG=Y
+  fi
+
+  if sudo grep -q "^spice_listen = \"0.0.0.0\"" ${LIBVIRT_QEMU_CFG}
+  then
+    SPICE_LISTEN_ALL_SET=Y
+  else
+    EDIT_QEMUD_CONFIG_VNC_SPICE_LISTEN=Y
   fi
 }
 
@@ -269,7 +289,7 @@ test_for_libvirt_running() {
 
 run_test_for_vt_enabled() {
   echo -e "${LTBLUE}Checking if VT is enalbed in the BIOS ...${NC}"
-  echo -e "${LTBLUE}---------------------------------------------------------${NC}"
+  echo -e "${LTBLUE}-------------------------------------------------------------------${NC}"
   echo
   test_for_vt_enabled
   case ${VT_ENABLED} in
@@ -301,7 +321,7 @@ run_test_for_vt_enabled() {
 
 run_test_memory() {
   echo -e "${LTBLUE}Checking for enough memory ...${NC}"
-  echo -e "${LTBLUE}---------------------------------------------------------${NC}"
+  echo -e "${LTBLUE}-------------------------------------------------------------------${NC}"
   echo -e "${LTCYAN}Minimum memory: ${GREEN}${MIN_MEMORY}GB${NC}"
   echo
   test_memory
@@ -335,7 +355,7 @@ run_test_memory() {
 
 run_test_disk_space() {
   echo -e "${LTBLUE}Checking for enough disk space ...${NC}"
-  echo -e "${LTBLUE}---------------------------------------------------------${NC}"
+  echo -e "${LTBLUE}-------------------------------------------------------------------${NC}"
   echo -e "${LTCYAN}Minimum free disk space: ${GREEN}${MIN_DISK_FREE}GB${NC}"
   echo
   test_disk_space
@@ -370,7 +390,7 @@ run_test_disk_space() {
 
 run_test_for_sudo() {
   echo -e "${LTBLUE}Checking for sudo ...${NC}"
-  echo -e "${LTBLUE}---------------------------------------------------------${NC}"
+  echo -e "${LTBLUE}-------------------------------------------------------------------${NC}"
   echo
   test_for_sudo
   case ${SUDO_INSTALLED} in
@@ -451,7 +471,7 @@ run_test_for_sudo() {
 
 run_test_for_p7zip() {
   echo -e "${LTBLUE}Checking for p7zip ...${NC}"
-  echo -e "${LTBLUE}---------------------------------------------------------${NC}"
+  echo -e "${LTBLUE}-------------------------------------------------------------------${NC}"
   echo
   test_for_p7zip
   case ${P7ZIP_INSTALLED} in
@@ -483,7 +503,7 @@ run_test_for_p7zip() {
 
 run_test_for_kvm_virt() {
   echo -e "${LTBLUE}Checking for KVM virtualization ...${NC}"
-  echo -e "${LTBLUE}---------------------------------------------------------${NC}"
+  echo -e "${LTBLUE}-------------------------------------------------------------------${NC}"
   echo
   test_for_kvm_virt
   case ${KVM_LOADED} in
@@ -491,9 +511,6 @@ run_test_for_kvm_virt() {
       echo -e "  ${LTCYAN}  KVM_LOADED=${GREEN}Y${NC}"
       echo
       echo -e "  ${LTCYAN}    Continuing ...${NC}"
-      echo
-      echo -e "${LTBLUE}Checking for nested virtualization in KVM ...${NC}"
-      echo -e "${LTBLUE}---------------------------------------------------------${NC}"
       echo
 
       case ${REQUIRE_KVM_NESTED} in
@@ -504,9 +521,12 @@ run_test_for_kvm_virt() {
           test_for_kvm_nested_virt
           case ${NESTED_VIRT} in
             Y)
+              echo -e "${LTBLUE}Checking for nested virtualization in KVM ...${NC}"
+              echo -e "${LTBLUE}-------------------------------------------------------------------${NC}"
+              echo
               echo -e "  ${LTCYAN}  NESTED_VIRT=${GREEN}Y${NC}"
               echo
-              echo -e "  ${LTCYAN}    Continuing ...${NC}"
+              echo -e "  ${LTCNAN}    Continuing ...${NC}"
               echo
             ;;
             N)
@@ -536,7 +556,7 @@ run_test_for_kvm_virt() {
         ;;
       esac
     ;;
-    N)
+    *)
       echo -e "  ${LTCYAN}  KVM_LOADED=${LTRED}N${NC}"
       echo
       echo -e "${ORANGE}------------------------------------------------------------------------${NC}"
@@ -560,7 +580,7 @@ run_test_for_kvm_virt() {
 
 run_test_libvirt_config() {
   echo -e "${LTBLUE}Checking for proper Libvirt configuration ...${NC}"
-  echo -e "${LTBLUE}---------------------------------------------------------${NC}"
+  echo -e "${LTBLUE}-------------------------------------------------------------------${NC}"
   echo
   test_libvirt_config
   case ${LIBVIRT_INSTALLED} in
@@ -768,62 +788,6 @@ run_test_libvirt_config() {
       echo
     ;;
   esac
-  case ${LISTEN_TCP_SET} in
-    Y)
-      LISTEN_TCP_SET=Y
-      echo -e "  ${LTCYAN}  LISTEN_TCP_SET=${GREEN}Y${NC}"
-    ;;
-    *)
-      echo -e "  ${LTCYAN}  LISTEN_TCP_SET=${LTRED}N${NC}"
-      echo
-      echo -e "${ORANGE}------------------------------------------------------------------------${NC}"
-      echo -e "${RED}[Problem]${NC}"
-      echo -e "  ${LTRED}Libvirt is not configured to listen via TCP.${NC}"
-      echo
-      echo -e "${RED}[Remediation Required]${NC}"
-      echo -e "${RED}        |     |     |${NC}"
-      echo -e "${RED}        V     V     V${NC}"
-      case ${EDIT_LIBVIRTD_CONFIG} in
-        Y)
-          echo -e "  ${ORANGE}As the root user, edit ${BLUE}/etc/libvirt/libvirtd.conf${NC}"
-          echo
-        ;;
-      esac
-      echo -e "  ${ORANGE}Locate and uncomment/edit the following line to match:${NC}"
-      echo -e "  ${LTPURPLE}  listen_tcp = 1${NC}"
-      echo
-      echo -e "${ORANGE}------------------------------------------------------------------------${NC}"
-      echo
-    ;;
-  esac
-  case ${AUTH_TCP_NONE_SET} in
-    Y)
-      AUTH_TCP_NONE_SET=Y
-      echo -e "  ${LTCYAN}  AUTH_TCP_NONE_SET=${GREEN}Y${NC}"
-    ;;
-    *)
-      echo -e "  ${LTCYAN}  AUTH_TCP_NONE_SET=${LTRED}N${NC}"
-      echo
-      echo -e "${ORANGE}------------------------------------------------------------------------${NC}"
-      echo -e "${RED}[Problem]${NC}"
-      echo -e "  ${LTRED}Libvirt is not configured to allow access via TCP without authentication.${NC}"
-      echo
-      echo -e "${RED}[Remediation Required]${NC}"
-      echo -e "${RED}        |     |     |${NC}"
-      echo -e "${RED}        V     V     V${NC}"
-      case ${EDIT_LIBVIRTD_CONFIG} in
-        Y)
-          echo -e "  ${ORANGE}As the root user, edit ${BLUE}/etc/libvirt/libvirtd.conf${NC}"
-          echo
-        ;;
-      esac
-      echo -e "  ${ORANGE}Locate and uncomment/edit the following line to match:${NC}"
-      echo -e "  ${LTPURPLE}  auth_tcp = \"none\"${NC}"
-      echo
-      echo -e "${ORANGE}------------------------------------------------------------------------${NC}"
-      echo
-    ;;
-  esac
   case ${EDIT_LIBVIRTD_CONFIG} in
     Y)
       echo
@@ -870,6 +834,8 @@ run_test_libvirt_config() {
     Y)
       MEMBER_OF_LIBVIRT_GROUP=Y
       echo -e "  ${LTCYAN}  MEMBER_OF_LIBVIRT_GROUP=${GREEN}Y${NC}"
+      echo
+      echo -e "  ${LTCYAN}    Continuing ...${NC}"
     ;;
     *)
       echo -e "  ${LTCYAN}  MEMBER_OF_LIBVIRT_GROUP=${LTRED}N${NC}"
@@ -896,12 +862,15 @@ run_test_libvirt_config() {
 
   echo
   echo -e "${LTBLUE}Checking if Libvirt is running/enabled ...${NC}"
-  echo -e "${LTBLUE}---------------------------------------------------------${NC}"
+  echo -e "${LTBLUE}-------------------------------------------------------------------${NC}"
   echo
   test_for_libvirt_running
   case ${LIBVIRT_RUNNING} in
     Y)
+      LIBVIRT_RUNNING=Y
       echo -e "  ${LTCYAN}  LIBVIRT_RUNNING=${GREEN}Y${NC}"
+      echo
+      echo -e "  ${LTCYAN}    Continuing ...${NC}"
     ;;
     *)
       echo -e "  ${LTCYAN}  LIBVIRT_RUNNING=${LTRED}N${NC}"
@@ -924,6 +893,159 @@ run_test_libvirt_config() {
       #exit 10
     ;;
   esac
+}
+
+run_test_libvirt_tcp_listen() {
+  echo
+  echo -e "${LTBLUE}Checking if Libvirt/QEMU is listening for TCP witn no auth ...${NC}"
+  echo -e "${LTBLUE}-------------------------------------------------------------------${NC}"
+  echo
+  test_for_libvirt_tcp_listen
+  case ${LISTEN_TCP_SET} in
+    Y)
+      LISTEN_TCP_SET=Y
+      echo -e "  ${LTCYAN}  LISTEN_TCP_SET=${GREEN}Y${NC}"
+    ;;
+    *)
+      echo -e "  ${LTCYAN}  LISTEN_TCP_SET=${LTRED}N${NC}"
+      echo
+      echo -e "${ORANGE}------------------------------------------------------------------------${NC}"
+      echo -e "${RED}[Problem]${NC}"
+      echo -e "  ${LTRED}Libvirt is not configured to listen via TCP.${NC}"
+      echo
+      echo -e "${RED}[Remediation Required]${NC}"
+      echo -e "${RED}        |     |     |${NC}"
+      echo -e "${RED}        V     V     V${NC}"
+      case ${EDIT_LIBVIRTD_CONFIG} in
+        Y)
+          echo -e "  ${ORANGE}As the root user, edit ${BLUE}/etc/libvirt/libvirtd.conf${NC}"
+          echo
+        ;;
+      esac
+      echo -e "  ${ORANGE}Locate and uncomment/edit the following line to match:${NC}"
+      echo -e "  ${LTPURPLE}  listen_tcp = 1${NC}"
+      echo
+      echo -e "${ORANGE}------------------------------------------------------------------------${NC}"
+      echo
+    ;;
+  esac
+  case ${AUTH_TCP_NONE_SET} in
+    Y)
+      AUTH_TCP_NONE_SET=Y
+      echo -e "  ${LTCYAN}  AUTH_TCP_NONE_SET=${GREEN}Y${NC}"
+      echo
+      echo -e "  ${LTCYAN}    Continuing ...${NC}"
+    ;;
+    *)
+      echo -e "  ${LTCYAN}  AUTH_TCP_NONE_SET=${LTRED}N${NC}"
+      echo
+      echo -e "${ORANGE}------------------------------------------------------------------------${NC}"
+      echo -e "${RED}[Problem]${NC}"
+      echo -e "  ${LTRED}Libvirt is not configured to allow access via TCP without authentication.${NC}"
+      echo
+      echo -e "${RED}[Remediation Required]${NC}"
+      echo -e "${RED}        |     |     |${NC}"
+      echo -e "${RED}        V     V     V${NC}"
+      case ${EDIT_LIBVIRTD_CONFIG} in
+        Y)
+          echo -e "  ${ORANGE}As the root user, edit ${BLUE}/etc/libvirt/libvirtd.conf${NC}"
+          echo
+        ;;
+      esac
+      echo -e "  ${ORANGE}Locate and uncomment/edit the following line to match:${NC}"
+      echo -e "  ${LTPURPLE}  auth_tcp = \"none\"${NC}"
+      echo
+      echo -e "${ORANGE}------------------------------------------------------------------------${NC}"
+      echo
+    ;;
+  esac
+  case ${EDIT_LIBVIRTD_CONFIG_TCP_LISTEN} in
+    Y)
+      echo
+      echo -e "  ${ORANGE}After editing the file, reboot and rerun this script.${NC}"
+      echo
+      TEST_FAIL=y
+      #exit 8
+    ;;
+  esac
+}
+
+run_test_vnc_spice_listen() {
+  echo
+  echo -e "${LTBLUE}Checking if Libvirt/QEMU is listening for VNC and Spice ...${NC}"
+  echo -e "${LTBLUE}-------------------------------------------------------------------${NC}"
+  echo
+  test_for_vnc_spice_listen
+  case ${VNC_LISTEN_ALL_SET} in
+    Y)
+      VNC_LISTEN_ALL_SET=Y
+      echo -e "  ${LTCYAN}  VNC_LISTEN_ALL_SET=${GREEN}Y${NC}"
+    ;;
+    *)
+      echo -e "  ${LTCYAN}  VNC_LISTEN_ALL_SET=${LTRED}N${NC}"
+      echo
+      echo -e "${ORANGE}------------------------------------------------------------------------${NC}"
+      echo -e "${RED}[Problem]${NC}"
+      echo -e "  ${LTRED}The QEMU Libvirt driver is not configured to allow VNC access from${NC}"
+      echo -e "  ${LTRED}all public interfaces.${NC}"
+      echo
+      echo -e "${RED}[Remediation Required]${NC}"
+      echo -e "${RED}        |     |     |${NC}"
+      echo -e "${RED}        V     V     V${NC}"
+      case ${EDIT_LIBVIRTD_CONFIG} in
+        Y)
+          echo -e "  ${ORANGE}As the root user, edit ${BLUE}/etc/libvirt/qemu.conf${NC}"
+          echo
+        ;;
+      esac
+      echo -e "  ${ORANGE}Locate and uncomment/edit the following line to match:${NC}"
+      echo -e "  ${LTPURPLE}  vnc_listen = \"0.0.0.0\"${NC}"
+      echo
+      echo -e "${ORANGE}------------------------------------------------------------------------${NC}"
+      echo
+    ;;
+  esac
+  case ${SPICE_LISTEN_ALL_SET} in
+    Y)
+      SPICE_LISTEN_ALL_SET=Y
+      echo -e "  ${LTCYAN}  SPICE_LISTEN_ALL_SET=${GREEN}Y${NC}"
+      echo
+      echo -e "  ${LTCYAN}    Continuing ...${NC}"
+    ;;
+    *)
+      echo -e "  ${LTCYAN}  SPICE_LISTEN_ALL_SET=${LTRED}N${NC}"
+      echo
+      echo -e "${ORANGE}------------------------------------------------------------------------${NC}"
+      echo -e "${RED}[Problem]${NC}"
+      echo -e "  ${LTRED}The QEMU Libvirt driver is not configured to allow spice access from${NC}"
+      echo -e "  ${LTRED}all public interfaces.${NC}"
+      echo
+      echo -e "${RED}[Remediation Required]${NC}"
+      echo -e "${RED}        |     |     |${NC}"
+      echo -e "${RED}        V     V     V${NC}"
+      case ${EDIT_LIBVIRTD_CONFIG} in
+        Y)
+          echo -e "  ${ORANGE}As the root user, edit ${BLUE}/etc/libvirt/qemu.conf${NC}"
+          echo
+        ;;
+      esac
+      echo -e "  ${ORANGE}Locate and uncomment/edit the following line to match:${NC}"
+      echo -e "  ${LTPURPLE}  spice_listen = \"0.0.0.0\"${NC}"
+      echo
+      echo -e "${ORANGE}------------------------------------------------------------------------${NC}"
+      echo
+    ;;
+  esac
+  case ${EDIT_QEMUD_CONFIG_VNC_SPICE_LISTEN} in
+    Y)
+      echo
+      echo -e "  ${ORANGE}After editing the file, reboot and rerun this script.${NC}"
+      echo
+      TEST_FAIL=y
+      #exit 8
+    ;;
+  esac
+  
 }
   
 ##############  Run Tests #####################################
@@ -1002,6 +1124,26 @@ run_tests() {
     ;;
     *)
       run_test_libvirt_config
+    ;;
+  esac
+
+  #-Libvirt (TCP listen)
+  case ${REQUIRE_LIBVIRT_TCP_LISTEN} in
+    N)
+      LIBVIRT_TCP_LISTEN=NA
+    ;;
+    *)
+      run_test_libvirt_tcp_listen
+    ;;
+  esac
+
+  #-Libvirt-QEMU (VNC/Spice listen)
+  case ${REQUIRE_LIBVIRT_QEMU_VNC_SPICE_LISTEN} in
+    N)
+      VNC_SPICE_LISTEN=NA
+    ;;
+    *)
+      run_test_vnc_spice_listen
     ;;
   esac
 

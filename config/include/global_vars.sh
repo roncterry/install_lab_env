@@ -1,7 +1,7 @@
 ##############################################################################
 #                          Global Variables
-# version: 1.1.0
-# date: 2016-10-12
+# version: 2.0.0
+# date: 2018-08-24
 ##############################################################################
 
 CONFIG_SRC_DIR="./config"
@@ -27,8 +27,8 @@ ISO_DEST_DIR="/home/iso"
 IMAGE_SRC_DIR="./images"
 IMAGE_DEST_DIR="/home/images"
 
-VNET_CONFIG_DIR="${CONFIG_SRC_DIR}/libvirt.cfg"
-LOCAL_VNET_CONFIG_DIR="${SCRIPTS_DEST_DIR}/${COURSE_NUM}/config/libvirt.cfg"
+LIBVIRT_CONFIG_DIR="${CONFIG_SRC_DIR}/libvirt.cfg"
+LOCAL_LIBVIRT_CONFIG_DIR="${SCRIPTS_DEST_DIR}/${COURSE_NUM}/config/libvirt.cfg"
 
 RPM_DIR="./rpms"
   

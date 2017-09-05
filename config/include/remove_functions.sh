@@ -1,6 +1,6 @@
 ##############  Remove Lab Env Functions ##################################
-# version: 4.0.1
-# date: 2017-07-20
+# version: 4.1.0
+# date: 2017-08-20
 #
 
 remove_libvirt_networks() {
@@ -76,6 +76,38 @@ remove_new_nics() {
   done
 }
 
+remove_libvirt_volumes() {
+  if [ -z "${LIBVIRT_VOLUME_LIST}" ]
+  then
+    return
+  fi
+  echo -e "${LTBLUE}Removing Libvirt storage volume(s) ...${NC}"
+  echo -e "${LTBLUE}---------------------------------------------------------${NC}"
+  for VOLUME in ${LIBVIRT_VOLUME_LIST}
+  do
+    local POOL_NAME=$(echo ${VOLUME} | cut -d : -f 1)
+    local VOLUME_NAME=$(echo ${VOLUME} | cut -d : -f 2)
+      run sudo virsh vol-delete --pool ${POOL_NAME} --vol ${VOLUME_NAME}
+  done
+  echo
+}
+
+remove_libvirt_pools() {
+  if [ -z "${LIBVIRT_POOL_LIST}" ]
+  then
+    return
+  fi
+  echo -e "${LTBLUE}Removing Libvirt storage pools(s) ...${NC}"
+  echo -e "${LTBLUE}---------------------------------------------------------${NC}"
+  for POOL in ${LIBVIRT_POOL_LIST}
+  do
+      run sudo virsh pool-destroy ${POOL}
+      #run sudo virsh pool-delete ${POOL}
+      run sudo virsh pool-undefine ${POOL}
+  done
+  echo
+}
+
 remove_iso_images() {
   if ! [ -e ${ISO_SRC_DIR} ]
   then
@@ -134,10 +166,10 @@ remove_lab_scripts() {
       echo
     fi
     
-    if [ -e ${LOCAL_VNET_CONFIG_DIR} ]
+    if [ -e ${LOCAL_LIBVIRT_CONFIG_DIR} ]
     then
-      echo -e "${LTCYAN}Libvirt virtual network configs ...${NC}"
-      run rm -rf ${LOCAL_VNET_CONFIG_DIR}
+      echo -e "${LTCYAN}Libvirt configs ...${NC}"
+      run rm -rf ${LOCAL_LIBVIRT_CONFIG_DIR}
       echo
     fi
     

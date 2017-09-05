@@ -1,6 +1,6 @@
 ##############  Lab Env Install and Configure Functions ######################
-# version: 4.0.4
-# date: 2017-08-15
+# version: 4.1.1
+# date: 2017-09-05
 #
 
 create_directories() {
@@ -61,7 +61,7 @@ create_libvirt_virtual_networks() {
   do
     if ! sudo virsh net-list | grep -q "${VNET}$"
     then
-      run sudo virsh net-define ${VNET_CONFIG_DIR}/${VNET}.xml
+      run sudo virsh net-define ${LIBVIRT_CONFIG_DIR}/${VNET}.xml
       run sudo virsh net-autostart ${VNET}
       run sudo virsh net-start ${VNET}
     elif [ "$(sudo virsh net-list | grep  ${VNET} | awk '{ print $2 }')" != active ]
@@ -178,18 +178,70 @@ create_vmware_networks() {
   fi
 }
 
-copy_libvirt_virtual_network_configs() {
+copy_libvirt_configs() {
   if [ -z "${LIBVIRT_VNET_LIST}" ]
+  then
+    if [ -z "${LIBVIRT_POOL_LIST}" ]
+    then
+      return
+    fi
+  fi
+  if ! [ -d ${LOCAL_LIBVIRT_CONFIG_DIR} ]
+  then
+    echo -e "${LTBLUE}Creating directory for Libvirt configs ...${NC}"
+    echo -e "${LTBLUE}---------------------------------------------------------${NC}"
+    run mkdir -p ${LOCAL_LIBVIRT_CONFIG_DIR}
+  fi
+  run cp ${LIBVIRT_CONFIG_DIR}/*.xml ${LOCAL_LIBVIRT_CONFIG_DIR}/
+  echo
+}
+
+create_libvirt_storage_pools() {
+  if [ -z "${LIBVIRT_POOL_LIST}" ]
   then
     return
   fi
-  if ! [ -d ${LOCAL_VNET_CONFIG_DIR} ]
+  echo -e "${LTBLUE}Creating Libvirt storage pool(s) ...${NC}"
+  echo -e "${LTBLUE}---------------------------------------------------------${NC}"
+  for POOL in ${LIBVIRT_POOL_LIST}
+  do
+    if ! sudo virsh pool-list | grep -q "${POOL}$"
+    then
+      run sudo virsh pool-define ${LIBVIRT_CONFIG_DIR}/${POOL}.xml
+      run sudo virsh pool-build ${POOL}
+      run sudo virsh pool-autostart ${POOL}
+      run sudo virsh pool-start ${POOL}
+    elif [ "$(sudo virsh pool-list | grep  ${POOL} | awk '{ print $2 }')" != active ]
+    then
+      run sudo virsh pool-autostart ${POOL}
+      if [ "$(sudo virsh pool-list | grep  ${POOL} | awk '{ print $3 }')" != yes ]
+      then
+        run sudo virsh pool-start ${POOL}
+      fi
+    fi
+  done
+  echo
+}
+
+create_libvirt_storage_volumes() {
+  if [ -z "${LIBVIRT_VOLUME_LIST}" ]
   then
-    echo -e "${LTBLUE}Creating directory for Libvirt network configs ...${NC}"
-    echo -e "${LTBLUE}---------------------------------------------------------${NC}"
-    run mkdir -p ${LOCAL_VNET_CONFIG_DIR}
+    return
   fi
-  run cp ${VNET_CONFIG_DIR}/*.xml ${LOCAL_VNET_CONFIG_DIR}/
+  echo -e "${LTBLUE}Creating Libvirt storage volume(s) ...${NC}"
+  echo -e "${LTBLUE}---------------------------------------------------------${NC}"
+  for VOLUME in ${LIBVIRT_VOLUME_LIST}
+  do
+    local POOL_NAME=$(echo ${VOLUME} | cut -d : -f 1)
+    local VOLUME_NAME=$(echo ${VOLUME} | cut -d : -f 2)
+    if sudo virsh pool-list | grep -q ${POOL_NAME}
+    then
+      if ! sudo virsh vol-list --pool ${POOL_NAME} | awk '{ print $1 }' | grep -q "^${VOLUME}"
+      then
+        run sudo virsh vol-create ${POOL_NAME} ${LIBVIRT_CONFIG_DIR}/${VOLUME}.xml
+      fi
+    fi
+  done
   echo
 }
 

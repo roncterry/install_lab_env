@@ -1,6 +1,6 @@
 ##############  Helper Functions #############################################
-# version: 3.2.4
-# date: 2017-07-20
+# version: 3.3.0
+# date: 2017-08-25
 #
 
 configure_nic() {
@@ -700,6 +700,12 @@ get_archive_type() {
   elif ls ${ARCHIVE_FILE}.tbz > /dev/null 2>&1
   then
     local ARCHIVE_TYPE=tbz
+  elif ls ${ARCHIVE_FILE}.tar.xz > /dev/null 2>&1
+  then
+    local ARCHIVE_TYPE=tarxz
+  elif ls ${ARCHIVE_FILE}.txz > /dev/null 2>&1
+  then
+    local ARCHIVE_TYPE=txz
   elif ls ${ARCHIVE_FILE}.7z* > /dev/null 2>&1
   then
     local ARCHIVE_TYPE=7z
@@ -742,16 +748,22 @@ extract_archive() {
 
   case ${ARCHIVE_TYPE} in
     tgz)
-      run tar xzvf ${ARCHIVE_FILE} -C ${ARCHIVE_DEST_DIR}
+      run tar xzvf ${ARCHIVE_FILE}.tgz -C ${ARCHIVE_DEST_DIR}
     ;;
     targz)
       run tar xzvf ${ARCHIVE_FILE}.tar.gz -C ${ARCHIVE_DEST_DIR}
     ;;
     tbz)
-      run tar xjvf ${ARCHIVE_FILE} -C ${ARCHIVE_DEST_DIR}
+      run tar xjvf ${ARCHIVE_FILE}.tbz -C ${ARCHIVE_DEST_DIR}
     ;;
     tarbz2)
       run tar xjvf ${ARCHIVE_FILE}.tar.bz2 -C ${ARCHIVE_DEST_DIR}
+    ;;
+    txz)
+      run tar xJvf ${ARCHIVE_FILE}.txz -C ${ARCHIVE_DEST_DIR}
+    ;;
+    tarxz)
+      run tar xJvf ${ARCHIVE_FILE}.tar.xz -C ${ARCHIVE_DEST_DIR}
     ;;
     7z)
       if [ -e ${ARCHIVE_FILE}.7z ]
