@@ -141,7 +141,7 @@ Example archive creation commands:
 (This creates an archive in 7z format, compressed with LZMA2 and split into files no larger than 2GB. The file names will be VM_NAME.7z.00# - where # is the number of the file that is part of the archive. This is good for creating a smaller student media package but takes slightly longer to unpack when installing the lab environment.)
 
 ```bash
-7z a -t7z -m0=0 -mmt=on -v2g <VM_NAME>.7z <VM_DIRECTORY>
+7z a -t7z -mx=0 -v2g <VM_NAME>.7z <VM_DIRECTORY>
 ```
 
 (This creates an archive in 7z format, uncompressed and split into files no larger than 2GB. The file names will be VM_NAME.7z.00# - where # is the number of the file that is part of the archive. This unpacks quicker and is good for situations where you need to install the lab environment quicker but it creates a larger student media package.)
