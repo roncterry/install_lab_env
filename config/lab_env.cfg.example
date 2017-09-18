@@ -164,12 +164,13 @@ CLOUD_IMAGE_LIST=
 #
 # The XML config file should be the same name as the directory + ".xml".
 #
-# These VMs shoud be tar.gz files of the directory with the extension ".tgz"
-# It is assumed that the VM directories reside in "/home/VMs". All paths to
-# disk images should be relative to the VM directory in that directory.
+# These VMs shoud be archive (i.e. .7z) files of the directory with the 
+# extension ".7x.xxx" It is assumed that the VM directories reside in 
+# "/home/VMs". All paths to disk images should be relative to the VM 
+# directory in that directory.
 #
 # The VMs listed in LIBVIRT_VM_LIST should be the names of the files without 
-# the ".tgz"
+# the ".7z.xxx"
 #
 LIBVIRT_VM_LIST=""
 
