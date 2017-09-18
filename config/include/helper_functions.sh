@@ -1,6 +1,6 @@
 ##############  Helper Functions #############################################
-# version: 3.3.0
-# date: 2017-08-25
+# version: 3.4.2
+# date: 2017-09-18
 #
 
 configure_nic() {
@@ -513,14 +513,14 @@ get_libvirt_capabilities() {
   AVAILABLE_440FX_VERS=$(virsh capabilities | grep -Eo "pc-i440fx-[0-9]+\.[0-9]+" | cut -d - -f 3 | sort | uniq)
   HIGHEST_440FX_VER=$(echo ${AVAILABLE_440FX_VERS} | cut -d " " -f $(echo ${AVAILABLE_440FX_VERS} | wc -w))
   AVAILABLE_Q35_VERS=$(virsh capabilities | grep -Eo "pc-q35-[0-9]+\.[0-9]+" | cut -d - -f 3 | sort | uniq)
-  HIGHEST_Q35_VER=$(echo ${AVAILABLE_Q35_VERS} | tail -n 1)
+  HIGHEST_Q35_VER=$(echo ${AVAILABLE_Q35_VERS} | cut -d " " -f $(echo ${AVAILABLE_Q35_VERS} | wc -w))
   AVAILABLE_PC_VERS=$(virsh capabilities | grep -Eo "pc-[0-9]+\.[0-9]+" | cut -d - -f 2 | sort | uniq)
   HIGHEST_PC_VER=$(echo ${AVAILABLE_PC_VERS} | cut -d " " -f $(echo ${AVAILABLE_PC_VERS} | wc -w))
-  #echo "AVAILABLE_440FX_VERS=${AVAILABLE_440FX_VERS}"
+  ##echo "AVAILABLE_440FX_VERS=${AVAILABLE_440FX_VERS}"
   #echo "HIGHEST_440FX_VER=${HIGHEST_440FX_VER}"
-  #echo "AVAILABLE_Q35_VERS=${AVAILABLE_Q35_VERS}"
+  ##echo "AVAILABLE_Q35_VERS=${AVAILABLE_Q35_VERS}"
   #echo "HIGHEST_Q35_VER=${HIGHEST_Q35_VER}"
-  #echo "AVAILABLE_PC_VERS=${AVAILABLE_PC_VERS}"
+  ##echo "AVAILABLE_PC_VERS=${AVAILABLE_PC_VERS}"
   #echo "HIGHEST_PC_VER=${HIGHEST_PC_VER}"
   #read
 }
@@ -601,29 +601,51 @@ edit_libvirt_domxml() {
       local MACHINE_TYPE_STRING=$(grep "machine=" ${VM_DEST_DIR}/"${VM}"/"${VM_CONFIG}" | awk '{ print $3 }' | cut -d \> -f 1 | cut -d \' -f 2)
       local MACHINE_TYPE=$(echo ${MACHINE_TYPE_STRING} | cut -d \- -f 2)
       local MACHINE_TYPE_VER=$(echo ${MACHINE_TYPE_STRING} | cut -d \- -f 3)
- 
-      case ${MACHINE_TYPE} in
-        i440fx)
-          if ! echo ${AVAILABLE_440FX_VERS} | grep -q ${MACHINE_TYPE_VER}
-          then
-            echo -e "  ${LTCYAN}Changing machine type to highest supported version ...${NC}"
-            run sed -i "s/pc-i440fx-.../pc-i440fx-${HIGHEST_440FX_VER}/"  ${VM_DEST_DIR}/"${VM}"/"${VM_CONFIG}"
-            echo
-          else
-            echo -e "  ${LTCYAN}Machine type is a supported version: ${GRAY}${MACHINE_TYPE_VER} ${NC}"
-            echo
-          fi
+      
+      #echo "KVM_SET_MACHINE_TYPE_TO_HIGHEST_SUPPORTED=${KVM_SET_MACHINE_TYPE_TO_HIGHEST_SUPPORTED}"
+      #echo "MACHINE_TYPE_STRING=${MACHINE_TYPE_STRING}"
+      #echo "MACHINE_TYPE=${MACHINE_TYPE}"
+      #echo "MACHINE_TYPE_VER=${MACHINE_TYPE_VER}"
+      #read;
+
+      case ${KVM_SET_MACHINE_TYPE_TO_HIGHEST_SUPPORTED} in
+        Y|y)
+          case ${MACHINE_TYPE} in
+            i440fx)
+              echo -e "  ${LTCYAN}Changing machine type to highest supported version ...${NC}"
+              run sed -i "s/pc-i440fx-.../pc-i440fx-${HIGHEST_440FX_VER}/"  ${VM_DEST_DIR}/"${VM}"/"${VM_CONFIG}"
+            ;;
+            q35)
+              echo -e "  ${LTCYAN}Changing machine type to highest supported version ...${NC}"
+              run sed -i "s/pc-q35-.../pc-q35-${HIGHEST_Q35_VER}/"  ${VM_DEST_DIR}/"${VM}"/"${VM_CONFIG}"
+            ;;
+          esac
         ;;
-        q35)
-          if ! echo ${AVAILABLE_Q35_VERS} | grep -q ${MACHINE_TYPE_VER}
-          then
-            echo -e "  ${LTCYAN}Changing machine type to highest supported version ...${NC}"
-            run sed -i "s/pc-q35-.../pc-q35-${HIGHEST_Q35_VER}/"  ${VM_DEST_DIR}/"${VM}"/"${VM_CONFIG}"
-            echo
-          else
-            echo -e "  ${LTCYAN}Machine type is a supported version: ${GRAY}${MACHINE_TYPE_VER} ${NC}"
-            echo
-          fi
+        *) 
+          case ${MACHINE_TYPE} in
+            i440fx)
+              if ! echo ${AVAILABLE_440FX_VERS} | grep -q ${MACHINE_TYPE_VER}
+              then
+                echo -e "  ${LTCYAN}Changing machine type to highest supported version ...${NC}"
+                run sed -i "s/pc-i440fx-.../pc-i440fx-${HIGHEST_440FX_VER}/"  ${VM_DEST_DIR}/"${VM}"/"${VM_CONFIG}"
+                echo
+              else
+                echo -e "  ${LTCYAN}Machine type is a supported version: ${GRAY}${MACHINE_TYPE_VER} ${NC}"
+                echo
+              fi
+            ;;
+            q35)
+              if ! echo ${AVAILABLE_Q35_VERS} | grep -q ${MACHINE_TYPE_VER}
+              then
+                echo -e "  ${LTCYAN}Changing machine type to highest supported version ...${NC}"
+                run sed -i "s/pc-q35-.../pc-q35-${HIGHEST_Q35_VER}/"  ${VM_DEST_DIR}/"${VM}"/"${VM_CONFIG}"
+                echo
+              else
+                echo -e "  ${LTCYAN}Machine type is a supported version: ${GRAY}${MACHINE_TYPE_VER} ${NC}"
+                echo
+              fi
+            ;;
+          esac
         ;;
       esac
  
