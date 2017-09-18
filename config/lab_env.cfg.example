@@ -236,19 +236,34 @@ LIBVIRT_POOL_LIST=""
 # The config files that define these networks should be named 
 # <pool_name>:<volume_name>.xml
 #
+# Example: 
+#  LIBVIRT_VOLUME_LIST="mypool:vol1.qcow2 mypool:vol2.raw"
+#
 LIBVIRT_VOLUME_LIST=""
 
 
 # Change the VM's config file to set the CPU to the hypervisor default.
 #
 # This can be useful if you are not sure which version of Libvirt created the 
-# VMs config file or is the CPU the Vm will be run on will supprort the version
+# VMs config file or if the CPU the VM will be run on will supprort the version
 # Specified in the VM's config file.
 #
 # Setting this to 'y' can potentialy fix problems where the VM won't boot or
 # it is getting a kernel panic.  
 #
 LIBVIRT_SET_CPU_TO_HYPERVISOR_DEFAULT="n"
+
+
+# Change the VM's config file to set the machine type to the highest supported
+# version.
+#
+# This can be useful if you are not sure which version of Libvirt created the 
+# VMs config file or if the machine type specified in the VM's original config 
+# file is supported on the current version of Libvirt/KVM.
+#
+# Setting this to 'y' can potentialy fix problems where the VM won't boot.
+#
+KVM_SET_MACHINE_TYPE_TO_HIGHEST_SUPPORTED="n"
 
 
 # Install SSH keys/authorized_keys/known_hosts files into the user's ~/.ssh
