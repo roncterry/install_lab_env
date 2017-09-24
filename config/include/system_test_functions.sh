@@ -1,6 +1,6 @@
 ##############  System Test Functions #####################################
-# version: 3.1.1
-# date: 2017-09-05
+# version: 3.1.2
+# date: 2017-09-24
 
 #=========  Hardware Test Functions  =============
 
@@ -1055,7 +1055,7 @@ run_tests() {
 
   #-VT Enabled in BIOS
   case ${REQUIRE_VT_ENABLED} in
-    N)
+    N|n)
       VT_ENABLED=NA
     ;;
     *)
@@ -1065,7 +1065,7 @@ run_tests() {
 
   #-Minimum Memory
   case ${REQUIRE_MIN_MEMORY} in
-    N)
+    N|n)
       ENOUGH_MEMORY=NA
     ;;
     *)
@@ -1075,7 +1075,7 @@ run_tests() {
 
   #-Minimum Disk Space
   case ${REQUIRE_MIN_DISKSPACE} in
-    N)
+    N|n)
       ENOUGH_DISKSPACE=NA
     ;;
     *)
@@ -1087,7 +1087,7 @@ run_tests() {
 
   #-sudo
   case ${REQUIRE_SUDO_NOPASSWD} in
-    N)
+    N|n)
       SUDO_NOPASSWD=NA
     ;;
     *)
@@ -1097,7 +1097,7 @@ run_tests() {
 
   #-p7zip
   case ${REQUIRE_P7ZIP} in
-    N)
+    N|n)
       P7ZIP_INSTALLED=NA
     ;;
     *)
@@ -1109,7 +1109,7 @@ run_tests() {
 
   #-KVM
   case ${REQUIRE_KVM_VIRT} in
-    N)
+    N|n)
       KVM_LOADED=NA
     ;;
     *)
@@ -1119,7 +1119,7 @@ run_tests() {
 
   #-Libvirt
   case ${REQUIRE_LIBVIRT} in
-    N)
+    N|n)
       LIBVIRT_INSTALLED=NA
     ;;
     *)
@@ -1129,7 +1129,7 @@ run_tests() {
 
   #-Libvirt (TCP listen)
   case ${REQUIRE_LIBVIRT_TCP_LISTEN} in
-    N)
+    N|n)
       LIBVIRT_TCP_LISTEN=NA
     ;;
     *)
@@ -1139,7 +1139,7 @@ run_tests() {
 
   #-Libvirt-QEMU (VNC/Spice listen)
   case ${REQUIRE_LIBVIRT_QEMU_VNC_SPICE_LISTEN} in
-    N)
+    N|n)
       VNC_SPICE_LISTEN=NA
     ;;
     *)
