@@ -234,10 +234,10 @@ LIBVIRT_POOL_LIST=""
 # names of the Libvirt volumes to be created/defined in the storage pools.
 #
 # The config files that define these networks should be named 
-# <pool_name>:<volume_name>.xml
+# <pool_name>+<volume_name>.xml
 #
 # Example: 
-#  LIBVIRT_VOLUME_LIST="mypool:vol1.qcow2 mypool:vol2.raw"
+#  LIBVIRT_VOLUME_LIST="mypool+vol1.qcow2 mypool+vol2.raw"
 #
 LIBVIRT_VOLUME_LIST=""
 
