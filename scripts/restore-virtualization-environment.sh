@@ -1,6 +1,6 @@
 #!/bin/bash
-# Version: 2.0.0
-# Date: 2017-08-24
+# Version: 1.2.0
+# Date: 2017-09-25
 
 ### Colors ###
 RED='\e[0;31m'
@@ -43,6 +43,11 @@ else
   source ${CONFIG}
 fi
 
+run () {
+  echo -e "${LTGREEN}COMMAND: ${GRAY}$*${NC}"
+  "$@"
+}
+
 ##############################################################################
 #                          Global Variables
 ##############################################################################
@@ -70,7 +75,7 @@ ISO_DEST_DIR="/home/iso"
 IMAGE_SRC_DIR="./images"
 IMAGE_DEST_DIR="/home/images"
 
-LIBVIRT_CONFIG_DIR="${CONFIG_SRC_DIR}/libvirt.cfg"
+LIBVIRT_CONFIG_DIR="${CONFIG_SRC_DIR}/${COURSE_NUM}/libvirt.cfg"
 LOCAL_LIBVIRT_CONFIG_DIR="${SCRIPTS_DEST_DIR}/${COURSE_NUM}/config/libvirt.cfg"
 
 RPM_DIR="./rpms"
@@ -81,12 +86,8 @@ VMWARE_INSTALLER_DIR="./vmware"
 #                          Functions
 ##############################################################################
 
-run () {
-  echo -e "${LTGREEN}COMMAND: ${GRAY}$*${NC}"
-  "$@"
-}
-
 activate_libvirt_virtual_networks() {
+  #local LIBVIRT_VNET_LIST=$(cd ~/${LOCAL_LIBVIRT_CONFIG_DIR} ; ls *.xml | sed 's/.xml//g')
   if [ -z "${LIBVIRT_VNET_LIST}" ]
   then
     return
@@ -112,33 +113,6 @@ activate_libvirt_virtual_networks() {
   echo
 }
 
-activate_libvirt_storage_pools() {
-  if [ -z "${LIBVIRT_POOL_LIST}" ]
-  then
-    return
-  fi
-  echo -e "${LTBLUE}Activating Libvirt storage pool(s) ...${NC}"
-  echo -e "${LTBLUE}---------------------------------------------------------${NC}"
-  for VNET in ${LIBVIRT_POOL_LIST}
-  do
-    if ! sudo virsh pool-list | grep -q ${POOL}
-    then
-      run sudo virsh pool-define ${LOCAL_LIBVIRT_CONFIG_DIR}/${POOL}.xml
-      #run sudo virsh pool-build ${POOL}
-      run sudo virsh pool-autostart ${POOL}
-      run sudo virsh pool-start ${POOL}
-    elif [ "$(sudo virsh pool-list | grep  ${VNET} | awk '{ print $2 }')" != active ]
-    then
-      run sudo virsh pool-autostart ${POOL}
-      if [ "$(sudo virsh pool-list | grep  ${POOL} | awk '{ print $3 }')" != yes ]
-      then
-        run sudo virsh pool-start ${POOL}
-      fi
-    fi
-  done
-  echo
-}
-
 define_virtual_machines() {
   echo -e "${LTBLUE}Defining Libvirt virtual machine(s) ...${NC}"
   echo -e "${LTBLUE}---------------------------------------------------------${NC}"
@@ -156,6 +130,55 @@ define_virtual_machines() {
   echo
 }
 
+activate_libvirt_storage_pools() {
+  if [ -z "${LIBVIRT_POOL_LIST}" ]
+  then
+    return
+  fi
+  echo -e "${LTBLUE}Creating Libvirt storage pool(s) ...${NC}"
+  echo -e "${LTBLUE}---------------------------------------------------------${NC}"
+  for POOL in ${LIBVIRT_POOL_LIST}
+  do
+    if ! sudo virsh pool-list | grep -q "${POOL}$"
+    then
+      run sudo virsh pool-define ${LOCAL_LIBVIRT_CONFIG_DIR}/${POOL}.xml
+      run sudo virsh pool-build ${POOL}
+      run sudo virsh pool-autostart ${POOL}
+      run sudo virsh pool-start ${POOL}
+    elif [ "$(sudo virsh pool-list | grep  ${POOL} | awk '{ print $2 }')" != active ]
+    then
+      run sudo virsh pool-autostart ${POOL}
+      if [ "$(sudo virsh pool-list | grep  ${POOL} | awk '{ print $3 }')" != yes ]
+      then
+        run sudo virsh pool-start ${POOL}
+      fi
+    fi
+  done
+  echo
+}
+
+activate_libvirt_storage_volumes() {
+  if [ -z "${LIBVIRT_VOLUME_LIST}" ]
+  then
+    return
+  fi
+  echo -e "${LTBLUE}Creating Libvirt storage volume(s) ...${NC}"
+  echo -e "${LTBLUE}---------------------------------------------------------${NC}"
+  for VOLUME in ${LIBVIRT_VOLUME_LIST}
+  do
+    local POOL_NAME=$(echo ${VOLUME} | cut -d + -f 1)
+    local VOLUME_NAME=$(echo ${VOLUME} | cut -d + -f 2)
+    if sudo virsh pool-list | grep -q ${POOL_NAME}
+    then
+      if ! sudo virsh vol-list --pool ${POOL_NAME} | awk '{ print $1 }' | grep -q "^${VOLUME}"
+      then
+        run sudo virsh vol-create ${POOL_NAME} ${LOCAL_LIBVIRT_CONFIG_DIR}/${VOLUME}.xml
+      fi
+    fi
+  done
+  echo
+}
+
 ##############################################################################
 #                          Main Code Body
 ##############################################################################
@@ -166,8 +189,9 @@ echo -e "${LTCYAN}--------------------------------------------------------------
 echo
 
 activate_libvirt_virtual_networks
-activate_libvirt_storage_pools
 define_virtual_machines
+activate_libvirt_storage_pools
+#activate_libvirt_storage_volumes
 
 echo -e "${LTCYAN}---------------------------------------------------------------------------${NC}"
 echo -e "${LTCYAN}                                  Finished"
