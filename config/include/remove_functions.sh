@@ -1,6 +1,6 @@
 ##############  Remove Lab Env Functions ##################################
-# version: 4.1.2
-# date: 2017-09-05
+# version: 4.1.4
+# date: 2017-09-25
 #
 
 remove_libvirt_networks() {
@@ -85,8 +85,8 @@ remove_libvirt_volumes() {
   echo -e "${LTBLUE}---------------------------------------------------------${NC}"
   for VOLUME in ${LIBVIRT_VOLUME_LIST}
   do
-    local POOL_NAME=$(echo ${VOLUME} | cut -d : -f 1)
-    local VOLUME_NAME=$(echo ${VOLUME} | cut -d : -f 2)
+    local POOL_NAME=$(echo ${VOLUME} | cut -d + -f 1)
+    local VOLUME_NAME=$(echo ${VOLUME} | cut -d + -f 2)
       run sudo virsh vol-delete --pool ${POOL_NAME} --vol ${VOLUME_NAME}
   done
   echo

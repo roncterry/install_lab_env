@@ -1,6 +1,6 @@
 ##############  Lab Env Install and Configure Functions ######################
-# version: 4.1.3
-# date: 2017-09-05
+# version: 4.1.4
+# date: 2017-09-25
 #
 
 create_directories() {
@@ -232,8 +232,8 @@ create_libvirt_storage_volumes() {
   echo -e "${LTBLUE}---------------------------------------------------------${NC}"
   for VOLUME in ${LIBVIRT_VOLUME_LIST}
   do
-    local POOL_NAME=$(echo ${VOLUME} | cut -d : -f 1)
-    local VOLUME_NAME=$(echo ${VOLUME} | cut -d : -f 2)
+    local POOL_NAME=$(echo ${VOLUME} | cut -d + -f 1)
+    local VOLUME_NAME=$(echo ${VOLUME} | cut -d + -f 2)
     if sudo virsh pool-list | grep -q ${POOL_NAME}
     then
       if ! sudo virsh vol-list --pool ${POOL_NAME} | awk '{ print $1 }' | grep -q "^${VOLUME}"
