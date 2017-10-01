@@ -1,6 +1,6 @@
 #!/bin/bash
-# Version: 1.2.0
-# Date: 2017-09-25
+# Version: 1.3.0
+# Date: 2017-10-01
 
 ### Colors ###
 RED='\e[0;31m'
@@ -28,20 +28,18 @@ DEFAULT_CONFIG="./config/lab_env.cfg"
 if echo $* | grep -q "config="
 then
   CONFIG=$(echo $* | grep -o "config=.*" | cut -d = -f 2 | cut -d \  -f 1)
+  if ! [ -e "${CONFIG}" ]
+  then
+    echo
+    echo -e "${RED}ERROR:  The configuration file $CONFIG doesn't exist.${NC}"
+    echo
+    exit 1
+  fi
 else
   CONFIG="${DEFAULT_CONFIG}"
 fi
  
-if ! [ -e "${CONFIG}" ]
-then
-  echo
-  echo -e "${RED}ERROR:  The configuration file $CONFIG doesn't exist.${NC}"
-  echo
-  exit 1
-else
-  #echo -e ${LTBLUE}CONFIG=${NC}${CONFIG}
-  source ${CONFIG}
-fi
+source ${CONFIG}
 
 run () {
   echo -e "${LTGREEN}COMMAND: ${GRAY}$*${NC}"
@@ -179,6 +177,47 @@ activate_libvirt_storage_volumes() {
   echo
 }
 
+create_new_vlans() {
+  if [ -z "${VLAN_LIST}" ]
+  then
+    return
+  fi
+  echo -e "${LTBLUE}Creating New VLAN(s) ...${NC}"
+  echo -e "${LTBLUE}---------------------------------------------------------${NC}"
+  for VLAN in ${VLAN_LIST}
+  do
+    local VLAN_NAME=$(echo ${VLAN} | cut -d , -f 1)
+    local NODE_NUM=$(echo ${VLAN} | cut -d , -f 2)
+    local VLAN_NET=$(echo ${VLAN} | cut -d , -f 3)
+    local VLAN_ETHERDEV=$(echo ${VLAN} | cut -d , -f 4)
+    local VLAN_ID=$(echo ${VLAN} | cut -d , -f 5)
+
+    configure_new_vlan ${VLAN_NAME} ${NODE_NUM} ${VLAN_NET} ${VLAN_ETHERDEV} ${VLAN_ID}
+    echo
+  done
+}
+
+create_new_bridges() {
+  if [ -z "${BRIDGE_LIST}" ]
+  then
+    return
+  fi
+  echo -e "${LTBLUE}Creating New Bridge(s) ...${NC}"
+  echo -e "${LTBLUE}---------------------------------------------------------${NC}"
+  for BRIDGE in ${BRIDGE_LIST}
+  do
+    local BRIDGE_NAME=$(echo ${BRIDGE} | cut -d , -f 1)
+    local NODE_NUM=$(echo ${BRIDGE} | cut -d , -f 2)
+    local BRIDGE_NET=$(echo ${BRIDGE} | cut -d , -f 3)
+    local BRIDGE_ETHERDEV=$(echo ${BRIDGE} | cut -d , -f 4)
+
+    configure_new_bridge ${BRIDGE_NAME} ${NODE_NUM} ${BRIDGE_NET} ${BRIDGE_ETHERDEV}
+    echo
+  done
+}
+
+
+
 ##############################################################################
 #                          Main Code Body
 ##############################################################################
@@ -192,6 +231,8 @@ activate_libvirt_virtual_networks
 define_virtual_machines
 activate_libvirt_storage_pools
 #activate_libvirt_storage_volumes
+create_new_vlans
+create_new_bridges
 
 echo -e "${LTCYAN}---------------------------------------------------------------------------${NC}"
 echo -e "${LTCYAN}                                  Finished"
