@@ -1,6 +1,6 @@
 ##############  Lab Env Install and Configure Functions ######################
-# version: 4.1.4
-# date: 2017-09-25
+# version: 4.1.5
+# date: 2017-11-07
 #
 
 create_directories() {
@@ -267,22 +267,25 @@ copy_iso_images() {
 }
 
 copy_cloud_images() {
-  if ! [ -e ${IMAGE_SRC_DIR}/${COURSE_NUM} ]
-  then
-    return
-  fi
+#  if ! [ -e ${IMAGE_SRC_DIR}/${COURSE_NUM} ]
+#  then
+#    return
+#  fi
   echo -e "${LTBLUE}Copying Cloud images ...${NC}"
   echo -e "${LTBLUE}---------------------------------------------------------${NC}"
   if ! [ -e ${IMAGE_DEST_DIR}/${COURSE_NUM} ]
   then
+    echo -e "${LTCYAN}(creating images directory ...)${NC}"
     run mkdir ${IMAGE_DEST_DIR}/${COURSE_NUM}
+    echo
   fi
+  echo -e "${LTCYAN}(copying images ...)${NC}"
   for IMAGE in ${CLOUD_IMAGE_LIST}
   do
     #-- Use cp instead of rsync 
     #run cp -R ${IMAGE_SRC_DIR}/${COURSE_NUM}/${IMAGE} ${IMAGE_DEST_DIR}/${COURSE_NUM}/ > /dev/null 2>&1
     #-- Use rsync instead of cp 
-    run rsync -a ${IMAGE_SRC_DIR}/${COURSE_NUM}/${IMAGE} ${IMAGE_DEST_DIR}/${COURSE_NUM}/ > /dev/null 2>&1
+    run rsync -a ${IMAGE_SRC_DIR}/${IMAGE} ${IMAGE_DEST_DIR}/${COURSE_NUM}/ > /dev/null 2>&1
   done
   echo
 }
