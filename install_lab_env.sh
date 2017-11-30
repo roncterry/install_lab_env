@@ -1,6 +1,6 @@
 #!/bin/bash
-# Version: 2.6.0
-# Date: 2017-08-24
+# Version: 2.6.1
+# Date: 2017-11-30
 
 DEFAULT_CONFIG="./config/lab_env.cfg"
 
@@ -150,11 +150,11 @@ copy_libvirt_configs
 
 install_ssh_keys
 
-extract_register_libvirt_vms
-
 create_libvirt_storage_pools
 
 create_libvirt_storage_volumes
+
+extract_register_libvirt_vms
 
 create_initial_vm_snapshots
 
