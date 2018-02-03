@@ -1,6 +1,6 @@
 ##############  System Test Functions #####################################
-# version: 3.1.2
-# date: 2017-09-24
+# version: 3.3.0
+# date: 2018-02-02
 
 #=========  Hardware Test Functions  =============
 
@@ -101,6 +101,17 @@ test_for_p7zip() {
   fi
 }
 
+#=========  Network Test Functions  =============
+
+test_for_NetworkManager() {
+  if [ "$(systemctl status NetworkManager |  grep Active: | awk '{ print $2 }')" == active ]
+  then
+    NETWORKMANAGER_ACTIVE=Y
+  else
+    NETWORKMANAGER_ACTIVE=N
+  fi
+}
+
 #=========  Hypervisor Test Functions  =============
 
 #== KVM ==
@@ -169,6 +180,15 @@ test_for_kvm_nested_virt() {
       fi
     ;;
   esac
+}
+
+test_for_qemu_ovmf() {
+  if rpm -qa | grep -q qemu-ovmf-x86_64 
+  then
+    QEMU_OVMF_INSTALLED=Y
+  else
+    QEMU_OVMF_INSTALLED=N
+  fi
 }
 
 #== Libvirt ==
@@ -501,6 +521,38 @@ run_test_for_p7zip() {
   esac
 }
 
+run_test_for_NetworkManager() {
+  echo -e "${LTBLUE}Checking if NetworkManager is running ...${NC}"
+  echo -e "${LTBLUE}-------------------------------------------------------------------${NC}"
+  echo
+  test_for_NetworkManager
+  case ${NETWORKMANAGER_ACTIVE} in
+    Y)
+      echo -e "  ${LTCYAN}  NETWORKMANAGER_ACTIVE=${LTRED}Y${NC}"
+      echo
+      echo -e "${ORANGE}------------------------------------------------------------------------${NC}"
+      echo -e "${RED}[Problem]${NC}"
+      echo -e "  ${LTRED}Multi Lab Machine installation is enabled and NetworkManager is running.${NC}"
+      echo
+      echo -e "${RED}[Remediation Required]${NC}"
+      echo -e "${RED}        |     |     |${NC}"
+      echo -e "${RED}        V     V     V${NC}"
+      echo -e "  ${ORANGE}Disable NetworkManager and enable Wicked.${NC}"
+      echo
+      echo -e "${ORANGE}------------------------------------------------------------------------${NC}"
+      echo
+      TEST_FAIL=y
+      #exit 5
+    ;;
+    N)
+      echo -e "  ${LTCYAN}  NETWORKMANAGER_ACTIVE=${GREEN}Y${NC}"
+      echo
+      echo -e "  ${LTCYAN}    Continuing ...${NC}"
+      echo
+    ;;
+  esac
+}
+
 run_test_for_kvm_virt() {
   echo -e "${LTBLUE}Checking for KVM virtualization ...${NC}"
   echo -e "${LTBLUE}-------------------------------------------------------------------${NC}"
@@ -574,6 +626,41 @@ run_test_for_kvm_virt() {
       echo
       TEST_FAIL=y
       #exit 5
+    ;;
+  esac
+}
+
+run_test_for_qemu_ovmf() {
+  echo -e "${LTBLUE}Checking for qemu-ovmf-x86_64 ...${NC}"
+  echo -e "${LTBLUE}-------------------------------------------------------------------${NC}"
+  echo
+  test_for_qemu_ovmf
+  case ${QEMU_OVMF_INSTALLED} in
+    Y)
+      echo -e "  ${LTCYAN}  QEMU_OVMF_INSTALLED=${GREEN}Y${NC}"
+      echo
+    ;;
+    *)
+      echo -e "  ${LTCYAN}  QEMU_OVMF_INSTALLED=${LTRED}N${NC}"
+      echo
+      echo -e "${ORANGE}------------------------------------------------------------------------${NC}"
+      echo -e "${RED}[Problem]${NC}"
+      echo -e "  ${LTRED}qemu-ovmf-x86_64 is not installed.${NC}"
+      echo
+      echo -e "${RED}[Remediation Required]${NC}"
+      echo -e "${RED}        |     |     |${NC}"
+      echo -e "${RED}        V     V     V${NC}"
+      echo -e "  ${ORANGE}As the root user, install the qemu-ovmf-x86_64 package${NC}"
+      echo
+      echo -e "  ${ORANGE}Example: ${NC}"
+      echo -e "  ${ORANGE}  zypper in -y qemu-ovmf-x86_64${NC}"
+      echo
+      echo -e "  ${ORANGE}Rerun this script.${NC}"
+      echo
+      echo -e "${ORANGE}------------------------------------------------------------------------${NC}"
+      echo
+      TEST_FAIL=y
+      #exit 7
     ;;
   esac
 }
@@ -1105,6 +1192,18 @@ run_tests() {
     ;;
   esac
 
+  #### Test Network ####
+
+  #-NetworkManager
+  case ${MULTI_LAB_MACHINE} in
+    N|n)
+      NETWORKMANAGER_ACTIVE=NA
+    ;;
+    *)
+      run_test_for_NetworkManager
+    ;;
+  esac
+
   #### Test Hypervisor ####
 
   #-KVM
@@ -1114,6 +1213,15 @@ run_tests() {
     ;;
     *)
       run_test_for_kvm_virt
+    ;;
+  esac
+
+  case ${REQUIRE_QEMU_OVMF} in
+    N|n)
+      QEMU_OVMF_INSTALLED=NA
+    ;;
+    *)
+      run_test_for_qemu_ovmf
     ;;
   esac
 

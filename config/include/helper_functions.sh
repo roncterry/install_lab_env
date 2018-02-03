@@ -1,6 +1,6 @@
 ##############  Helper Functions #############################################
-# version: 3.4.2
-# date: 2017-09-18
+# version: 3.5.0
+# date: 2018-02-02
 #
 
 configure_nic() {
@@ -983,6 +983,102 @@ extract_archive_sudo() {
       run sudo unzip ${OLD_PWD}/${ARCHIVE_FILE}
 
       run sudo cd -
+    ;;
+  esac
+}
+
+list_archive() {
+# Pass in:
+#  - an archive file with or without file extenstion
+#  - [optionally] the archive type (as determinted by the function: get_archive_type)
+# and the contents of the archive will be returned
+
+  local ARCHIVE_FILE=$1
+  local ARCHIVE_TYPE=$2
+
+  case ${ARCHIVE_TYPE} in
+    tgz)
+      tar -tvf ${ARCHIVE_FILE}.tgz  | awk '{ print $6 }'
+    ;;
+    targz)
+      tar -tvf ${ARCHIVE_FILE}.tar.gz  | awk '{ print $6 }'
+    ;;
+    tbz)
+      tar -tvf ${ARCHIVE_FILE}.tbz  | awk '{ print $6 }'
+    ;;
+    tarbz2)
+      tar -tvf ${ARCHIVE_FILE}.tar.bz2  | awk '{ print $6 }'
+    ;;
+    txz)
+      tar -tvf ${ARCHIVE_FILE}.txz  | awk '{ print $6 }'
+    ;;
+    tarxz)
+      tar -tvf ${ARCHIVE_FILE}.tar.xz  | awk '{ print $6 }'
+    ;;
+    7z)
+      if [ -e ${ARCHIVE_FILE}.7z ]
+      then
+        #7z l ${ARCHIVE_FILE}.7z | awk '/--------/{f=0} f; /--------/{f=1}' | grep -v "^ ." | awk '{ print $6 }' | sort
+        #7z l ${ARCHIVE_FILE}.7z | awk '/--------/{f=0} f; /--------/{f=1}' | grep -o "${ARCHIVE_FILE}/.*" | sort
+        7z l ${ARCHIVE_FILE}.7z | awk '/--------/{f=0} f; /--------/{f=1}' | grep -o "$(basename ${ARCHIVE_FILE} | sed 's/.7z//g')/.*" | sort
+      elif [ -e ${ARCHIVE_FILE}.7z.001 ]
+      then
+        #7z l ${ARCHIVE_FILE}.7z.001 | awk '/--------/{f=0} f; /--------/{f=1}' | grep -v "^ ." | awk '{ print $6 }' | sort
+        #7z l ${ARCHIVE_FILE}.7z.001 | awk '/--------/{f=0} f; /--------/{f=1}' | grep -o "${ARCHIVE_FILE}/.*" | sort
+        7z l ${ARCHIVE_FILE}.7z.001 | awk '/--------/{f=0} f; /--------/{f=1}' | grep -o "$(basename ${ARCHIVE_FILE} | sed 's/.7z.001//g')/.*" | sort
+      fi
+    ;;
+    #tar7z)
+    #  if [ -e ${ARCHIVE_FILE}.tar.7z ]
+    #  then
+    #    local OLD_PWD=${PWD}
+    #    run cd ${ARCHIVE_DEST_DIR}
+
+    #    run 7z x -mmt=on -so ${OLD_PWD}/${ARCHIVE_FILE}.tar.7z | tar xf -
+
+    #    run cd -
+    #  elif [ -e ${ARCHIVE_FILE}.tar.7z.001 ]
+    #  then
+    #    local OLD_PWD=${PWD}
+    #    run cd ${ARCHIVE_DEST_DIR}
+
+    #    run 7z x -mmt=on -so ${OLD_PWD}/${ARCHIVE_FILE}.tar.7z.001 | tar xf -
+
+    #    run cd -
+    #  fi
+    #;;
+    zip)
+      unzip -l ${ARCHIVE_FILE}.zip | awk '/---------/{f=0} f; /---------/{f=1}' | awk '{ print $4 }'
+    ;;
+    GZIP)
+      if echo ${ARCHIVE_FILE} | grep -q ".tar.gz$" || echo ${ARCHIVE_FILE} | grep -q ".tgz$"
+      then
+        tar -tvf ${ARCHIVE_FILE}  | awk '{ print $6 }'
+      fi
+    ;;
+    BZIP2)
+      if echo ${ARCHIVE_FILE} | grep -q ".tar.bz2$" || echo ${ARCHIVE_FILE} | grep -q ".tbz$"
+      then
+        tar -tvf ${ARCHIVE_FILE}  | awk '{ print $6 }'
+      fi
+    ;;
+    7ZIP)
+      if echo ${ARCHIVE_FILE} | grep -q ".tar.7z$"
+      then
+        7z l ${ARCHIVE_FILE}.tar.7z | awk '/--------/{f=0} f; /--------/{f=1}' | grep -o "$(basename ${ARCHIVE_FILE} | sed 's/.tar.7z//g')/.*" | sort
+      elif echo ${ARCHIVE_FILE} | grep -q ".tar.7z.001$" 
+      then
+        7z l ${ARCHIVE_FILE}.tar.7z.001 | awk '/--------/{f=0} f; /--------/{f=1}' | grep -o "$(basename ${ARCHIVE_FILE} | sed 's/.tar.7z.001//g')/.*" | sort
+      elif  echo ${ARCHIVE_FILE} | grep -q ".7z?"
+      then
+        7z l ${ARCHIVE_FILE}.7z | awk '/--------/{f=0} f; /--------/{f=1}' | grep -o "$(basename ${ARCHIVE_FILE} | sed 's/.7z//g')/.*" | sort
+      elif  echo ${ARCHIVE_FILE} | grep -q ".7z.001$" 
+      then
+        7z l ${ARCHIVE_FILE}.7z.001 | awk '/--------/{f=0} f; /--------/{f=1}' | grep -o "$(basename ${ARCHIVE_FILE} | sed 's/.7z.001//g')/.*" | sort
+      fi
+    ;;
+    ZIP)
+      unzip -l ${ARCHIVE_FILE} | awk '/---------/{f=0} f; /---------/{f=1}' | awk '{ print $4 }'
     ;;
   esac
 }
