@@ -1,6 +1,6 @@
 #!/bin/bash
-# Version: 2.6.1
-# Date: 2017-11-30
+# Version: 3.0.0
+# Date: 2018-02-02
 
 DEFAULT_CONFIG="./config/lab_env.cfg"
 
@@ -178,6 +178,18 @@ then
   fi
 fi
 
-echo -e "${LTCYAN}=========================  Installation Complete  =========================${NC}"
-echo
-exit 0
+case ${IS_ERROR} in
+  Y)
+    echo
+    echo -e "${LTRED}==================  Installation Complete - with errors  ==================${NC}"
+    echo -e "${LTRED}FAILED_TASKS=${RED}$(echo ${FAILED_TASKS} | sed 's/,/ /g')${NC}"
+    echo
+    exit 1
+  ;;
+  *)
+    echo
+    echo -e "${LTCYAN}=========================  Installation Complete  =========================${NC}"
+    echo
+    exit 0
+  ;;
+esac
