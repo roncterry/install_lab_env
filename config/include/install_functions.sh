@@ -1,6 +1,6 @@
 ##############  Lab Env Install and Configure Functions ######################
-# version: 5.0.0
-# date: 2018-02-02
+# version: 5.0.1
+# date: 2018-02-21
 #
 
 create_directories() {
@@ -331,10 +331,10 @@ create_libvirt_storage_volumes() {
     fi
 
     #--test--------------------------------------------------
-    if ! sudo virsh vol-list ${POOL_NAME} | grep -q "${VOLUME}"
+    if ! sudo virsh vol-list ${POOL_NAME} | grep -q "${VOLUME_NAME}"
     then
       IS_ERROR=Y
-      FAILED_TASKS="${FAILED_TASKS},install_functions.create_libvirt_storage_volumes:${VOLUME}"
+      FAILED_TASKS="${FAILED_TASKS},install_functions.create_libvirt_storage_volumes:${VOLUME_NAME}"
     fi
     #--------------------------------------------------------
   done
