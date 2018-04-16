@@ -7,13 +7,13 @@ The Installer Framework comprises the following:
 * Installation and removal scripts and their corresponding include files
 * A standardized directory structure for the course, its lab environment and related files
 
-The Installer Framwork used the lab environment standars defined in the **https://github.com/roncterry/lab_env_tools** git repository.
+The Installer Framwork used the lab environment standards defined in the **https://github.com/roncterry/lab_env_tools** git repository.
 
 # Usage - TL:DR
 
 ## Install a Lab Environment
 
-Open a command promt in the installer directory and run the following command:
+Open a command prompt in the installer directory and run the following command:
 ```
 bash ./install_lab_env.sh
 ```
@@ -195,6 +195,8 @@ This variable contains the course number (i.e. Course ID) or Session ID of the c
 
 **REQUIRE_KVM_NESTED**
 
+**REQUIRE_QEMU_OVMF**
+
 **REQUIRE_LIBVIRT**
 
 **REQUIRE_LIBVIRT_TCP_LISTEN**
@@ -246,6 +248,24 @@ The values in this list will be the names of the VMs which should correspond to 
 This is a space delimited list of Libvirt virtual networks that need to be defined and started when the lab environment is installed.
 
 The values in this list are the names of the XML network definition files (minus the .xml) that reside in the **config/libvirt.cfg/** directory. The names of these files should correspond to the names of the virtual networks as specified in their XML configuration files. This naming is critical because it is how the installation and removal scripts know how to manage the virtual networks for such things as registering and starting the networks.
+
+**VIRTUAL_BMC_NETWORK**
+
+This is the network that the virtual BMC devices will be created on.
+
+This should be a single network and the name should match the name of one of the network listed in LIBVIRT_NETWORK_LIST or BRIDGE_LIST. If it is a Libvirt network then it mst match the name of the brige created by the Libvirt network.
+
+**VIRTUAL_BMC_LIST**
+
+This is a space delimited list of comma delimitied lists where each of the comma delimited lists describe a virtual BMC that should be created.
+
+**LIBVIRT_POOL_LIST**
+
+A space delimited list of Libvirt storage pools. The pool configs in LIBVIRT_POOL_LIST should be the names of the Libvirt storage pools.
+
+**LIBVIRT_VOLUME_LIST**
+
+A space delimited list of Libvirt volumes to be created/defined in the storage pools. The volume configs in LIBVIRT_VOLUME_LIST should be the names of the Libvirt volumes to be created/defined in the storage pools.
 
 # Multi Lab Machine Environment
 
