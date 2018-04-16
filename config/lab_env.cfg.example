@@ -1,3 +1,4 @@
+# Config File Syntax Version: 2018031501
 ##############################################################################
 #                          Variables
 ##############################################################################
@@ -65,6 +66,12 @@ COURSE_NUM="TEST101"
 #   you can set this to N. However, even if you do not require nested
 #   virtualization it is safe to leave it set to Y.
 #
+# REQUIRE_QEMU_OVMF
+#   This checks to make sure the qemu-ovmf-x86_64 package is installed.
+#   This package is required if you have KVM VMs that boot using UEFI.
+#   However, even if you do not have VMs that boot using UEFI it is safe to 
+#   leave it set to Y.
+#
 # REQURE_LIBVIRT
 #   This checks to make sure Libvirt is installed and configured to allow a
 #   regular user to fully use Libvirt features (i.e. start/stop/define/undefine
@@ -96,6 +103,7 @@ REQUIRE_SUDO_NOPASSWD=Y
 REQUIRE_P7ZIP=Y
 REQUIRE_KVM_VIRT=Y
 REQUIRE_KVM_NESTED=Y
+REQUIRE_QEMU_OVMF=Y
 REQUIRE_LIBVIRT=Y
 REQUIRE_LIBVIRT_TCP_LISTEN=Y
 REQUIRE_LIBVIRT_QEMU_VNC_SPICE_LISTEN=Y
@@ -221,6 +229,36 @@ LIBVIRT_AUTOBUILD_VM_CONFIG=""
 LIBVIRT_VNET_LIST=""
 
 
+# Network for the virtual BMC devices
+#
+# This should be the name of one of your virtual networks/bridges defined
+# in LIBVIRT_NETWORK_LIST or BRIDGE_LIST. If it is a Libvirt network then
+# it must match the name of the bridge created by the Libvirt network.
+#
+VIRTUAL_BMC_NETWORK=""
+
+
+# The BMC entries in VIRTUAL_BMC_LIST should be a space delimited list of
+# comma delimited values in this order: 
+#  VM Name  (name of the VM in Libvirt)
+#  Host BMC IP  (IP address on the host the BMC listens on: Default=127.0.0.1)
+#  BMC Port  (port the BMC will listed on: Default=623)
+#  BMC Username  (username to log in to the BMC as: Default=admin)
+#  BMC Password  (password for the BMC user: Default=password)
+#
+# Example 1:
+#  VIRTUAL_BMC_LIST="SOC201-controller01,192.168.124.1,6230,admin,linux SOC201-compute01,192.168.124.1,6231,admin,linux"
+#
+# If you want to use the default value for a field just leave that field empty.
+#
+# Example 2 (using default username and password):
+#  VIRTUAL_BMC_LIST="SOC201-controller01,192.168.124.1,6230,, SOC201-compute01,192.168.124.1,6231,,"
+#
+# The VM names should only be VMs that are listed in $LIBVIRT_VM_LIST.
+#
+VIRTUAL_BMC_LIST=""
+
+
 # A space delimited list of Libvirt storage pools. The pool configs in 
 # LIBVIRT_POOL_LIST should be the names of the Libvirt storage pools.
 #
@@ -288,7 +326,7 @@ SSH_FILE_LIST=""
 
 
 # The VLAN names in VLAN_LIST should be a space delimited list of
-# comma delimited values: 
+# comma delimited values in this order: 
 #   VLAN name    (example: cloud-admin)
 #   node number    (example: 1)
 #   VLAN network (example: 192.168.124.0/24)
@@ -305,7 +343,7 @@ VLAN_LIST=""
 
 
 # The bridge names in BRIDGE_LIST should be a space delimited list of
-# comma delimited values: 
+# comma delimited values in this order: 
 #   bridge name    (example: cloud-admin)
 #   node number    (example: 1)
 #   bridge network (example: 192.168.124.0/24)
