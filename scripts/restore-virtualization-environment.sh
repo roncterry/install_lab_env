@@ -1,6 +1,6 @@
 #!/bin/bash
-# Version: 1.3.0
-# Date: 2017-10-01
+# Version: 1.4.2
+# Date: 2018-03-19
 
 ### Colors ###
 RED='\e[0;31m'
@@ -41,6 +41,7 @@ fi
  
 source ${CONFIG}
 
+# From common_functions.sh
 run () {
   echo -e "${LTGREEN}COMMAND: ${GRAY}$*${NC}"
   "$@"
@@ -81,7 +82,191 @@ RPM_DIR="./rpms"
 VMWARE_INSTALLER_DIR="./vmware"
 
 ##############################################################################
-#                          Functions
+#                          Helper Functions
+##############################################################################
+
+virtualbmc_control() {
+  local USAGE_STRING="USAGE: ${0} <action> <vm_name> <bmc_addr> <bnc_port> <bmc_network_name> <bmc_username> <bmc_password>"
+
+  if [ -z ${1} ]
+  then
+    echo
+    echo "ERROR: You must provide the action: create | remove"
+    echo
+    echo ${USAGE_STRING}
+    echo
+    return 1
+  elif [ -z ${2} ]
+  then
+    echo
+    echo "ERROR: You must provide the name of the VM"
+    echo
+    echo ${USAGE_STRING}
+    echo
+    return 1
+  elif [ -z ${3} ]
+  then
+    echo
+    echo "ERROR: You must provide the address of the BMC"
+    echo
+    echo ${USAGE_STRING}
+    echo
+    return 1
+  elif [ -z ${4} ]
+  then
+    echo
+    echo "ERROR: You must provide the port of the BMC"
+    echo
+    echo ${USAGE_STRING}
+    echo
+    return 1
+  elif [ -z ${5} ]
+  then
+    echo
+    echo "ERROR: You must provide the name of the BMC network"
+    echo
+    echo ${USAGE_STRING}
+    echo
+    return 1
+  elif [ -z ${6} ]
+  then
+    echo
+    echo "ERROR: You must provide the username for the BMC"
+    echo
+    echo ${USAGE_STRING}
+    echo
+    return 1
+  elif [ -z ${7} ]
+  then
+    echo
+    echo "ERROR: You must provide the password for the BMC"
+    echo
+    echo ${USAGE_STRING}
+    echo
+    return 1
+  fi
+
+  local ACTION=${1}
+  local VM_NAME=${2}
+  local BMC_ADDR=${3}
+  local BMC_PORT=${4}
+  local BMC_NETWORK_NAME=${5}
+  local BMC_USERNAME=${6}
+  local BMC_PASSWORD=${7}
+  local BMC_NETWORK_CIDR=$(ip addr show dev ${BMC_NETWORK_NAME} | grep " .inet " | awk '{ print $2 }' | cut -d "/" -f 2)
+
+  #echo
+  #echo "########################################################"
+  #echo ACTION=${ACTION}
+  #echo VM_NAME=${VM_NAME}
+  #echo BMC_ADDR=${BMC_ADDR}
+  #echo BMC_PORT=${BMC_PORT}
+  #echo BMC_NETWORK_NAME=${BMC_NETWORK_NAME}
+  #echo BMC_USERNAME=${BMC_USERNAME}
+  #echo BMC_PASSWORD=${BMC_PASSWORD}
+  #echo BMC_NETWORK_CIDR=${BMC_NETWORK_CIDR}
+  #echo "########################################################"
+  #echo;read
+
+  if echo ${VM_NAME} | grep -q "-"
+  then
+    local VM_SHORT_NAME=$(echo ${VM_NAME} | cut -d "-" -f 2)
+  else
+    local VM_SHORT_NAME=${VM_NAME}
+  fi
+
+  local VM_SHORT_NAME_LEN=$(echo ${VM_SHORT_NAME} | wc -m)
+  ((VM_SHORT_NAME_LEN--))
+
+  if [ "${VM_SHORT_NAME_LEN}" -le 7 ]
+  then
+    local PREF=${VM_SHORT_NAME}
+  else
+    local NUM=$(echo ${VM_SHORT_NAME} | grep -o [0-9]*$)
+    if [ -z ${NUM} ]
+    then
+      local PREF=$(echo ${VM_SHORT_NAME} | cut -c 1,2,3,4,5,6,7)
+    else
+      local PREF=$(echo ${VM_SHORT_NAME} | cut -c 1,2,3,4)
+    fi
+  fi
+
+  local VETH_NAME_A=${PREF}${NUM}-bmc-nic
+  local VETH_NAME_B=${PREF}${NUM}-bmc
+
+  #echo "--------------------------------------"
+  #echo VM_SHORT_NAME=${VM_SHORT_NAME}
+  #echo VM_SHORT_NAME_LEN=${VM_SHORT_NAME_LEN}
+  #echo
+  #echo NUM=${NUM}
+  #echo PREF=${PREF}
+  #echo
+  #echo VETH_NAME_A=${VETH_NAME_A}
+  #echo VETH_NAME_B=${VETH_NAME_B}
+  #echo "--------------------------------------"
+  #echo
+
+  case ${ACTION}
+  in
+    create)
+      if ! ip addr show | grep -q ${VETH_NAME_B}
+      then
+        # Create the veth pair for the BMC
+        #echo sudo ip link add dev ${VETH_NAME_A} type veth peer name ${VETH_NAME_B}
+        run sudo ip link add dev ${VETH_NAME_A} type veth peer name ${VETH_NAME_B}
+    
+        #echo sudo ip link set dev ${VETH_NAME_A} up
+        run sudo ip link set dev ${VETH_NAME_A} up
+    
+        #echo sudo ip link set ${VETH_NAME_A} master ${BMC_NETWORK_NAME}
+        run sudo ip link set ${VETH_NAME_A} master ${BMC_NETWORK_NAME}
+    
+        #echo sudo ip addr add ${BMC_ADDR} dev ${VETH_NAME_B}
+        run sudo ip addr add ${BMC_ADDR}/${BMC_NETWORK_CIDR} dev ${VETH_NAME_B}
+    
+        #echo sudo ip link set ${VETH_NAME_B} up
+        run sudo ip link set ${VETH_NAME_B} up
+ 
+      fi
+      if ! sudo vbmc list | grep -q ${VM_NAME}
+      then
+        # Create and start the BMC
+        run sudo vbmc add ${VM_NAME} --address ${BMC_ADDR} --port ${BMC_PORT} --username ${BMC_USERNAME} --password ${BMC_PASSWORD}
+        run sudo vbmc start ${VM_NAME}
+        run sudo vbmc show ${VM_NAME}
+
+        echo
+      fi
+    ;;
+    remove)
+      # Stop and remove the BMC
+      run sudo vbmc stop ${VM_NAME}
+      run sudo vbmc delete ${VM_NAME}
+
+      # Remove the veth pair for the BMC
+      #echo sudo ip link set ${VETH_NAME_B} down
+      run sudo ip link set ${VETH_NAME_B} down
+  
+      #echo sudo ip addr del ${BMC_ADDR} dev ${VETH_NAME_B}
+      run sudo ip addr del ${BMC_ADDR}/${BMC_NETWORK_CIDR} dev ${VETH_NAME_B}
+  
+      #echo sudo ip link set dev ${VETH_NAME_A} down
+      run sudo ip link set dev ${VETH_NAME_A} down
+  
+      #echo sudo ip link del dev ${VETH_NAME_A} type veth
+      run sudo ip link del dev ${VETH_NAME_A} type veth
+      
+      echo
+    ;;
+    test)
+      sudo vbmc list | grep -q "${VM_NAME}"
+      return $?
+    ;;
+  esac
+}
+
+##############################################################################
+#                          Script Functions
 ##############################################################################
 
 activate_libvirt_virtual_networks() {
@@ -177,6 +362,98 @@ activate_libvirt_storage_volumes() {
   echo
 }
 
+create_virtual_bmcs() {
+  local DEFAULT_BMC_ADDR=127.0.0.1
+  local DEFAULT_BMC_PORT=623
+  local DEFAULT_BMC_USERNAME=admin
+  local DEFAULT_BMC_PASSWORD=password
+
+  if [ -z "${VIRTUAL_BMC_LIST}" ]
+  then
+    return
+  fi
+
+  if ! which vbmc > /dev/null
+  then
+    echo -e "${LTBLUE}The vbmc command does not seem to be available. Skipping virtual BMC creation ...${NC}"
+    echo
+    return
+  else
+    echo -e "${LTBLUE}Creating virtual BMC(s) ...${NC}"
+    echo -e "${LTBLUE}---------------------------------------------------------${NC}"
+  fi
+
+  for BMC in ${VIRTUAL_BMC_LIST}
+  do
+    local VM_NAME=$(echo ${BMC} | cut -d , -f 1)
+    local BMC_ADDR=$(echo ${BMC} | cut -d , -f 2)
+
+    if [ -z ${BMC_ADDR} ]
+    then
+      BMC_ADDR=${DEFAULT_BMC_ADDR}
+    fi
+
+    local BMC_PORT=$(echo ${BMC} | cut -d , -f 3)
+    if [ -z ${BMC_PORT} ]
+    then
+      BMC_PORT=${DEFAULT_BMC_PORT}
+    fi
+
+    local BMC_USERNAME=$(echo ${BMC} | cut -d , -f 4)
+    if [ -z ${BMC_USERNAME} ]
+    then
+      BMC_USERNAME=${DEFAULT_BMC_USERNAME}
+    fi
+
+    local BMC_PASSWORD=$(echo ${BMC} | cut -d , -f 5)
+    if [ -z ${BMC_PASSWORD} ]
+    then
+      BMC_PASSWORD=${DEFAULT_BMC_PASSWORD}
+    fi
+
+    # --create the bmc---------------------------------------
+
+    #>Option 1: use virtualbmc directly
+    #if ! sudo vbmc list | grep -q ${VM_NAME}
+    #then
+    #  run sudo vbmc add ${VM_NAME} --address ${BMC_ADDR} --port ${BMC_PORT} --username ${BMC_USERNAME} --password ${BMC_PASSWORD}
+    #  run sudo vbmc start ${VM_NAME}
+    #  run sudo vbmc show ${VM_NAME}
+    #fi
+    #
+    ##--test--------------------------------------------------
+    #if ! sudo vbmc list | grep -q "${VM_NAME}"
+    #then
+    #  IS_ERROR=Y
+    #  FAILED_TASKS="${FAILED_TASKS},install_functions.create_virtual_bmcs:${VM_NAME}"
+    #fi
+    ##--------------------------------------------------------
+
+    #>Option 2: use a function that uses virtualbmc
+    virtualbmc_control create ${VM_NAME} ${BMC_ADDR} ${BMC_PORT} ${VIRTUAL_BMC_NETWORK} ${BMC_USERNAME} ${BMC_PASSWORD}
+
+    #--test--------------------------------------------------
+    if ! virtualbmc_control test ${VM_NAME} ${BMC_ADDR} ${BMC_PORT} ${VIRTUAL_BMC_NETWORK} ${BMC_USERNAME} ${BMC_PASSWORD}
+    then
+      IS_ERROR=Y
+      FAILED_TASKS="${FAILED_TASKS},install_functions.create_virtual_bmcs:${VM_NAME}"
+    fi
+    #--------------------------------------------------------
+
+    #>Option 3: Use a function that uses some other method
+    #
+    #
+    ##--test--------------------------------------------------
+    #if ???
+    #then
+    #  IS_ERROR=Y
+    #  FAILED_TASKS="${FAILED_TASKS},install_functions.create_virtual_bmcs:${VM_NAME}"
+    #fi
+    ##--------------------------------------------------------
+  done
+  echo
+}
+
 create_new_vlans() {
   if [ -z "${VLAN_LIST}" ]
   then
@@ -231,6 +508,7 @@ activate_libvirt_virtual_networks
 define_virtual_machines
 activate_libvirt_storage_pools
 #activate_libvirt_storage_volumes
+create_virtual_bmcs
 create_new_vlans
 create_new_bridges
 
