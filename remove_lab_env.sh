@@ -1,6 +1,6 @@
 #!/bin/bash
-# Version: 2.6.0
-# Date: 2017-08-24
+# Version: 2.7.1
+# Date: 2018-03-15
 
 DEFAULT_CONFIG="config/lab_env.cfg"
 
@@ -46,7 +46,11 @@ source config/include/global_vars.sh
 
 source config/include/common_functions.sh
 
-#== Source Custom Functions ==
+#== Source Helper Functions ==
+
+source config/include/helper_functions.sh
+
+#== Source Removal Functions ==
 
 source config/include/remove_functions.sh
 
@@ -84,6 +88,8 @@ echo -e "${LTCYAN}--------------------------------------------------------------
 echo
 
 remove_libvirt_vms
+
+remove_virtual_bmcs
 
 remove_libvirt_volumes
 

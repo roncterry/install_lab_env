@@ -1,6 +1,6 @@
 #!/bin/bash
-# Version: 3.0.0
-# Date: 2018-02-02
+# Version: 3.1.0
+# Date: 2018-03-14
 
 DEFAULT_CONFIG="./config/lab_env.cfg"
 
@@ -157,6 +157,8 @@ create_libvirt_storage_volumes
 extract_register_libvirt_vms
 
 create_initial_vm_snapshots
+
+create_virtual_bmcs
 
 start_libvirt_vms
 
