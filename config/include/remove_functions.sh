@@ -1,6 +1,6 @@
 ##############  Remove Lab Env Functions ##################################
-# version: 4.1.7
-# date: 2018-02-16
+# version: 4.2.1
+# date: 2018-03-15
 #
 
 remove_libvirt_networks() {
@@ -76,6 +76,46 @@ remove_new_nics() {
   done
 }
 
+remove_virtual_bmcs() {
+  if [ -z "${VIRTUAL_BMC_LIST}" ]
+  then
+    return
+  fi
+
+  if ! which vbmc > /dev/null
+  then
+    echo -e "${LTBLUE}The vbmc command does not seem to be available. Skipping virtual BMC removal ...${NC}"
+    echo
+    return
+  else
+    echo -e "${LTBLUE}Removing virtual BMC(s) ...${NC}"
+    echo -e "${LTBLUE}---------------------------------------------------------${NC}"
+  fi
+
+  for BMC in ${VIRTUAL_BMC_LIST}
+  do
+    local VM_NAME=$(echo ${BMC} | cut -d , -f 1)
+    local BMC_ADDR=$(echo ${BMC} | cut -d , -f 2)
+    local BMC_PORT=$(echo ${BMC} | cut -d , -f 3)
+    local BMC_USERNAME=$(echo ${BMC} | cut -d , -f 4)
+    local BMC_PASSWORD=$(echo ${BMC} | cut -d , -f 5)
+
+    #>Option 1: use virtualbmc directly
+    #
+    #run sudo vbmc stop ${VM_NAME}
+    #run sudo vbmc delete ${VM_NAME}
+
+    #>Option 2: use a function that uses virtualbmc
+    virtualbmc_control remove ${VM_NAME} ${BMC_ADDR} ${BMC_PORT} ${VIRTUAL_BMC_NETWORK} ${BMC_USERNAME} ${BMC_PASSWORD}
+
+    #>Option 3: use a function that uses some other method
+    #
+
+    echo
+  done
+  echo
+}
+
 remove_libvirt_volumes() {
   if [ -z "${LIBVIRT_VOLUME_LIST}" ]
   then
@@ -87,7 +127,7 @@ remove_libvirt_volumes() {
   do
     local POOL_NAME=$(echo ${VOLUME} | cut -d + -f 1)
     local VOLUME_NAME=$(echo ${VOLUME} | cut -d + -f 2)
-      run sudo virsh vol-delete --pool ${POOL_NAME} --vol ${VOLUME_NAME}
+    run sudo virsh vol-delete --pool ${POOL_NAME} --vol ${VOLUME_NAME}
   done
   echo
 }

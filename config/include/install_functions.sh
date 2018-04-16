@@ -1,6 +1,6 @@
 ##############  Lab Env Install and Configure Functions ######################
-# version: 5.0.1
-# date: 2018-02-21
+# version: 5.1.1
+# date: 2018-03-15
 #
 
 create_directories() {
@@ -341,6 +341,98 @@ create_libvirt_storage_volumes() {
   echo
 }
 
+create_virtual_bmcs() {
+  local DEFAULT_BMC_ADDR=127.0.0.1
+  local DEFAULT_BMC_PORT=623
+  local DEFAULT_BMC_USERNAME=admin
+  local DEFAULT_BMC_PASSWORD=password
+
+  if [ -z "${VIRTUAL_BMC_LIST}" ]
+  then
+    return
+  fi
+
+  if ! which vbmc > /dev/null
+  then
+    echo -e "${LTBLUE}The vbmc command does not seem to be available. Skipping virtual BMC creation ...${NC}"
+    echo
+    return
+  else
+    echo -e "${LTBLUE}Creating virtual BMC(s) ...${NC}"
+    echo -e "${LTBLUE}---------------------------------------------------------${NC}"
+  fi
+
+  for BMC in ${VIRTUAL_BMC_LIST}
+  do
+    local VM_NAME=$(echo ${BMC} | cut -d , -f 1)
+    local BMC_ADDR=$(echo ${BMC} | cut -d , -f 2)
+
+    if [ -z ${BMC_ADDR} ]
+    then
+      BMC_ADDR=${DEFAULT_BMC_ADDR}
+    fi
+
+    local BMC_PORT=$(echo ${BMC} | cut -d , -f 3)
+    if [ -z ${BMC_PORT} ]
+    then
+      BMC_PORT=${DEFAULT_BMC_PORT}
+    fi
+
+    local BMC_USERNAME=$(echo ${BMC} | cut -d , -f 4)
+    if [ -z ${BMC_USERNAME} ]
+    then
+      BMC_USERNAME=${DEFAULT_BMC_USERNAME}
+    fi
+
+    local BMC_PASSWORD=$(echo ${BMC} | cut -d , -f 5)
+    if [ -z ${BMC_PASSWORD} ]
+    then
+      BMC_PASSWORD=${DEFAULT_BMC_PASSWORD}
+    fi
+
+    # --create the bmc---------------------------------------
+
+    #>Option 1: use virtualbmc directly
+    #if ! sudo vbmc list | grep -q ${VM_NAME}
+    #then
+    #  run sudo vbmc add ${VM_NAME} --address ${BMC_ADDR} --port ${BMC_PORT} --username ${BMC_USERNAME} --password ${BMC_PASSWORD}
+    #  run sudo vbmc start ${VM_NAME}
+    #  run sudo vbmc show ${VM_NAME}
+    #fi
+    #
+    ##--test--------------------------------------------------
+    #if ! sudo vbmc list | grep -q "${VM_NAME}"
+    #then
+    #  IS_ERROR=Y
+    #  FAILED_TASKS="${FAILED_TASKS},install_functions.create_virtual_bmcs:${VM_NAME}"
+    #fi
+    ##--------------------------------------------------------
+
+    #>Option 2: use a function that uses virtualbmc
+    virtualbmc_control create ${VM_NAME} ${BMC_ADDR} ${BMC_PORT} ${VIRTUAL_BMC_NETWORK} ${BMC_USERNAME} ${BMC_PASSWORD}
+
+    #--test--------------------------------------------------
+    if ! virtualbmc_control test ${VM_NAME} ${BMC_ADDR} ${BMC_PORT} ${VIRTUAL_BMC_NETWORK} ${BMC_USERNAME} ${BMC_PASSWORD}
+    then
+      IS_ERROR=Y
+      FAILED_TASKS="${FAILED_TASKS},install_functions.create_virtual_bmcs:${VM_NAME}"
+    fi
+    #--------------------------------------------------------
+
+    #>Option 3: Use a function that uses some other method
+    #
+    #
+    ##--test--------------------------------------------------
+    #if ???
+    #then
+    #  IS_ERROR=Y
+    #  FAILED_TASKS="${FAILED_TASKS},install_functions.create_virtual_bmcs:${VM_NAME}"
+    #fi
+    ##--------------------------------------------------------
+  done
+  echo
+}
+
 copy_iso_images() {
   if ! [ -e ${ISO_SRC_DIR} ]
   then
@@ -351,35 +443,38 @@ copy_iso_images() {
   if ! [ -e ${ISO_DEST_DIR}/${COURSE_NUM} ]
   then
     run mkdir ${ISO_DEST_DIR}/${COURSE_NUM}
+
+    #--test--------------------------------------------------
+    if ! [ -d ${ISO_DEST_DIR}/${COURSE_NUM} ]
+    then
+      IS_ERROR=Y
+      FAILED_TASKS="${FAILED_TASKS},install_functions.copy_iso_images.create_dir:${ISO_DEST_DIR}/${COURSE_NUM}"
+    fi
+    #--------------------------------------------------------
   fi
+
   for ISO in ${ISO_LIST}
   do
     #-- Use cp instead of rsync 
     run cp -R ${ISO_SRC_DIR}/${ISO} ${ISO_DEST_DIR}/${COURSE_NUM}/
     #-- Use rsync instead of cp 
     #run rsync -a ${ISO_SRC_DIR}/${ISO} ${ISO_DEST_DIR}/${COURSE_NUM} > /dev/null 2>&1
+  done
 
-    #--test--------------------------------------------------
-    #rm -rf ${ISO_DEST_DIR}/${COURSE_NUM}/*
-    if ! [ -d ${ISO_DEST_DIR}/${COURSE_NUM} ]
+  #--test--------------------------------------------------
+  local SRC_ISOS="$(cd ${ISO_SRC_DIR};ls *.iso)"
+  local DST_ISOS="$(cd ${ISO_DEST_DIR}/${COURSE_NUM}/;ls *.iso)"
+
+  for SRC_ISO in ${SRC_ISOS}
+  do
+    if ! echo "${DST_ISOS}" | grep -q ${SRC_ISO}
     then
       IS_ERROR=Y
-      FAILED_TASKS="${FAILED_TASKS},install_functions.copy_iso_images.create_dir:${ISO_DEST_DIR}/${COURSE_NUM}"
-    fi
-
-    local SRC_ISOS=$(cd ${ISO_SRC_DIR};ls *.iso)
-    local DST_ISOS=$(cd ${ISO_DEST_DIR}/${COURSE_NUM}/;ls *.iso)
-
-    for SRC_ISO in ${SRC_ISOS}
-    do
-      if ! echo ${DST_ISOS} | grep -q ${SRC_ISO}
-      then
-        IS_ERROR=Y
-        FAILED_TASKS="${FAILED_TASKS},install_functions.copy_iso_images.copy_iso:${SRC_ISO}"
-      fi 
-    done
-    #--------------------------------------------------------
+      FAILED_TASKS="${FAILED_TASKS},install_functions.copy_iso_images.copy_iso:${SRC_ISO}"
+    fi 
   done
+  #--------------------------------------------------------
+
   echo
 }
 
