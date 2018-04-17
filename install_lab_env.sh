@@ -1,6 +1,6 @@
 #!/bin/bash
-# Version: 3.1.0
-# Date: 2018-03-14
+# Version: 3.2.0
+# Date: 2018-04-17
 
 DEFAULT_CONFIG="./config/lab_env.cfg"
 
@@ -142,7 +142,7 @@ copy_pdfs
 
 copy_course_files
 
-copy_lab_scripts
+copy_lab_environment_restore_scripts
 
 copy_install_remove_scripts
 
