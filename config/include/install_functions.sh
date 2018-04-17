@@ -1,6 +1,6 @@
 ##############  Lab Env Install and Configure Functions ######################
-# version: 5.1.1
-# date: 2018-03-15
+# version: 5.2.0
+# date: 2018-04-17
 #
 
 create_directories() {
@@ -352,7 +352,7 @@ create_virtual_bmcs() {
     return
   fi
 
-  if ! which vbmc > /dev/null
+  if ! which vbmc > /dev/null 2>&1
   then
     echo -e "${LTBLUE}The vbmc command does not seem to be available. Skipping virtual BMC creation ...${NC}"
     echo
@@ -442,28 +442,36 @@ copy_iso_images() {
   echo -e "${LTBLUE}---------------------------------------------------------${NC}"
   if ! [ -e ${ISO_DEST_DIR}/${COURSE_NUM} ]
   then
+    echo -e "${LTCYAN}(creating iso directory ...)${NC}"
     run mkdir ${ISO_DEST_DIR}/${COURSE_NUM}
+    echo
+  fi
+  echo -e "${LTCYAN}(copying isos ...)${NC}"
+  for ISO in ${ISO_LIST}
+  do
+    #-- Use cp instead of rsync 
+    run cp -R ${ISO_SRC_DIR}/${ISO} ${ISO_DEST_DIR}/${COURSE_NUM}/
+    #-- Use rsync instead of cp 
+    #run rsync -a ${ISO_SRC_DIR}/${ISO} ${ISO_DEST_DIR}/${COURSE_NUM}
 
     #--test--------------------------------------------------
+    #rm -rf ${ISO_DEST_DIR}/${COURSE_NUM}/*
     if ! [ -d ${ISO_DEST_DIR}/${COURSE_NUM} ]
     then
       IS_ERROR=Y
       FAILED_TASKS="${FAILED_TASKS},install_functions.copy_iso_images.create_dir:${ISO_DEST_DIR}/${COURSE_NUM}"
     fi
     #--------------------------------------------------------
-  fi
-
-  for ISO in ${ISO_LIST}
-  do
-    #-- Use cp instead of rsync 
-    run cp -R ${ISO_SRC_DIR}/${ISO} ${ISO_DEST_DIR}/${COURSE_NUM}/
-    #-- Use rsync instead of cp 
-    #run rsync -a ${ISO_SRC_DIR}/${ISO} ${ISO_DEST_DIR}/${COURSE_NUM} > /dev/null 2>&1
   done
 
-  #--test--------------------------------------------------
-  local SRC_ISOS="$(cd ${ISO_SRC_DIR};ls *.iso)"
-  local DST_ISOS="$(cd ${ISO_DEST_DIR}/${COURSE_NUM}/;ls *.iso)"
+    #--test--------------------------------------------------
+    local SRC_ISOS="$(cd ${ISO_SRC_DIR};ls *.iso)"
+    local DST_ISOS="$(cd ${ISO_DEST_DIR}/${COURSE_NUM}/;ls *.iso)"
+ 
+    #echo SRC_ISOS="${SRC_ISOS}"
+    #echo
+    #echo DST_ISOS="${DST_ISOS}"
+    #echo
 
   for SRC_ISO in ${SRC_ISOS}
   do
@@ -495,9 +503,9 @@ copy_cloud_images() {
   for IMAGE in ${CLOUD_IMAGE_LIST}
   do
     #-- Use cp instead of rsync 
-    #run cp -R ${IMAGE_SRC_DIR}/${COURSE_NUM}/${IMAGE} ${IMAGE_DEST_DIR}/${COURSE_NUM}/ > /dev/null 2>&1
+    #run cp -R ${IMAGE_SRC_DIR}/${COURSE_NUM}/${IMAGE} ${IMAGE_DEST_DIR}/${COURSE_NUM}/
     #-- Use rsync instead of cp 
-    run rsync -a ${IMAGE_SRC_DIR}/${IMAGE} ${IMAGE_DEST_DIR}/${COURSE_NUM}/ > /dev/null 2>&1
+    run rsync -a ${IMAGE_SRC_DIR}/${IMAGE} ${IMAGE_DEST_DIR}/${COURSE_NUM}/
 
     #--test--------------------------------------------------
     #rm -rf ${IMAGE_DEST_DIR}/${COURSE_NUM}/*
@@ -506,20 +514,28 @@ copy_cloud_images() {
       IS_ERROR=Y
       FAILED_TASKS="${FAILED_TASKS},install_functions.copy_cloud_images.create_dir:${IMAGE_DEST_DIR}/${COURSE_NUM}"
     fi
-
-    local SRC_IMAGES=$(cd ${IMAGE_SRC_DIR};ls)
-    local DST_IMAGES=$(cd ${IMAGE_DEST_DIR}/${COURSE_NUM}/;ls)
-
-    for SRC_IMAGE in ${SRC_IMAGES}
-    do
-      if ! echo ${DST_IMAGES} | grep -q ${SRC_IMAGE}
-      then
-        IS_ERROR=Y
-        FAILED_TASKS="${FAILED_TASKS},install_functions.copy_cloud_images.copy_image:${SRC_IMAGE}"
-      fi 
-    done
     #--------------------------------------------------------
   done
+
+  #--test--------------------------------------------------
+  local SRC_IMAGES=$(cd ${IMAGE_SRC_DIR};ls)
+  local DST_IMAGES=$(cd ${IMAGE_DEST_DIR}/${COURSE_NUM}/;ls)
+
+  #echo SRC_IMAGES="${SRC_IMAGES}"
+  #echo
+  #echo DST_IMAGES="${DST_IMAGES}"
+  #echo
+
+  for SRC_IMAGE in ${SRC_IMAGES}
+  do
+    if ! echo ${DST_IMAGES} | grep -q ${SRC_IMAGE}
+    then
+      IS_ERROR=Y
+      FAILED_TASKS="${FAILED_TASKS},install_functions.copy_cloud_images.copy_image:${SRC_IMAGE}"
+    fi 
+  done
+  #--------------------------------------------------------
+
   echo
 }
 
@@ -527,56 +543,87 @@ copy_install_remove_scripts() {
   echo -e "${LTBLUE}Copying install/remove scripts ...${NC}"
   echo -e "${LTBLUE}---------------------------------------------------------${NC}"
   echo -e "${LTCYAN}Lab environment config ...${NC}"
-
   run mkdir -p ${SCRIPTS_DEST_DIR}/${COURSE_NUM}/config/
-  run cp -R config/lab_env*.cfg ${SCRIPTS_DEST_DIR}/${COURSE_NUM}/config/ > /dev/null 2>&1
+  run cp -R config/lab_env*.cfg ${SCRIPTS_DEST_DIR}/${COURSE_NUM}/config/
   echo
+
   echo -e "${LTCYAN}Lab environment install/remove scripts ...${NC}"
-  run cp -R install_lab_env.sh ${SCRIPTS_DEST_DIR}/${COURSE_NUM}/ > /dev/null 2>&1
-  run cp -R remove_lab_env.sh ${SCRIPTS_DEST_DIR}/${COURSE_NUM}/ > /dev/null 2>&1
-  run cp -R backup_lab_env.sh ${SCRIPTS_DEST_DIR}/${COURSE_NUM}/ > /dev/null 2>&1
-  run cp -R config/include ${SCRIPTS_DEST_DIR}/${COURSE_NUM}/config > /dev/null 2>&1
-  run cp -R config/custom-functions.sh ${SCRIPTS_DEST_DIR}/${COURSE_NUM}/config > /dev/null 2>&1
-  run cp -R config/custom-remove-commands.sh ${SCRIPTS_DEST_DIR}/${COURSE_NUM}/config > /dev/null 2>&1
+  run cp -R install_lab_env.sh ${SCRIPTS_DEST_DIR}/${COURSE_NUM}/
+  run cp -R remove_lab_env.sh ${SCRIPTS_DEST_DIR}/${COURSE_NUM}/
+  run cp -R backup_lab_env.sh ${SCRIPTS_DEST_DIR}/${COURSE_NUM}/
+  run cp -R config/include ${SCRIPTS_DEST_DIR}/${COURSE_NUM}/config/
+  if [ -e config/custom-functions.sh ]
+  then
+    run cp -R config/custom-functions.sh ${SCRIPTS_DEST_DIR}/${COURSE_NUM}/config/
+  fi
+  if [ -e config/custom-install-commands.sh ]
+  then
+    run cp -R config/custom-install-commands.sh ${SCRIPTS_DEST_DIR}/${COURSE_NUM}/config/
+  fi
+  if [ -e config/custom-remove-commands.sh ]
+  then
+    run cp -R config/custom-remove-commands.sh ${SCRIPTS_DEST_DIR}/${COURSE_NUM}/config/
+  fi
 
   #NO_TESTS
   echo
 }
 
-copy_lab_scripts() {
+copy_lab_environment_restore_scripts() {
   if [ -e ${SCRIPTS_SRC_DIR} ]
   then
-    echo -e "${LTBLUE}Copying lab scripts ...${NC}"
+    echo -e "${LTBLUE}Copying lab environment restore scripts ...${NC}"
     echo -e "${LTBLUE}---------------------------------------------------------${NC}"
 
-    if [ -e ${SCRIPTS_SRC_DIR}/restore-virtualization-environment.sh ]
+    if ! [ -e ${SCRIPTS_DEST_DIR}/${COURSE_NUM} ]
     then
-      echo -e "${LTCYAN}restore-virtualization-environment.sh script ...${NC}"
-
-      if ! [ -e ${SCRIPTS_DEST_DIR}/${COURSE_NUM} ]
-      then
-        run mkdir -p ${SCRIPTS_DEST_DIR}/${COURSE_NUM}
-      fi
-
-      run cp -R ${SCRIPTS_SRC_DIR}/restore-virtualization-environment.sh ${SCRIPTS_DEST_DIR}/${COURSE_NUM}/
-      run chmod +x ${SCRIPTS_DEST_DIR}/${COURSE_NUM}/restore-virtualization-environment.sh
-
-      #--test--------------------------------------------------
-      if ! [ -e ${SCRIPTS_DEST_DIR}/${COURSE_NUM}/restore-virtualization-environment.sh ]
-      then
-        IS_ERROR=Y
-        FAILED_TASKS="${FAILED_TASKS},install_functions.copy_lab_scripts:restore-virtualization-environment.sh"
-      fi
-      #--------------------------------------------------------
-
+      echo -e "${LTCYAN}(creating scripts directory ...)${NC}"
+      run mkdir -p ${SCRIPTS_DEST_DIR}/${COURSE_NUM}
       echo
     fi
+ 
+    #local LAB_ENV_REST_SCRIPTS="restore-virtualization-environment.sh restore-virtual-bmc-devices.sh"
+    local LAB_ENV_REST_SCRIPTS="$(cd ${SCRIPTS_SRC_DIR};ls)"
+
+    for LAB_ENV_REST_SCRIPT in ${LAB_ENV_REST_SCRIPTS}
+    do
+      if [ -e ${SCRIPTS_SRC_DIR}/${LAB_ENV_REST_SCRIPT} ]
+      then
+        echo -e "${LTCYAN}${LAB_ENV_REST_SCRIPT} script ...${NC}"
+ 
+        run cp -R ${SCRIPTS_SRC_DIR}/${LAB_ENV_REST_SCRIPT} ${SCRIPTS_DEST_DIR}/${COURSE_NUM}/
+        run chmod +x ${SCRIPTS_DEST_DIR}/${COURSE_NUM}/${LAB_ENV_REST_SCRIPT}
+ 
+        #--test--------------------------------------------------
+        if ! [ -e ${SCRIPTS_DEST_DIR}/${COURSE_NUM}/${LAB_ENV_REST_SCRIPT} ]
+        then
+          IS_ERROR=Y
+          FAILED_TASKS="${FAILED_TASKS},install_functions.copy_lab_scripts:${LAB_ENV_REST_SCRIPT}"
+        fi
+        #--------------------------------------------------------
+ 
+        echo
+      fi
+    done
+  fi
+}
+
+copy_autobuild_scripts() {
+  if [ -e ${SCRIPTS_SRC_DIR} ]
+  then
+    echo -e "${LTBLUE}Copying autobuild scripts ...${NC}"
+    echo -e "${LTBLUE}---------------------------------------------------------${NC}"
 
     if [ -e ${SCRIPTS_SRC_DIR}/${VM_AUTOBUILD_SCRIPT_DIR} ]
     then
       echo -e "${LTCYAN}VM autobuild scripts ...${NC}"
 
-      run mkdir -p ${SCRIPTS_DEST_DIR}/${COURSE_NUM}
+      if ! [ -e ${SCRIPTS_DEST_DIR}/${COURSE_NUM} ]
+      then
+        echo -e "${LTCYAN}(creating scripts directory ...)${NC}"
+        run mkdir -p ${SCRIPTS_DEST_DIR}/${COURSE_NUM}
+        echo
+      fi
       
       echo -e "${LTCYAN}VM autobuild scripts ...${NC}"
       run cp -R ${SCRIPTS_SRC_DIR}/${VM_AUTOBUILD_SCRIPT_DIR} ${SCRIPTS_DEST_DIR}/${COURSE_NUM}/ > /dev/null 2>&1
@@ -605,12 +652,24 @@ copy_lab_scripts() {
 
       echo
     fi
+  fi
+}
 
+copy_lab_automation_scripts() {
+  if [ -e ${SCRIPTS_SRC_DIR} ]
+  then
+    echo -e "${LTBLUE}Copying lab automation scripts ...${NC}"
+    echo -e "${LTBLUE}---------------------------------------------------------${NC}"
     if [ -e ${SCRIPTS_SRC_DIR}/${LAB_SCRIPT_DIR} ]
     then
       echo -e "${LTCYAN}Lab automation scripts ...${NC}"
 
-      run mkdir -p ${SCRIPTS_DEST_DIR}/${COURSE_NUM}
+      if ! [ -e ${SCRIPTS_DEST_DIR}/${COURSE_NUM} ]
+      then
+        echo -e "${LTCYAN}(creating scripts directory ...)${NC}"
+        run mkdir -p ${SCRIPTS_DEST_DIR}/${COURSE_NUM}
+        echo
+      fi
       
       echo -e "${LTCYAN}Lab automation scripts ...${NC}"
       run cp -R ${SCRIPTS_SRC_DIR}/${LAB_SCRIPT_DIR} ${SCRIPTS_DEST_DIR}/${COURSE_NUM}/ > /dev/null 2>&1
@@ -640,11 +699,24 @@ copy_lab_scripts() {
       echo
     fi
 
+  fi
+}
+
+copy_cloud_deploy_scripts() {
+  if [ -e ${SCRIPTS_SRC_DIR} ]
+  then
+    echo -e "${LTBLUE}Copying cloud deploy scripts ...${NC}"
+    echo -e "${LTBLUE}---------------------------------------------------------${NC}"
     if [ -e ${SCRIPTS_SRC_DIR}/${DEPLOY_CLOUD_SCRIPT_DIR} ]
     then
       echo -e "${LTCYAN}Deploy cloud scripts ...${NC}"
 
-      run mkdir -p ${SCRIPTS_DEST_DIR}/${COURSE_NUM}
+      if ! [ -e ${SCRIPTS_DEST_DIR}/${COURSE_NUM} ]
+      then
+        echo -e "${LTCYAN}(creating scripts directory ...)${NC}"
+        run mkdir -p ${SCRIPTS_DEST_DIR}/${COURSE_NUM}
+        echo
+      fi
       
       run cp -R ${SCRIPTS_SRC_DIR}/${DEPLOY_CLOUD_SCRIPT_DIR} ${SCRIPTS_DEST_DIR}/${COURSE_NUM}/ > /dev/null 2>&1
       
@@ -672,7 +744,6 @@ copy_lab_scripts() {
 
       echo
     fi
-
   fi
 }
 
@@ -683,7 +754,9 @@ copy_pdfs() {
   fi
   echo -e "${LTBLUE}Copying PDF manuals and docs ...${NC}"
   echo -e "${LTBLUE}---------------------------------------------------------${NC}"
+  echo -e "${LTCYAN}(creating pdf directory ...)${NC}"
   run mkdir -p ${PDF_DEST_DIR}/${COURSE_NUM}
+  echo
   if ls ${PDF_SRC_DIR}/* > /dev/null 2>&1
   then
     run cp -R ${PDF_SRC_DIR}/* ${PDF_DEST_DIR}/${COURSE_NUM}/
@@ -720,8 +793,11 @@ copy_course_files() {
     echo -e "${LTBLUE}---------------------------------------------------------${NC}"
     if ls ./course_files/* > /dev/null 2>&1
     then
+      echo -e "${LTCYAN}(creating course_files directory ...)${NC}"
       run mkdir -p ${HOME}/course_files/${COURSE_NUM}
-      run cp -R course_files/* ${HOME}/course_files/${COURSE_NUM}/ > /dev/null 2>&1
+      echo
+      echo -e "${LTCYAN}(copying course_files ...)${NC}"
+      run cp -R course_files/* ${HOME}/course_files/${COURSE_NUM}/
 
       #--test--------------------------------------------------
       if ! [ -d ${HOME}/course_files/${COURSE_NUM} ]
