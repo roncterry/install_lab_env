@@ -1,6 +1,6 @@
 ##############  Lab Env Install and Configure Functions ######################
-# version: 5.2.0
-# date: 2018-04-17
+# version: 5.2.1
+# date: 2018-04-24
 #
 
 create_directories() {
@@ -436,52 +436,54 @@ create_virtual_bmcs() {
 copy_iso_images() {
   if ! [ -e ${ISO_SRC_DIR} ]
   then
-    return
-  fi
-  echo -e "${LTBLUE}Copying ISO images ...${NC}"
-  echo -e "${LTBLUE}---------------------------------------------------------${NC}"
-  if ! [ -e ${ISO_DEST_DIR}/${COURSE_NUM} ]
-  then
-    echo -e "${LTCYAN}(creating iso directory ...)${NC}"
-    run mkdir ${ISO_DEST_DIR}/${COURSE_NUM}
-    echo
-  fi
-  echo -e "${LTCYAN}(copying isos ...)${NC}"
-  for ISO in ${ISO_LIST}
-  do
-    #-- Use cp instead of rsync 
-    run cp -R ${ISO_SRC_DIR}/${ISO} ${ISO_DEST_DIR}/${COURSE_NUM}/
-    #-- Use rsync instead of cp 
-    #run rsync -a ${ISO_SRC_DIR}/${ISO} ${ISO_DEST_DIR}/${COURSE_NUM}
-
-    #--test--------------------------------------------------
-    #rm -rf ${ISO_DEST_DIR}/${COURSE_NUM}/*
-    if ! [ -d ${ISO_DEST_DIR}/${COURSE_NUM} ]
+    echo -e "${LTBLUE}Copying ISO images ...${NC}"
+    echo -e "${LTBLUE}---------------------------------------------------------${NC}"
+    if ! [ -e ${ISO_DEST_DIR}/${COURSE_NUM} ]
     then
-      IS_ERROR=Y
-      FAILED_TASKS="${FAILED_TASKS},install_functions.copy_iso_images.create_dir:${ISO_DEST_DIR}/${COURSE_NUM}"
+      echo -e "${LTCYAN}(creating iso directory ...)${NC}"
+      run mkdir ${ISO_DEST_DIR}/${COURSE_NUM}
+      echo
     fi
-    #--------------------------------------------------------
-  done
-
-    #--test--------------------------------------------------
-    local SRC_ISOS="$(cd ${ISO_SRC_DIR};ls *.iso)"
-    local DST_ISOS="$(cd ${ISO_DEST_DIR}/${COURSE_NUM}/;ls *.iso)"
+    echo -e "${LTCYAN}(copying isos ...)${NC}"
+    for ISO in ${ISO_LIST}
+    do
+      #-- Use cp instead of rsync 
+      run cp -R ${ISO_SRC_DIR}/${ISO} ${ISO_DEST_DIR}/${COURSE_NUM}/
+      #-- Use rsync instead of cp 
+      #run rsync -a ${ISO_SRC_DIR}/${ISO} ${ISO_DEST_DIR}/${COURSE_NUM}
  
-    #echo SRC_ISOS="${SRC_ISOS}"
-    #echo
-    #echo DST_ISOS="${DST_ISOS}"
-    #echo
-
-  for SRC_ISO in ${SRC_ISOS}
-  do
-    if ! echo "${DST_ISOS}" | grep -q ${SRC_ISO}
-    then
-      IS_ERROR=Y
-      FAILED_TASKS="${FAILED_TASKS},install_functions.copy_iso_images.copy_iso:${SRC_ISO}"
-    fi 
-  done
-  #--------------------------------------------------------
+      #--test--------------------------------------------------
+      #rm -rf ${ISO_DEST_DIR}/${COURSE_NUM}/*
+      if ! [ -d ${ISO_DEST_DIR}/${COURSE_NUM} ]
+      then
+        IS_ERROR=Y
+        FAILED_TASKS="${FAILED_TASKS},install_functions.copy_iso_images.create_dir:${ISO_DEST_DIR}/${COURSE_NUM}"
+      fi
+      #--------------------------------------------------------
+    done
+ 
+      #--test--------------------------------------------------
+      local SRC_ISOS="$(cd ${ISO_SRC_DIR};ls *.iso)"
+      local DST_ISOS="$(cd ${ISO_DEST_DIR}/${COURSE_NUM}/;ls *.iso)"
+  
+      #echo SRC_ISOS="${SRC_ISOS}"
+      #echo
+      #echo DST_ISOS="${DST_ISOS}"
+      #echo
+ 
+    for SRC_ISO in ${SRC_ISOS}
+    do
+      if ! echo "${DST_ISOS}" | grep -q ${SRC_ISO}
+      then
+        IS_ERROR=Y
+        FAILED_TASKS="${FAILED_TASKS},install_functions.copy_iso_images.copy_iso:${SRC_ISO}"
+      fi 
+    done
+    #--------------------------------------------------------
+  else
+    echo
+    echo -e "${LTCYAN}(No ISOs to copy. Skipping ...)${NC}"
+  fi
 
   echo
 }
@@ -493,49 +495,54 @@ copy_cloud_images() {
 #  fi
   echo -e "${LTBLUE}Copying Cloud images ...${NC}"
   echo -e "${LTBLUE}---------------------------------------------------------${NC}"
-  if ! [ -e ${IMAGE_DEST_DIR}/${COURSE_NUM} ]
+  if [ -e ${IMAGE_SRC_DIR} ]
   then
-    echo -e "${LTCYAN}(creating images directory ...)${NC}"
-    run mkdir ${IMAGE_DEST_DIR}/${COURSE_NUM}
-    echo
-  fi
-  echo -e "${LTCYAN}(copying images ...)${NC}"
-  for IMAGE in ${CLOUD_IMAGE_LIST}
-  do
-    #-- Use cp instead of rsync 
-    #run cp -R ${IMAGE_SRC_DIR}/${COURSE_NUM}/${IMAGE} ${IMAGE_DEST_DIR}/${COURSE_NUM}/
-    #-- Use rsync instead of cp 
-    run rsync -a ${IMAGE_SRC_DIR}/${IMAGE} ${IMAGE_DEST_DIR}/${COURSE_NUM}/
-
-    #--test--------------------------------------------------
-    #rm -rf ${IMAGE_DEST_DIR}/${COURSE_NUM}/*
-    if ! [ -d ${IMAGE_DEST_DIR}/${COURSE_NUM} ]
+    if ! [ -e ${IMAGE_DEST_DIR}/${COURSE_NUM} ]
     then
-      IS_ERROR=Y
-      FAILED_TASKS="${FAILED_TASKS},install_functions.copy_cloud_images.create_dir:${IMAGE_DEST_DIR}/${COURSE_NUM}"
+      echo -e "${LTCYAN}(creating images directory ...)${NC}"
+      run mkdir ${IMAGE_DEST_DIR}/${COURSE_NUM}
+      echo
     fi
+    echo -e "${LTCYAN}(copying images ...)${NC}"
+    for IMAGE in ${CLOUD_IMAGE_LIST}
+    do
+      #-- Use cp instead of rsync 
+      #run cp -R ${IMAGE_SRC_DIR}/${COURSE_NUM}/${IMAGE} ${IMAGE_DEST_DIR}/${COURSE_NUM}/
+      #-- Use rsync instead of cp 
+      run rsync -a ${IMAGE_SRC_DIR}/${IMAGE} ${IMAGE_DEST_DIR}/${COURSE_NUM}/
+ 
+      #--test--------------------------------------------------
+      #rm -rf ${IMAGE_DEST_DIR}/${COURSE_NUM}/*
+      if ! [ -d ${IMAGE_DEST_DIR}/${COURSE_NUM} ]
+      then
+        IS_ERROR=Y
+        FAILED_TASKS="${FAILED_TASKS},install_functions.copy_cloud_images.create_dir:${IMAGE_DEST_DIR}/${COURSE_NUM}"
+      fi
+      #--------------------------------------------------------
+    done
+ 
+    #--test--------------------------------------------------
+    local SRC_IMAGES=$(cd ${IMAGE_SRC_DIR};ls)
+    local DST_IMAGES=$(cd ${IMAGE_DEST_DIR}/${COURSE_NUM}/;ls)
+ 
+    #echo SRC_IMAGES="${SRC_IMAGES}"
+    #echo
+    #echo DST_IMAGES="${DST_IMAGES}"
+    #echo
+ 
+    for SRC_IMAGE in ${SRC_IMAGES}
+    do
+      if ! echo ${DST_IMAGES} | grep -q ${SRC_IMAGE}
+      then
+        IS_ERROR=Y
+        FAILED_TASKS="${FAILED_TASKS},install_functions.copy_cloud_images.copy_image:${SRC_IMAGE}"
+      fi 
+    done
     #--------------------------------------------------------
-  done
-
-  #--test--------------------------------------------------
-  local SRC_IMAGES=$(cd ${IMAGE_SRC_DIR};ls)
-  local DST_IMAGES=$(cd ${IMAGE_DEST_DIR}/${COURSE_NUM}/;ls)
-
-  #echo SRC_IMAGES="${SRC_IMAGES}"
-  #echo
-  #echo DST_IMAGES="${DST_IMAGES}"
-  #echo
-
-  for SRC_IMAGE in ${SRC_IMAGES}
-  do
-    if ! echo ${DST_IMAGES} | grep -q ${SRC_IMAGE}
-    then
-      IS_ERROR=Y
-      FAILED_TASKS="${FAILED_TASKS},install_functions.copy_cloud_images.copy_image:${SRC_IMAGE}"
-    fi 
-  done
-  #--------------------------------------------------------
-
+  else
+    echo
+    echo -e "${LTCYAN}(No images to copy. Skipping ...)${NC}"
+  fi
   echo
 }
 
