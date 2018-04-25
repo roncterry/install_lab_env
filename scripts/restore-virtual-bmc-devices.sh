@@ -1,12 +1,18 @@
 #!/bin/bash
-# Version: 1.0.1
+# Version: 1.0.2
 # Date: 2018-04-25
 
-source ../config/lab_env.cfg
-source ../config/include/colors.sh
-source ../config/include/global_vars.sh
-source ../config/include/common_functions.sh
-source ../config/include/helper_functions.sh
+if [ -d ./config ]
+then
+  CONFIG_DIR="./config"
+else
+  CONFIG_DIR="../config"
+fi
+source ${CONFIG_DIR}/lab_env.cfg
+source ${CONFIG_DIR}/include/colors.sh
+source ${CONFIG_DIR}/include/global_vars.sh
+source ${CONFIG_DIR}/include/common_functions.sh
+source ${CONFIG_DIR}/include/helper_functions.sh
 
 create_virtual_bmc() {
   local DEFAULT_BMC_ADDR=127.0.0.1
