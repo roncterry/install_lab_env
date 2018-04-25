@@ -1,5 +1,5 @@
 #!/bin/bash
-# Version: 1.0.2
+# Version: 1.0.3
 # Date: 2018-04-25
 
 if [ -d ./config ]
@@ -63,6 +63,7 @@ create_virtual_bmc() {
       BMC_PASSWORD=${DEFAULT_BMC_PASSWORD}
     fi
 
+    run virtualbmc_control remove ${VM_NAME} ${BMC_ADDR} ${BMC_PORT} ${VIRTUAL_BMC_NETWORK} ${BMC_USERNAME} ${BMC_PASSWORD}
     run virtualbmc_control create ${VM_NAME} ${BMC_ADDR} ${BMC_PORT} ${VIRTUAL_BMC_NETWORK} ${BMC_USERNAME} ${BMC_PASSWORD}
   done
 }
