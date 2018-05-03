@@ -1,6 +1,6 @@
 ##############  System Test Functions #####################################
-# version: 3.3.0
-# date: 2018-02-02
+# version: 3.4.0
+# date: 2018-05-03
 
 #=========  Hardware Test Functions  =============
 
@@ -98,6 +98,15 @@ test_for_p7zip() {
     P7ZIP_INSTALLED=Y
   else
     P7ZIP_INSTALLED=N
+  fi
+}
+
+test_for_virtualbmc() {
+  if which vbmc > /dev/null 2>&1
+  then
+    VBMC_INSTALLED=Y
+  else
+    VBMC_INSTALLED=N
   fi
 }
 
@@ -512,6 +521,38 @@ run_test_for_p7zip() {
       echo -e "${RED}        |     |     |${NC}"
       echo -e "${RED}        V     V     V${NC}"
       echo -e "  ${ORANGE}Install the package: ${BLUE}p7zip${NC}"
+      echo
+      echo -e "${ORANGE}------------------------------------------------------------------------${NC}"
+      echo
+      TEST_FAIL=y
+      #exit 5
+    ;;
+  esac
+}
+
+run_test_for_virtualbmc() {
+  echo -e "${LTBLUE}Checking for virtualbmc ...${NC}"
+  echo -e "${LTBLUE}-------------------------------------------------------------------${NC}"
+  echo
+  test_for_virtualbmc
+  case ${VBMC_INSTALLED} in
+    Y)
+      echo -e "  ${LTCYAN}  VBMC_INSTALLED=${GREEN}Y${NC}"
+      echo
+      echo -e "  ${LTCYAN}    Continuing ...${NC}"
+      echo
+    ;;
+    N)
+      echo -e "  ${LTCYAN}  VBMC_INSTALLED=${LTRED}N${NC}"
+      echo
+      echo -e "${ORANGE}------------------------------------------------------------------------${NC}"
+      echo -e "${RED}[Problem]${NC}"
+      echo -e "  ${LTRED}The virtualbmc utility (vbmc command) is not installed.${NC}"
+      echo
+      echo -e "${RED}[Remediation Required]${NC}"
+      echo -e "${RED}        |     |     |${NC}"
+      echo -e "${RED}        V     V     V${NC}"
+      echo -e "  ${ORANGE}Install the package: ${BLUE}python-virtualbmc${NC}"
       echo
       echo -e "${ORANGE}------------------------------------------------------------------------${NC}"
       echo
@@ -1189,6 +1230,16 @@ run_tests() {
     ;;
     *)
       run_test_for_p7zip
+    ;;
+  esac
+
+  #-virtualbmc
+  case ${REQUIRE_VIRTUALBMC} in
+    N|n)
+      VBMC_INSTALLED=NA
+    ;;
+    *)
+      run_test_for_virtualbmc
     ;;
   esac
 
