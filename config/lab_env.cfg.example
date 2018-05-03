@@ -1,4 +1,4 @@
-# Config File Syntax Version: 2018031501
+# Config File Syntax Version: 2018050301
 ##############################################################################
 #                          Variables
 ##############################################################################
@@ -49,8 +49,8 @@ COURSE_NUM="TEST101"
 #   This should always be set to Y unless you know for sure it should be N.
 #
 # REQUIRE_P7ZIP
-#   This check to make sure the p7zip (7z command) is installed. This is
-#   important because virtual machine archives in the student media are 
+#   This check sto make sure the p7zip package (7z command) is installed. 
+#   This is important because virtual machine archives in the student media are 
 #   typically created using this utility.
 #
 #   It is safe to leave this set to Y.
@@ -96,6 +96,13 @@ COURSE_NUM="TEST101"
 #         run a host firewall and allow only the networks you want to access
 #         graphical consoles of your VMs.
 #
+# REQUIRE_VIRTUALBMC
+#   This checks to make sure the python-virtualbmc package (vbmc command) is 
+#   installed. This is important when your virtual machines require a BMC
+#   (IPMI) device.
+#
+#   It is safe to leave this set to Y.
+#
 REQUIRE_VT_ENABLED=Y
 REQUIRE_MIN_MEMORY=Y
 REQUIRE_MIN_DISKSPACE=Y
@@ -107,6 +114,7 @@ REQUIRE_QEMU_OVMF=Y
 REQUIRE_LIBVIRT=Y
 REQUIRE_LIBVIRT_TCP_LISTEN=Y
 REQUIRE_LIBVIRT_QEMU_VNC_SPICE_LISTEN=Y
+REQUIRE_VIRTUALBMC=Y
 
 
 # Will the lab environment be spread accross multiple lab machines?
