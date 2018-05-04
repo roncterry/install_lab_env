@@ -67,6 +67,8 @@ The directory structure is as follows:
     |-pdf/
     |
     |-scripts/
+    |        |-restore-virtual-bmc-devices.sh
+    |        |-restore-virtualization-environment.sh
     |
     |-VMs/
     |
@@ -202,6 +204,8 @@ This variable contains the course number (i.e. Course ID) or Session ID of the c
 **REQUIRE_LIBVIRT_TCP_LISTEN**
 
 **REQUIRE_VNC_SPICE_LISTEN**
+
+**REQUIRE_VIRTUALBMC**
 
 These variables specify which tests to run on the lab machine before attempting to install the lab environment onto the lab machine. The default behaviour is to run all tests unless specifically told not to. This behaviour allows additional tests to be added to the installation script yet still have older configuration files still work. If you are not sure which tests you need for your lab environment, just allow all tests to run.
 
@@ -381,6 +385,7 @@ Because this script creates, as its backup, an installer package using the Lab E
  |                   |-install_lab_env.sh
  |                   |-remove_lab_env.sh
  |                   |-backup_lab_env.sh
+  |                  |-restore-virtual-bmc-devices.sh
  |                   |-restore-virtualization-environment.sh
  |                   |-config/
  |                           |-lab_env.cfg
