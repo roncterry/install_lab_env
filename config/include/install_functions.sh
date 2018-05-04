@@ -1,6 +1,6 @@
 ##############  Lab Env Install and Configure Functions ######################
-# version: 5.2.1
-# date: 2018-04-24
+# version: 5.2.2
+# date: 2018-05-04
 #
 
 create_directories() {
@@ -434,7 +434,7 @@ create_virtual_bmcs() {
 }
 
 copy_iso_images() {
-  if ! [ -e ${ISO_SRC_DIR} ]
+  if [ -e ${ISO_SRC_DIR} ]
   then
     echo -e "${LTBLUE}Copying ISO images ...${NC}"
     echo -e "${LTBLUE}---------------------------------------------------------${NC}"
