@@ -1,6 +1,6 @@
 ##############  Helper Functions #############################################
-# version: 3.6.1
-# date: 2018-03-19
+# version: 3.7.1
+# date: 2018-06-18
 #
 
 configure_nic() {
@@ -128,6 +128,251 @@ configure_nic() {
   echo -e "${LTBLUE}Starting:${LTGRAY} ${NIC_NAME}${NC}"
   sudo /sbin/ifdown ${NIC_NAME}
   sudo /sbin/ifup ${NIC_NAME}
+}
+
+configure_new_veth_interfaces() {
+  if [ -z $1 ]
+  then
+    echo
+    echo -e "${LTRED}ERROR: Missing virtual ethernet interface name.${NC}"
+    echo
+    echo -e "${GRAY}USAGE: $0 <veth_name> <node_number> <veth_network>${NC}"
+    echo
+    return 1
+  elif [ -z $2 ]
+  then
+    echo
+    echo -e "${LTRED}ERROR: Missing node number.${NC}"
+    echo -e "${LTRED}       The node number must be a number between 1 and 9.${NC}"
+    echo
+    echo -e "${GRAY}USAGE: $0 <veth_name> <node_number> <veth_network>${NC}"
+    echo
+    return 1
+  elif ! echo $2 | grep -q [1-9]
+  then
+    echo
+    echo -e "${LTRED}ERROR: The node number must be a number between 1 and 9.${NC}"
+    echo
+    return 1
+  elif [ -z $3 ]
+  then
+    echo
+    echo -e "${LTRED}ERROR: The veth network must be the network ID of the virtusl ethernet device with CIDR mask.${NC}"
+    echo -e "${LTRED}       If not used then use - rather than leaving it empty.${NC}"
+    echo -e "${GRAY}       Example: 192.168.124.0/24${NC}"
+    echo -e "${GRAY}       Example: -${NC}"
+    echo
+    echo -e "${GRAY}USAGE: $0 <veth_name> <node_number> <veth_network>${NC}"
+    echo
+    return 1
+  else
+    local VETH_NAME_A=$1-nic
+    local VETH_NAME_B=$1
+    local NODE_NUM=$2
+    local VETH_IP=$3
+  fi
+
+  #-----------------------------------------------------------------------------
+
+  case ${VETH_IP}
+  in
+    -)
+      VETH_NETWORK=""
+    ;;
+    *)
+      local IP_NETWORK="$(echo ${VETH_NETWORK} | cut -d / -f 1 | cut -d . -f 1,2,3)"
+      if ! [ -z ${IP_NETWORK} ]
+      then
+        local IP_ADDR="${IP_NETWORK}.${NODE_NUM}"
+        local CIDRMASK="/$(echo ${VETH_NETWORK} | cut -d / -f 2)"
+        local CIDR_IP_ADDR="${IP_ADDR}${CIDRMASK}"
+      else
+        local CIDR_IP_ADDR=""
+      fi
+    ;;
+  esac
+
+  #-----------------------------------------------------------------------------
+
+  if ! [ -z ${VETH_NAME_A} ]
+  then
+    if ! ip addr show | grep -q ${VETH_NAME_B}
+    then
+      echo -e "${LTBLUE}Creating veth pair:${LTGRAY} ${VETH_NAME_A}->${VETH_NAME_B}${NC}"
+      # Create the veth pair
+      #echo sudo ip link add dev ${VETH_NAME_A} type veth peer name ${VETH_NAME_B}
+      run sudo ip link add dev ${VETH_NAME_A} type veth peer name ${VETH_NAME_B}
+  
+      #echo sudo ip link set dev ${VETH_NAME_A} up
+      run sudo ip link set dev ${VETH_NAME_A} up
+    fi
+  fi
+
+  if ! [ -z ${VETH_NETWORK} ]
+  then
+    #echo sudo ip addr add ${CIDR_IP_ADDR} dev ${VETH_NAME_B}
+    run sudo ip addr add ${CIDR_IP_ADDR} dev ${VETH_NAME_B}
+ 
+    #echo sudo ip link set ${VETH_NAME_B} up
+    run sudo ip link set ${VETH_NAME_B} up
+  fi
+}
+
+configure_new_ovs_bridge() {
+  if [ -z $1 ]
+  then
+    echo
+    echo -e "${LTRED}ERROR: Missing bridge name.${NC}"
+    echo
+    echo -e "${GRAY}USAGE: $0 <bridge_name> <node_number> <bridge_network> <physical_device> <parent_bridge> <vlan_tag>${NC}"
+    echo
+    return 1
+  elif [ -z $2 ]
+  then
+    echo
+    echo -e "${LTRED}ERROR: Missing node number.${NC}"
+    echo -e "${LTRED}       The node number must be a number between 1 and 9.${NC}"
+    echo
+    echo -e "${GRAY}USAGE: $0 <bridge_name> <node_number> <bridge_network> <physical_device> <parent_bridge> <vlan_tag>${NC}"
+    echo
+    return 1
+  elif ! echo $2 | grep -q [1-9]
+  then
+    echo
+    echo -e "${LTRED}ERROR: The node number must be a number between 1 and 9.${NC}"
+    echo
+    return 1
+  elif [ -z $3 ]
+  then
+    echo
+    echo -e "${LTRED}ERROR: The Bridge network must be the network ID of the bridge with CIDR mask.${NC}"
+    echo -e "${LTRED}       If not used then use - rather than leaving it empty.${NC}"
+    echo -e "${GRAY}       Example 1: 192.168.124.0/24${NC}"
+    echo -e "${GRAY}       Example 2: -${NC}"
+    echo
+    echo -e "${GRAY}USAGE: $0 <bridge_name> <node_number> <bridge_network> <physical_device> <parent_bridge> <vlan_tag>${NC}"
+    echo
+    return 1
+  elif [ -z $4 ]
+  then
+    echo
+    echo -e "${LTRED}ERROR: The Physical Device is the physical network device to attach to the bridge.${NC}"
+    echo -e "${LTRED}       If not used then use - rather than leaving it empty.${NC}"
+    echo -e "${GRAY}       Example 1: eth1${NC}"
+    echo -e "${GRAY}       Example 2: -${NC}"
+    echo
+    echo -e "${GRAY}USAGE: $0 <bridge_name> <node_number> <bridge_network> <physical_device> <parent_bridge> <vlan_tag>${NC}"
+    echo
+    return 1
+  elif [ -z $5 ]
+  then
+    echo
+    echo -e "${LTRED}ERROR: The Parent Bridge is the bridge to create the VLAN port/bridge on.${NC}"
+    echo -e "${LTRED}       If not used then use - rather than leaving it empty.${NC}"
+    echo -e "${GRAY}       Example 1: eth1${NC}"
+    echo -e "${GRAY}       Example 2: -${NC}"
+    echo
+    echo -e "${GRAY}USAGE: $0 <bridge_name> <node_number> <bridge_network> <physical_device> <parent_bridge> <vlan_tag>${NC}"
+    echo
+    return 1
+  elif [ -z $6 ]
+  then
+    echo
+    echo -e "${LTRED}ERROR: The VLAN Tag is the VLAN tag number to use for the VLAN.${NC}"
+    echo -e "${LTRED}       If not used then use - rather than leaving it empty.${NC}"
+    echo -e "${GRAY}       Example 1: eth1${NC}"
+    echo -e "${GRAY}       Example 2: -${NC}"
+    echo
+    echo -e "${GRAY}USAGE: $0 <bridge_name> <node_number> <bridge_network> <physical_device> <parent_bridge> <vlan_tag>${NC}"
+    echo
+    return 1
+  else
+    local OVS_BRIDGE_NAME=$1
+    local NODE_NUM=$2
+    local OVS_BRIDGE_NETWORK=$3
+    local OVS_BRIDGE_PHYSDEV=$4
+    local OVS_BRIDGE_PARENT_BRIDGE=$5
+    local OVS_BRIDGE_VLAN_TAG=$6
+  fi
+
+  #-----------------------------------------------------------------------------
+
+  case ${OVS_BRIDGE_NETWORK}
+  in
+    -)
+      OVS_BRIDGE_NETWORK=""
+    ;;
+    *)
+      local IP_NETWORK="$(echo ${OVS_BRIDGE_NETWORK} | cut -d / -f 1 | cut -d . -f 1,2,3)"
+      if ! [ -z ${IP_NETWORK} ]
+      then
+        local IP_ADDR="${IP_NETWORK}.${NODE_NUM}"
+        local CIDRMASK="/$(echo ${OVS_BRIDGE_NETWORK} | cut -d / -f 2)"
+        local CIDR_IP_ADDR="${IP_ADDR}${CIDRMASK}"
+      else
+        local CIDR_IP_ADDR=""
+      fi
+    ;;
+  esac
+
+  case ${OVS_BRIDGE_PHYSDEV}
+  in
+    -)
+      OVS_BRIDGE_PHYSDEV=""
+    ;;
+  esac
+
+  case ${OVS_BRIDGE_PARENT_BRIDGE}
+  in
+    -)
+      OVS_BRIDGE_PARENT_BRIDGE=""
+    ;;
+  esac
+
+  case ${OVS_BRIDGE_VLAN_TAG}
+  in
+    -)
+      OVS_BRIDGE_VLAN_TAG=""
+    ;;
+  esac
+
+  #-----------------------------------------------------------------------------
+
+  if ! [ -z ${OVS_BRIDGE_PARENT_BRIDGE} ]
+  then
+    echo -e "${LTBLUE}Starting:${LTGRAY} ${OVS_BRIDGE_NAME}${NC}"
+    run sudo ovs-vsctl --may-exist add-br ${OVS_BRIDGE_NAME}
+  else
+    echo -e "${LTBLUE}Starting:${LTGRAY} ${OVS_BRIDGE_NAME}${NC}"
+    run sudo ovs-vsctl --may-exist add-br ${OVS_BRIDGE_NAME} ${OVS_BRIDGE_PARENT_BRIDGE} ${OVS_BRIDGE_VLAN_TAG}
+  fi
+
+  if ! [ -z ${OVS_BRIDGE_PHYSDEV} ]
+  then
+    # check to see if phys dev exists
+    if ip addr show | grep -q ${OVS_BRIDGE_PHYSDEV}
+    then
+      # if so then check if its a veth pair
+      if ip addr show | grep -q ${OVS_BRIDGE_PHYSDEV}-nic
+      then
+        # if so then add veth pair -nic to bridge
+        run sudo ovs-vsctl add-port ${OVS_BRIDGE_NAME} ${OVS_BRIDGE_PHYSDEV}-nic
+      else
+        # if not then add phys dev to bridge
+        run sudo ovs-vsctl add-port ${OVS_BRIDGE_NAME} ${OVS_BRIDGE_PHYSDEV}
+      fi
+    else
+      # if not exist then create a veth pair
+      configure_new_veth_interfaces ${OVS_BRIDGE_PHYSDEV} ${NODE_NUM} ${OVS_BRIDGE_NETWORK}
+      # and add it to the bridge
+      run sudo ovs-vsctl add-port ${OVS_BRIDGE_NAME} ${OVS_BRIDGE_PHYSDEV}-nic
+    fi
+  fi
+  
+  if ! [ -z ${OVS_BRIDGE_NETWORK} ]
+  then
+    run sudo ip addr add ${CIDR_IP_ADDR} dev ${OVS_BRIDGE_PHYSDEV}
+  fi
 }
 
 configure_new_vlan() {
@@ -710,35 +955,35 @@ get_archive_type() {
 
   local ARCHIVE_FILE=${1}
 
-  if ls ${ARCHIVE_FILE}.tgz > /dev/null 2>&1
+  if ls "${ARCHIVE_FILE}".tgz > /dev/null 2>&1
   then
     local ARCHIVE_TYPE=tgz
-  elif ls ${ARCHIVE_FILE}.tar.gz > /dev/null 2>&1
+  elif ls "${ARCHIVE_FILE}".tar.gz > /dev/null 2>&1
   then
     local ARCHIVE_TYPE=targz
-  elif ls ${ARCHIVE_FILE}.tar.bz2 > /dev/null 2>&1
+  elif ls "${ARCHIVE_FILE}".tar.bz2 > /dev/null 2>&1
   then
     local ARCHIVE_TYPE=tarbz2
-  elif ls ${ARCHIVE_FILE}.tbz > /dev/null 2>&1
+  elif ls "${ARCHIVE_FILE}".tbz > /dev/null 2>&1
   then
     local ARCHIVE_TYPE=tbz
-  elif ls ${ARCHIVE_FILE}.tar.xz > /dev/null 2>&1
+  elif ls "${ARCHIVE_FILE}".tar.xz > /dev/null 2>&1
   then
     local ARCHIVE_TYPE=tarxz
-  elif ls ${ARCHIVE_FILE}.txz > /dev/null 2>&1
+  elif ls "${ARCHIVE_FILE}".txz > /dev/null 2>&1
   then
     local ARCHIVE_TYPE=txz
-  elif ls ${ARCHIVE_FILE}.7z* > /dev/null 2>&1
+  elif ls "${ARCHIVE_FILE}".7z* > /dev/null 2>&1
   then
     local ARCHIVE_TYPE=7z
-  elif ls ${ARCHIVE_FILE}.tar.7z* > /dev/null 2>&1
+  elif ls "${ARCHIVE_FILE}".tar.7z* > /dev/null 2>&1
   then
     local ARCHIVE_TYPE=tar7z
-  elif ls ${ARCHIVE_FILE}.zip > /dev/null 2>&1
+  elif ls "${ARCHIVE_FILE}".zip > /dev/null 2>&1
   then
     local ARCHIVE_TYPE=zip
   else
-    case $(file -b ${ARCHIVE_FILE} | cut -d \  -f 1) in
+    case $(file -b "${ARCHIVE_FILE}" | cut -d \  -f 1) in
       gzip)
         local ARCHIVE_TYPE=GZIP
       ;;
@@ -770,105 +1015,105 @@ extract_archive() {
 
   case ${ARCHIVE_TYPE} in
     tgz)
-      run tar xzvf ${ARCHIVE_FILE}.tgz -C ${ARCHIVE_DEST_DIR}
+      run tar xzvf "${ARCHIVE_FILE}".tgz -C ${ARCHIVE_DEST_DIR}
     ;;
     targz)
-      run tar xzvf ${ARCHIVE_FILE}.tar.gz -C ${ARCHIVE_DEST_DIR}
+      run tar xzvf "${ARCHIVE_FILE}".tar.gz -C ${ARCHIVE_DEST_DIR}
     ;;
     tbz)
-      run tar xjvf ${ARCHIVE_FILE}.tbz -C ${ARCHIVE_DEST_DIR}
+      run tar xjvf "${ARCHIVE_FILE}".tbz -C ${ARCHIVE_DEST_DIR}
     ;;
     tarbz2)
-      run tar xjvf ${ARCHIVE_FILE}.tar.bz2 -C ${ARCHIVE_DEST_DIR}
+      run tar xjvf "${ARCHIVE_FILE}".tar.bz2 -C ${ARCHIVE_DEST_DIR}
     ;;
     txz)
-      run tar xJvf ${ARCHIVE_FILE}.txz -C ${ARCHIVE_DEST_DIR}
+      run tar xJvf "${ARCHIVE_FILE}".txz -C ${ARCHIVE_DEST_DIR}
     ;;
     tarxz)
-      run tar xJvf ${ARCHIVE_FILE}.tar.xz -C ${ARCHIVE_DEST_DIR}
+      run tar xJvf "${ARCHIVE_FILE}".tar.xz -C ${ARCHIVE_DEST_DIR}
     ;;
     7z)
-      if [ -e ${ARCHIVE_FILE}.7z ]
+      if [ -e "${ARCHIVE_FILE}".7z ]
       then
-        local OLD_PWD=${PWD}
-        run cd ${ARCHIVE_DEST_DIR}
+        local OLD_PWD="${PWD}"
+        run cd "${ARCHIVE_DEST_DIR}"
 
-        run 7z x -mmt=on ${OLD_PWD}/${ARCHIVE_FILE}.7z
+        run 7z x -mmt=on "${OLD_PWD}/${ARCHIVE_FILE}".7z
 
         run cd -
-      elif [ -e ${ARCHIVE_FILE}.7z.001 ]
+      elif [ -e "${ARCHIVE_FILE}".7z.001 ]
       then
-        local OLD_PWD=${PWD}
-        run cd ${ARCHIVE_DEST_DIR}
+        local OLD_PWD="${PWD}"
+        run cd "${ARCHIVE_DEST_DIR}"
 
-        run 7z x -mmt=on ${OLD_PWD}/${ARCHIVE_FILE}.7z.001
+        run 7z x -mmt=on "${OLD_PWD}/${ARCHIVE_FILE}".7z.001
 
         run cd -
       fi
     ;;
     tar7z)
-      if [ -e ${ARCHIVE_FILE}.tar.7z ]
+      if [ -e "${ARCHIVE_FILE}".tar.7z ]
       then
-        local OLD_PWD=${PWD}
-        run cd ${ARCHIVE_DEST_DIR}
+        local OLD_PWD="${PWD}"
+        run cd "${ARCHIVE_DEST_DIR}"
 
-        run 7z x -mmt=on -so ${OLD_PWD}/${ARCHIVE_FILE}.tar.7z | tar xf -
+        run 7z x -mmt=on -so "${OLD_PWD}/${ARCHIVE_FILE}".tar.7z | tar xf -
 
         run cd -
-      elif [ -e ${ARCHIVE_FILE}.tar.7z.001 ]
+      elif [ -e "${ARCHIVE_FILE}".tar.7z.001 ]
       then
-        local OLD_PWD=${PWD}
-        run cd ${ARCHIVE_DEST_DIR}
+        local OLD_PWD="${PWD}"
+        run cd "${ARCHIVE_DEST_DIR}"
 
-        run 7z x -mmt=on -so ${OLD_PWD}/${ARCHIVE_FILE}.tar.7z.001 | tar xf -
+        run 7z x -mmt=on -so "${OLD_PWD}/${ARCHIVE_FILE}".tar.7z.001 | tar xf -
 
         run cd -
       fi
     ;;
     zip)
-      local OLD_PWD=${PWD}
-      run cd ${ARCHIVE_DEST_DIR}
+      local OLD_PWD="${PWD}"
+      run cd "${ARCHIVE_DEST_DIR}"
 
-      run unzip ${OLD_PWD}/${ARCHIVE_FILE}.zip
+      run unzip "${OLD_PWD}/${ARCHIVE_FILE}".zip
 
       run cd -
     ;;
     GZIP)
-      if echo ${ARCHIVE_FILE} | grep -q ".tar.gz$" || echo ${ARCHIVE_FILE} | grep -q ".tgz$"
+      if echo "${ARCHIVE_FILE}" | grep -q ".tar.gz$" || echo "${ARCHIVE_FILE}" | grep -q ".tgz$"
       then
-        run tar xzvf ${ARCHIVE_FILE} -C ${ARCHIVE_DEST_DIR}
+        run tar xzvf "${ARCHIVE_FILE}" -C "${ARCHIVE_DEST_DIR}"
       fi
     ;;
     BZIP2)
-      if echo ${ARCHIVE_FILE} | grep -q ".tar.bz2$" || echo ${ARCHIVE_FILE} | grep -q ".tbz$"
+      if echo "${ARCHIVE_FILE}" | grep -q ".tar.bz2$" || echo "${ARCHIVE_FILE}" | grep -q ".tbz$"
       then
-        run tar xjvf ${ARCHIVE_FILE} -C ${ARCHIVE_DEST_DIR}
+        run tar xjvf "${ARCHIVE_FILE}" -C "${ARCHIVE_DEST_DIR}"
       fi
     ;;
     7ZIP)
-      if echo ${ARCHIVE_FILE} | grep -q ".tar.7z.001$" || echo ${ARCHIVE_FILE} | grep -q ".tar.7z$"
+      if echo "${ARCHIVE_FILE}" | grep -q ".tar.7z.001$" || echo "${ARCHIVE_FILE}" | grep -q ".tar.7z$"
       then
-        local OLD_PWD=${PWD}
-        run cd ${ARCHIVE_DEST_DIR}
+        local OLD_PWD="${PWD}"
+        run cd "${ARCHIVE_DEST_DIR}"
 
-        run 7z x -mmt=on -so ${OLD_PWD}/${ARCHIVE_FILE} | tar xf -
+        run 7z x -mmt=on -so "${OLD_PWD}/${ARCHIVE_FILE}" | tar xf -
 
         run cd -
-      elif  echo ${ARCHIVE_FILE} | grep -q ".7z.001$" || echo ${ARCHIVE_FILE} | grep -q ".7z?"
+      elif  echo "${ARCHIVE_FILE}" | grep -q ".7z.001$" || echo "${ARCHIVE_FILE}" | grep -q ".7z?"
       then
-        local OLD_PWD=${PWD}
-        run cd ${ARCHIVE_DEST_DIR}
+        local OLD_PWD="${PWD}"
+        run cd "${ARCHIVE_DEST_DIR}"
 
-        run 7z x -mmt=on ${OLD_PWD}/${ARCHIVE_FILE}
+        run 7z x -mmt=on "${OLD_PWD}/${ARCHIVE_FILE}"
 
         run cd -
       fi
     ;;
     ZIP)
-      local OLD_PWD=${PWD}
-      run cd ${ARCHIVE_DEST_DIR}
+      local OLD_PWD="${PWD}"
+      run cd "${ARCHIVE_DEST_DIR}"
 
-      run unzip ${OLD_PWD}/${ARCHIVE_FILE}
+      run unzip "${OLD_PWD}/${ARCHIVE_FILE}"
 
       run cd -
     ;;
@@ -888,99 +1133,99 @@ extract_archive_sudo() {
 
   case ${ARCHIVE_TYPE} in
     tgz)
-      run sudo tar xzvf ${ARCHIVE_FILE} -C ${ARCHIVE_DEST_DIR}
+      run sudo tar xzvf "${ARCHIVE_FILE}" -C ${ARCHIVE_DEST_DIR}
     ;;
     targz)
-      run sudo tar xzvf ${ARCHIVE_FILE}.tar.gz -C ${ARCHIVE_DEST_DIR}
+      run sudo tar xzvf "${ARCHIVE_FILE}".tar.gz -C ${ARCHIVE_DEST_DIR}
     ;;
     tbz)
-      run sudo tar xjvf ${ARCHIVE_FILE} -C ${ARCHIVE_DEST_DIR}
+      run sudo tar xjvf "${ARCHIVE_FILE}" -C ${ARCHIVE_DEST_DIR}
     ;;
     tarbz2)
-      run sudo tar xjvf ${ARCHIVE_FILE}.tar.bz2 -C ${ARCHIVE_DEST_DIR}
+      run sudo tar xjvf "${ARCHIVE_FILE}".tar.bz2 -C ${ARCHIVE_DEST_DIR}
     ;;
     7z)
-      if [ -e ${ARCHIVE_FILE}.7z ]
+      if [ -e "${ARCHIVE_FILE}".7z ]
       then
-        local OLD_PWD=${PWD}
+        local OLD_PWD="${PWD}"
         run sudo cd ${ARCHIVE_DEST_DIR}
 
-        run sudo 7z x ${OLD_PWD}/${ARCHIVE_FILE}.7z
+        run sudo 7z x "${OLD_PWD}/${ARCHIVE_FILE}".7z
 
         run sudo cd -
-      elif [ -e ${ARCHIVE_FILE}.7z.001 ]
+      elif [ -e "${ARCHIVE_FILE}".7z.001 ]
       then
-        local OLD_PWD=${PWD}
+        local OLD_PWD="${PWD}"
         run sudo cd ${ARCHIVE_DEST_DIR}
 
-        run sudo 7z x ${OLD_PWD}/${ARCHIVE_FILE}.7z.001
+        run sudo 7z x "${OLD_PWD}/${ARCHIVE_FILE}".7z.001
 
         run sudo cd -
       fi
     ;;
     tar7z)
-      if [ -e ${ARCHIVE_FILE}.tar.7z ]
+      if [ -e "${ARCHIVE_FILE}".tar.7z ]
       then
-        local OLD_PWD=${PWD}
+        local OLD_PWD="${PWD}"
         run sudo cd ${ARCHIVE_DEST_DIR}
 
-        run sudo 7z x -so ${OLD_PWD}/${ARCHIVE_FILE}.tar.7z | tar xf -
+        run sudo 7z x -so "${OLD_PWD}/${ARCHIVE_FILE}".tar.7z | tar xf -
 
         run sudo cd -
-      elif [ -e ${ARCHIVE_FILE}.tar.7z.001 ]
+      elif [ -e "${ARCHIVE_FILE}".tar.7z.001 ]
       then
-        local OLD_PWD=${PWD}
+        local OLD_PWD="${PWD}"
         run sudo cd ${ARCHIVE_DEST_DIR}
 
-        run sudo 7z x -so ${OLD_PWD}/${ARCHIVE_FILE}.tar.7z.001 | tar xf -
+        run sudo 7z x -so "${OLD_PWD}/${ARCHIVE_FILE}".tar.7z.001 | tar xf -
 
         run sudo cd -
       fi
     ;;
     zip)
-      local OLD_PWD=${PWD}
+      local OLD_PWD="${PWD}"
       run sudo cd ${ARCHIVE_DEST_DIR}
 
-      run sudo unzip ${OLD_PWD}/${ARCHIVE_FILE}.zip
+      run sudo unzip "${OLD_PWD}/${ARCHIVE_FILE}".zip
 
       run sudo cd -
     ;;
     GZIP)
-      if echo ${ARCHIVE_FILE} | grep -q ".tar.gz$" || echo ${ARCHIVE_FILE} | grep -q ".tgz$"
+      if echo "${ARCHIVE_FILE}" | grep -q ".tar.gz$" || echo "${ARCHIVE_FILE}" | grep -q ".tgz$"
       then
-        run sudo tar xzvf ${ARCHIVE_FILE} -C ${ARCHIVE_DEST_DIR}
+        run sudo tar xzvf "${ARCHIVE_FILE}" -C ${ARCHIVE_DEST_DIR}
       fi
     ;;
     BZIP2)
-      if echo ${ARCHIVE_FILE} | grep -q ".tar.bz2$" || echo ${ARCHIVE_FILE} | grep -q ".tbz$"
+      if echo "${ARCHIVE_FILE}" | grep -q ".tar.bz2$" || echo "${ARCHIVE_FILE}" | grep -q ".tbz$"
       then
-        run sudo tar xjvf ${ARCHIVE_FILE} -C ${ARCHIVE_DEST_DIR}
+        run sudo tar xjvf "${ARCHIVE_FILE}" -C ${ARCHIVE_DEST_DIR}
       fi
     ;;
     7ZIP)
-      if echo ${ARCHIVE_FILE} | grep -q ".tar.7z.001$" || echo ${ARCHIVE_FILE} | grep -q ".tar.7z$"
+      if echo "${ARCHIVE_FILE}" | grep -q ".tar.7z.001$" || echo "${ARCHIVE_FILE}" | grep -q ".tar.7z$"
       then
-        local OLD_PWD=${PWD}
+        local OLD_PWD="${PWD}"
         run sudo cd ${ARCHIVE_DEST_DIR}
 
-        run sudo 7z x -so ${OLD_PWD}/${ARCHIVE_FILE} | tar xf -
+        run sudo 7z x -so "${OLD_PWD}/${ARCHIVE_FILE}" | tar xf -
 
         run sudo cd -
-      elif  echo ${ARCHIVE_FILE} | grep -q ".7z.001$" || echo ${ARCHIVE_FILE} | grep -q ".7z?"
+      elif  echo "${ARCHIVE_FILE}" | grep -q ".7z.001$" || echo "${ARCHIVE_FILE}" | grep -q ".7z?"
       then
-        local OLD_PWD=${PWD}
+        local OLD_PWD="${PWD}"
         run sudo cd ${ARCHIVE_DEST_DIR}
 
-        run sudo 7z x ${OLD_PWD}/${ARCHIVE_FILE}
+        run sudo 7z x "${OLD_PWD}/${ARCHIVE_FILE}"
 
         run sudo cd -
       fi
     ;;
     ZIP)
-      local OLD_PWD=${PWD}
+      local OLD_PWD="${PWD}"
       run sudo cd ${ARCHIVE_DEST_DIR}
 
-      run sudo unzip ${OLD_PWD}/${ARCHIVE_FILE}
+      run sudo unzip "${OLD_PWD}/${ARCHIVE_FILE}"
 
       run sudo cd -
     ;;
@@ -998,87 +1243,87 @@ list_archive() {
 
   case ${ARCHIVE_TYPE} in
     tgz)
-      tar -tvf ${ARCHIVE_FILE}.tgz  | awk '{ print $6 }'
+      tar -tvf "${ARCHIVE_FILE}".tgz  | awk '{ print $6 }'
     ;;
     targz)
-      tar -tvf ${ARCHIVE_FILE}.tar.gz  | awk '{ print $6 }'
+      tar -tvf "${ARCHIVE_FILE}".tar.gz  | awk '{ print $6 }'
     ;;
     tbz)
-      tar -tvf ${ARCHIVE_FILE}.tbz  | awk '{ print $6 }'
+      tar -tvf "${ARCHIVE_FILE}".tbz  | awk '{ print $6 }'
     ;;
     tarbz2)
-      tar -tvf ${ARCHIVE_FILE}.tar.bz2  | awk '{ print $6 }'
+      tar -tvf "${ARCHIVE_FILE}".tar.bz2  | awk '{ print $6 }'
     ;;
     txz)
-      tar -tvf ${ARCHIVE_FILE}.txz  | awk '{ print $6 }'
+      tar -tvf "${ARCHIVE_FILE}".txz  | awk '{ print $6 }'
     ;;
     tarxz)
-      tar -tvf ${ARCHIVE_FILE}.tar.xz  | awk '{ print $6 }'
+      tar -tvf "${ARCHIVE_FILE}".tar.xz  | awk '{ print $6 }'
     ;;
     7z)
-      if [ -e ${ARCHIVE_FILE}.7z ]
+      if [ -e "${ARCHIVE_FILE}".7z ]
       then
-        #7z l ${ARCHIVE_FILE}.7z | awk '/--------/{f=0} f; /--------/{f=1}' | grep -v "^ ." | awk '{ print $6 }' | sort
-        #7z l ${ARCHIVE_FILE}.7z | awk '/--------/{f=0} f; /--------/{f=1}' | grep -o "${ARCHIVE_FILE}/.*" | sort
-        7z l ${ARCHIVE_FILE}.7z | awk '/--------/{f=0} f; /--------/{f=1}' | grep -o "$(basename ${ARCHIVE_FILE} | sed 's/.7z//g')/.*" | sort
-      elif [ -e ${ARCHIVE_FILE}.7z.001 ]
+        #7z l "${ARCHIVE_FILE}".7z | awk '/--------/{f=0} f; /--------/{f=1}' | grep -v "^ ." | awk '{ print $6 }' | sort
+        #7z l "${ARCHIVE_FILE}".7z | awk '/--------/{f=0} f; /--------/{f=1}' | grep -o "${ARCHIVE_FILE}/.*" | sort
+        7z l "${ARCHIVE_FILE}".7z | awk '/--------/{f=0} f; /--------/{f=1}' | grep -o "$(basename "${ARCHIVE_FILE}" | sed 's/.7z//g')/.*" | sort
+      elif [ -e "${ARCHIVE_FILE}".7z.001 ]
       then
-        #7z l ${ARCHIVE_FILE}.7z.001 | awk '/--------/{f=0} f; /--------/{f=1}' | grep -v "^ ." | awk '{ print $6 }' | sort
-        #7z l ${ARCHIVE_FILE}.7z.001 | awk '/--------/{f=0} f; /--------/{f=1}' | grep -o "${ARCHIVE_FILE}/.*" | sort
-        7z l ${ARCHIVE_FILE}.7z.001 | awk '/--------/{f=0} f; /--------/{f=1}' | grep -o "$(basename ${ARCHIVE_FILE} | sed 's/.7z.001//g')/.*" | sort
+        #7z l "${ARCHIVE_FILE}".7z.001 | awk '/--------/{f=0} f; /--------/{f=1}' | grep -v "^ ." | awk '{ print $6 }' | sort
+        #7z l "${ARCHIVE_FILE}".7z.001 | awk '/--------/{f=0} f; /--------/{f=1}' | grep -o "${ARCHIVE_FILE}/.*" | sort
+        7z l "${ARCHIVE_FILE}".7z.001 | awk '/--------/{f=0} f; /--------/{f=1}' | grep -o "$(basename "${ARCHIVE_FILE}" | sed 's/.7z.001//g')/.*" | sort
       fi
     ;;
     #tar7z)
-    #  if [ -e ${ARCHIVE_FILE}.tar.7z ]
+    #  if [ -e "${ARCHIVE_FILE}".tar.7z ]
     #  then
-    #    local OLD_PWD=${PWD}
+    #    local OLD_PWD="${PWD}"
     #    run cd ${ARCHIVE_DEST_DIR}
 
-    #    run 7z x -mmt=on -so ${OLD_PWD}/${ARCHIVE_FILE}.tar.7z | tar xf -
+    #    run 7z x -mmt=on -so "${OLD_PWD}/${ARCHIVE_FILE}".tar.7z | tar xf -
 
     #    run cd -
-    #  elif [ -e ${ARCHIVE_FILE}.tar.7z.001 ]
+    #  elif [ -e "${ARCHIVE_FILE}".tar.7z.001 ]
     #  then
-    #    local OLD_PWD=${PWD}
+    #    local OLD_PWD="${PWD}"
     #    run cd ${ARCHIVE_DEST_DIR}
 
-    #    run 7z x -mmt=on -so ${OLD_PWD}/${ARCHIVE_FILE}.tar.7z.001 | tar xf -
+    #    run 7z x -mmt=on -so "${OLD_PWD}/${ARCHIVE_FILE}".tar.7z.001 | tar xf -
 
     #    run cd -
     #  fi
     #;;
     zip)
-      unzip -l ${ARCHIVE_FILE}.zip | awk '/---------/{f=0} f; /---------/{f=1}' | awk '{ print $4 }'
+      unzip -l "${ARCHIVE_FILE}".zip | awk '/---------/{f=0} f; /---------/{f=1}' | awk '{ print $4 }'
     ;;
     GZIP)
-      if echo ${ARCHIVE_FILE} | grep -q ".tar.gz$" || echo ${ARCHIVE_FILE} | grep -q ".tgz$"
+      if echo "${ARCHIVE_FILE}" | grep -q ".tar.gz$" || echo "${ARCHIVE_FILE}" | grep -q ".tgz$"
       then
-        tar -tvf ${ARCHIVE_FILE}  | awk '{ print $6 }'
+        tar -tvf "${ARCHIVE_FILE}"  | awk '{ print $6 }'
       fi
     ;;
     BZIP2)
-      if echo ${ARCHIVE_FILE} | grep -q ".tar.bz2$" || echo ${ARCHIVE_FILE} | grep -q ".tbz$"
+      if echo "${ARCHIVE_FILE}" | grep -q ".tar.bz2$" || echo "${ARCHIVE_FILE}" | grep -q ".tbz$"
       then
-        tar -tvf ${ARCHIVE_FILE}  | awk '{ print $6 }'
+        tar -tvf "${ARCHIVE_FILE}"  | awk '{ print $6 }'
       fi
     ;;
     7ZIP)
-      if echo ${ARCHIVE_FILE} | grep -q ".tar.7z$"
+      if echo "${ARCHIVE_FILE}" | grep -q ".tar.7z$"
       then
-        7z l ${ARCHIVE_FILE}.tar.7z | awk '/--------/{f=0} f; /--------/{f=1}' | grep -o "$(basename ${ARCHIVE_FILE} | sed 's/.tar.7z//g')/.*" | sort
-      elif echo ${ARCHIVE_FILE} | grep -q ".tar.7z.001$" 
+        7z l "${ARCHIVE_FILE}".tar.7z | awk '/--------/{f=0} f; /--------/{f=1}' | grep -o "$(basename "${ARCHIVE_FILE}" | sed 's/.tar.7z//g')/.*" | sort
+      elif echo "${ARCHIVE_FILE}" | grep -q ".tar.7z.001$" 
       then
-        7z l ${ARCHIVE_FILE}.tar.7z.001 | awk '/--------/{f=0} f; /--------/{f=1}' | grep -o "$(basename ${ARCHIVE_FILE} | sed 's/.tar.7z.001//g')/.*" | sort
-      elif  echo ${ARCHIVE_FILE} | grep -q ".7z?"
+        7z l "${ARCHIVE_FILE}".tar.7z.001 | awk '/--------/{f=0} f; /--------/{f=1}' | grep -o "$(basename "${ARCHIVE_FILE}" | sed 's/.tar.7z.001//g')/.*" | sort
+      elif  echo "${ARCHIVE_FILE}" | grep -q ".7z?"
       then
-        7z l ${ARCHIVE_FILE}.7z | awk '/--------/{f=0} f; /--------/{f=1}' | grep -o "$(basename ${ARCHIVE_FILE} | sed 's/.7z//g')/.*" | sort
-      elif  echo ${ARCHIVE_FILE} | grep -q ".7z.001$" 
+        7z l "${ARCHIVE_FILE}".7z | awk '/--------/{f=0} f; /--------/{f=1}' | grep -o "$(basename "${ARCHIVE_FILE}" | sed 's/.7z//g')/.*" | sort
+      elif  echo "${ARCHIVE_FILE}" | grep -q ".7z.001$" 
       then
-        7z l ${ARCHIVE_FILE}.7z.001 | awk '/--------/{f=0} f; /--------/{f=1}' | grep -o "$(basename ${ARCHIVE_FILE} | sed 's/.7z.001//g')/.*" | sort
+        7z l "${ARCHIVE_FILE}".7z.001 | awk '/--------/{f=0} f; /--------/{f=1}' | grep -o "$(basename "${ARCHIVE_FILE}" | sed 's/.7z.001//g')/.*" | sort
       fi
     ;;
     ZIP)
-      unzip -l ${ARCHIVE_FILE} | awk '/---------/{f=0} f; /---------/{f=1}' | awk '{ print $4 }'
+      unzip -l "${ARCHIVE_FILE}" | awk '/---------/{f=0} f; /---------/{f=1}' | awk '{ print $4 }'
     ;;
   esac
 }

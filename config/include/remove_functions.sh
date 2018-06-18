@@ -1,6 +1,6 @@
 ##############  Remove Lab Env Functions ##################################
-# version: 4.2.1
-# date: 2018-03-15
+# version: 4.3.0
+# date: 2018-06-04
 #
 
 remove_libvirt_networks() {
@@ -16,6 +16,83 @@ remove_libvirt_networks() {
       run sudo virsh net-undefine ${VNET}
   done
   echo
+}
+
+remove_new_ovs_bridges() {
+  if [ -z "${OVS_BRIDGE_LIST}" ]
+  then
+    return
+  fi
+  echo -e "${LTBLUE}Removing New Open vSwitch Bridge(s) ...${NC}"
+  echo -e "${LTBLUE}---------------------------------------------------------${NC}"
+  # make sure we remove the bridges in the reverse order that we created them
+  for OVS_BRIDGE in $(echo ${OVS_BRIDGE_LIST} | awk '{ for (i=NF; i>1; i--) printf("%s ",$i); print $1; }')
+  do
+    local OVS_BRIDGE_NAME=$(echo ${OVS_BRIDGE} | cut -d , -f 1)
+    local NODE_NUM=$(echo ${OVS_BRIDGE} | cut -d , -f 2)
+    local OVS_BRIDGE_NETWORK=$(echo ${OVS_BRIDGE} | cut -d , -f 3)
+    local OVS_BRIDGE_PHYSDEV=$(echo ${OVS_BRIDGE} | cut -d , -f 4)
+    local OVS_BRIDGE_PARENT_BRIDGE=$(echo ${OVS_BRIDGE} | cut -d , -f 5)
+    local OVS_BRIDGE_VLAN_TAG=$(echo ${OVS_BRIDGE} | cut -d , -f 6)
+    case ${OVS_BRIDGE_NETWORK}
+    in
+      -)
+        OVS_BRIDGE_NETWORK=""
+      ;;
+      *)
+        local IP_NETWORK="$(echo ${OVS_BRIDGE_NETWORK} | cut -d / -f 1 | cut -d . -f 1,2,3)"
+        if ! [ -z ${IP_NETWORK} ]
+        then
+          local IP_ADDR="${IP_NETWORK}.${NODE_NUM}"
+          local CIDRMASK="/$(echo ${OVS_BRIDGE_NETWORK} | cut -d / -f 2)"
+          local CIDR_IP_ADDR="${IP_ADDR}${CIDRMASK}"
+        else
+          local CIDR_IP_ADDR=""
+        fi
+      ;;
+    esac
+    echo 
+
+    echo -e "${LTCYAN}Bridge: ${OVS_BRIDGE_NAME} ...${NC}"
+    run sudo ovs-vsctl --if-exists del-br ${OVS_BRIDGE_NAME}
+
+    if ip addr show | grep -q ${OVS_BRIDGE_PHYSDEV}-nic
+    then
+      run sudo ip link set ${OVS_BRIDGE_PHYSDEV} down
+      run sudo ip addr del ${CIDR_IP_ADDR} dev ${OVS_BRIDGE_PHYSDEV}-nic
+      run sudo ip link set ${OVS_BRIDGE_PHYSDEV}-nic down
+      run sudo ip link del dev ${OVS_BRIDGE_PHYSDEV} type veth
+    fi
+    echo
+  done
+}
+
+remove_new_veth_interfaces() {
+  if [ -z "${VETH_LIST}" ]
+  then
+    return
+  fi
+  echo -e "${LTBLUE}Removing New veth interface(s) ...${NC}"
+  echo -e "${LTBLUE}---------------------------------------------------------${NC}"
+  for VETH in ${VETH_LIST}
+  do
+    local VETH_NAME=$(echo ${VETH} | cut -d , -f 1)
+    local NODE_NUM=$(echo ${VETH} | cut -d , -f 2)
+    local VETH_NETWORK=$(echo ${VETH} | cut -d , -f 3)
+    local VETH_NAME_A=${VETH_NAME}-nic
+    local VETH_NAME_B=${VETH_NAME}
+    echo 
+
+    if ip addr show | grep -q ${VETH_NAME_A}
+    then
+      echo -e "${LTCYAN}veth: ${VETH_NAME} ...${NC}"
+      run sudo ip link set ${VETH_NAME_B} down
+      run sudo ip addr del ${CIDR_IP_ADDR} dev ${VETH_NAME_A}
+      run sudo ip link set ${VETH_NAME_A} down
+      run sudo ip link del dev ${VETH_NAME_B} type veth
+      echo
+    fi
+  done
 }
 
 remove_new_bridges() {

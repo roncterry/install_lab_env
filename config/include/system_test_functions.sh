@@ -1,6 +1,6 @@
 ##############  System Test Functions #####################################
-# version: 3.4.0
-# date: 2018-05-03
+# version: 3.5.1
+# date: 2018-06-15
 
 #=========  Hardware Test Functions  =============
 
@@ -107,6 +107,15 @@ test_for_virtualbmc() {
     VBMC_INSTALLED=Y
   else
     VBMC_INSTALLED=N
+  fi
+}
+
+test_for_openvswitch() {
+  if which ovs-vsctl > /dev/null 2>&1
+  then
+    OVS_INSTALLED=Y
+  else
+    OVS_INSTALLED=N
   fi
 }
 
@@ -553,6 +562,41 @@ run_test_for_virtualbmc() {
       echo -e "${RED}        |     |     |${NC}"
       echo -e "${RED}        V     V     V${NC}"
       echo -e "  ${ORANGE}Install the package: ${BLUE}python-virtualbmc${NC}"
+      echo
+      echo -e "${ORANGE}------------------------------------------------------------------------${NC}"
+      echo
+      TEST_FAIL=y
+      #exit 5
+    ;;
+  esac
+}
+
+run_test_for_openvswitch() {
+  echo -e "${LTBLUE}Checking for Open vSwitch ...${NC}"
+  echo -e "${LTBLUE}-------------------------------------------------------------------${NC}"
+  echo
+  test_for_openvswitch
+  case ${OVS_INSTALLED} in
+    Y)
+      echo -e "  ${LTCYAN}  OVS_INSTALLED=${GREEN}Y${NC}"
+      echo
+      echo -e "  ${LTCYAN}    Continuing ...${NC}"
+      echo
+    ;;
+    N)
+      echo -e "  ${LTCYAN}  OVS_INSTALLED=${LTRED}N${NC}"
+      echo
+      echo -e "${ORANGE}------------------------------------------------------------------------${NC}"
+      echo -e "${RED}[Problem]${NC}"
+      echo -e "  ${LTRED}Open vSwitch is not installed.${NC}"
+      echo
+      echo -e "${RED}[Remediation Required]${NC}"
+      echo -e "${RED}        |     |     |${NC}"
+      echo -e "${RED}        V     V     V${NC}"
+      echo -e "  ${ORANGE}Install the packages: ${BLUE}openvswitch${NC}"
+      echo -e "  ${ORANGE}                      ${BLUE}openvswitch-ovn-central${NC}"
+      echo -e "  ${ORANGE}                      ${BLUE}openvswitch-ovn-host${NC}"
+      echo -e "  ${ORANGE}                      ${BLUE}openvswitch-ovn-vtep${NC}"
       echo
       echo -e "${ORANGE}------------------------------------------------------------------------${NC}"
       echo
@@ -1243,6 +1287,16 @@ run_tests() {
     ;;
   esac
 
+  #-Open vSwitch
+  case ${REQUIRE_OPENVSWITCH} in
+    N|n)
+      OVS_INSTALLED=NA
+    ;;
+    *)
+      run_test_for_openvswitch
+    ;;
+  esac
+
   #### Test Network ####
 
   #-NetworkManager
@@ -1318,7 +1372,19 @@ run_tests() {
       echo -e ${LTRED}"        Please view the errors and the suggested remediations above."${NC}
       echo -e "${LTRED}---------------------------------------------------------------------------${NC}"
       echo
-      exit 1
+      case ${FORCE}
+      in
+        Y|y)
+          echo -e "  ${LTCYAN}  FORCE=${GREEN}Y${NC}"
+          echo
+          echo -e ${GREEN}"               Continuing. Forcing install due to CLI option. "${NC}
+          echo
+          sleep 2
+        ;;
+        *)
+          exit 1
+        ;;
+      esac
     ;;
     *)
       echo 

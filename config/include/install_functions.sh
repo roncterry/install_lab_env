@@ -1,6 +1,6 @@
 ##############  Lab Env Install and Configure Functions ######################
-# version: 5.2.2
-# date: 2018-05-04
+# version: 5.3.1
+# date: 2018-06-18
 #
 
 create_directories() {
@@ -117,6 +117,65 @@ create_libvirt_virtual_networks() {
     #--------------------------------------------------------
   done
   echo
+}
+
+create_new_veth_interfaces() {
+  if [ -z "${VETH_LIST}" ]
+  then
+    return
+  fi
+  echo -e "${LTBLUE}Creating New veth interfaces(s) ...${NC}"
+  echo -e "${LTBLUE}---------------------------------------------------------${NC}"
+  for VETH in ${VETH_LIST}
+  do
+    local VETH_NAME=$(echo ${VETH} | cut -d , -f 1)
+    local NODE_NUM=$(echo ${VETH} | cut -d , -f 2)
+    local VETH_NET=$(echo ${VETH} | cut -d , -f 3)
+    local VETH_NAME_A=${VETH_NAME}-nic
+    local VETH_NAME_B=${VETH_NAME}
+
+    configure_new_veth_interfaces ${VETH_NAME} ${NODE_NUM} ${VETH_NET}
+
+    #--test--------------------------------------------------
+    if ip addr show | grep -q ${VETH_NAME_A}
+    then
+      IS_ERROR=Y
+      FAILED_TASKS="${FAILED_TASKS},install_functions.create_new_ovs_bridges:${VETH_NAME}"
+    fi
+    #--------------------------------------------------------
+
+    echo
+  done
+}
+
+create_new_ovs_bridges() {
+  if [ -z "${OVS_BRIDGE_LIST}" ]
+  then
+    return
+  fi
+  echo -e "${LTBLUE}Creating New Open vSwitch Bridge(s) ...${NC}"
+  echo -e "${LTBLUE}---------------------------------------------------------${NC}"
+  for OVS_BRIDGE in ${OVS_BRIDGE_LIST}
+  do
+    local OVS_BRIDGE_NAME=$(echo ${OVS_BRIDGE} | cut -d , -f 1)
+    local NODE_NUM=$(echo ${OVS_BRIDGE} | cut -d , -f 2)
+    local OVS_BRIDGE_NET=$(echo ${OVS_BRIDGE} | cut -d , -f 3)
+    local OVS_BRIDGE_PHYSDEV=$(echo ${OVS_BRIDGE} | cut -d , -f 4)
+    local OVS_BRIDGE_PARENT_BRIDGE=$(echo ${OVS_BRIDGE} | cut -d , -f 5)
+    local OVS_BRIDGE_VLAN_TAG=$(echo ${OVS_BRIDGE} | cut -d , -f 6)
+
+    configure_new_ovs_bridge ${OVS_BRIDGE_NAME} ${NODE_NUM} ${OVS_BRIDGE_NET} ${OVS_BRIDGE_PHYSDEV} ${OVS_BRIDGE_PARENT_BRIDGE} ${OVS_BRIDGE_VLAN_TAG}
+
+    #--test--------------------------------------------------
+    if sudo ovs-vsctl show | grep -q ${OVS_BRIDGE_NAME}
+    then
+      IS_ERROR=Y
+      FAILED_TASKS="${FAILED_TASKS},install_functions.create_new_ovs_bridges:${OVS_BRIDGE_NAME}"
+    fi
+    #--------------------------------------------------------
+
+    echo
+  done
 }
 
 create_new_vlans() {
@@ -916,7 +975,7 @@ extract_register_libvirt_vms() {
     echo -e "${LTCYAN}VM Name:${GREEN} ${VM}${NC}"
     echo -e "${LTCYAN}---------------------------------------------------------------${NC}"
 
-    local ARCHIVE_TYPE=$(get_archive_type ${VM_SRC_DIR}/${VM})
+    local ARCHIVE_TYPE=$(get_archive_type "${VM_SRC_DIR}/${VM}")
 
     echo -e "${LTBLUE}Extracting VM ...${NC}"
     extract_archive "${VM_SRC_DIR}/${VM}" ${VM_DEST_DIR} ${ARCHIVE_TYPE}
