@@ -1,5 +1,5 @@
 ##############  Lab Env Install and Configure Functions ######################
-# version: 5.3.1
+# version: 5.3.2
 # date: 2018-06-18
 #
 
@@ -992,14 +992,17 @@ extract_register_libvirt_vms() {
     local SRC_VMFILES=$(list_archive "${VM_SRC_DIR}/${VM}" ${ARCHIVE_TYPE})
     local DST_VMFILES=$(cd ${VM_DEST_DIR}/;ls ${VM})
 
-    for SRC_VMFILE in $(echo ${SRC_VMFILES} | cut -d \/ -f 2)
+    local COUNT=1
+    for SRC_VMFILE in ${SRC_VMFILES}
     do
-      if ! echo ${DST_VMFILES} | grep -q ${SRC_VMFILE}
+      ((COUNT++))
+      if ! echo ${DST_VMFILES} | grep -q $(echo ${SRC_VMFILE} | cut -d \/ -f 2)
       then
         IS_ERROR=Y
         FAILED_TASKS="${FAILED_TASKS},install_functions.extract_register_libvirt_vms.extract_vm:${VM}:${SRC_VMFILE}"
       fi 
     done
+    unset COUNT
     #--------------------------------------------------------
 
     echo
