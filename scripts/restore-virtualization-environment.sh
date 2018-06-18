@@ -1,6 +1,6 @@
 #!/bin/bash
-# Version: 1.4.2
-# Date: 2018-03-19
+# Version: 1.5.1
+# Date: 2018-06-15
 
 ### Colors ###
 RED='\e[0;31m'
@@ -454,6 +454,47 @@ create_virtual_bmcs() {
   echo
 }
 
+create_new_veth_interfaces() {
+  if [ -z "${VETH_LIST}" ]
+  then
+    return
+  fi
+  echo -e "${LTBLUE}Creating New veth interfaces(s) ...${NC}"
+  echo -e "${LTBLUE}---------------------------------------------------------${NC}"
+  for VETH in ${VETH_LIST}
+  do
+    local VETH_NAME=$(echo ${VETH} | cut -d , -f 1)
+    local NODE_NUM=$(echo ${VETH} | cut -d , -f 2)
+    local VETH_NET=$(echo ${VETH} | cut -d , -f 3)
+    local VETH_NAME_A=${VETH_NAME}-nic
+    local VETH_NAME_B=${VETH_NAME}
+
+    configure_new_veth_interfaces ${VETH_NAME} ${NODE_NUM} ${VETH_NET}
+    echo
+  done
+}
+
+create_new_ovs_bridges() {
+  if [ -z "${OVS_BRIDGE_LIST}" ]
+  then
+    return
+  fi
+  echo -e "${LTBLUE}Creating New Open vSwitch Bridge(s) ...${NC}"
+  echo -e "${LTBLUE}---------------------------------------------------------${NC}"
+  for OVS_BRIDGE in ${OVS_BRIDGE_LIST}
+  do
+    local OVS_BRIDGE_NAME=$(echo ${OVS_BRIDGE} | cut -d , -f 1)
+    local NODE_NUM=$(echo ${OVS_BRIDGE} | cut -d , -f 2)
+    local OVS_BRIDGE_NET=$(echo ${OVS_BRIDGE} | cut -d , -f 3)
+    local OVS_BRIDGE_PHYSDEV=$(echo ${OVS_BRIDGE} | cut -d , -f 4)
+    local OVS_BRIDGE_PARENT_BRIDGE=$(echo ${OVS_BRIDGE} | cut -d , -f 5)
+    local OVS_BRIDGE_VLAN_TAG=$(echo ${OVS_BRIDGE} | cut -d , -f 6)
+
+    configure_new_ovs_bridge ${OVS_BRIDGE_NAME} ${NODE_NUM} ${OVS_BRIDGE_NET} ${OVS_BRIDGE_PHYSDEV} ${OVS_BRIDGE_PARENT_BRIDGE} ${OVS_BRIDGE_VLAN_TAG}
+    echo
+  done
+}
+
 create_new_vlans() {
   if [ -z "${VLAN_LIST}" ]
   then
@@ -504,6 +545,8 @@ echo -e "${LTCYAN}                      Restoring Virtualiztion Environment "
 echo -e "${LTCYAN}---------------------------------------------------------------------------${NC}"
 echo
 
+create_new_veth_interfaces
+create_new_ovs_bridges
 activate_libvirt_virtual_networks
 define_virtual_machines
 activate_libvirt_storage_pools
