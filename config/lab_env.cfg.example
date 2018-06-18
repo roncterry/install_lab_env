@@ -1,4 +1,4 @@
-# Config File Syntax Version: 2018050301
+# Config File Syntax Version: 2018060401
 ##############################################################################
 #                          Variables
 ##############################################################################
@@ -101,7 +101,15 @@ COURSE_NUM="TEST101"
 #   installed. This is important when your virtual machines require a BMC
 #   (IPMI) device.
 #
-#   It is safe to leave this set to Y.
+#   When using the standard lab machine image it is safe to leave this set to Y.
+#
+# REQUIRE_OPENVSWITCH
+#   This checks to make sure the openvswitch and openvswitch-ovn-* packages 
+#   are installed. This is important when your lab environment requires 
+#   Open vSwitch based virtual networks or OpenvSwitch based connectivity 
+#   between lab machines in a multi-labmachine environment.
+#
+#   When using the standard lab machine image it is safe to leave this set to Y.
 #
 REQUIRE_VT_ENABLED=Y
 REQUIRE_MIN_MEMORY=Y
@@ -115,6 +123,7 @@ REQUIRE_LIBVIRT=Y
 REQUIRE_LIBVIRT_TCP_LISTEN=Y
 REQUIRE_LIBVIRT_QEMU_VNC_SPICE_LISTEN=Y
 REQUIRE_VIRTUALBMC=Y
+REQUIRE_OPENVSWITCH=Y
 
 
 # Will the lab environment be spread accross multiple lab machines?
@@ -332,7 +341,8 @@ INSTALL_SSH_KEYS="N"
 #
 SSH_FILE_LIST=""
 
-
+# This is used to create basic VLANs
+#
 # The VLAN names in VLAN_LIST should be a space delimited list of
 # comma delimited values in this order: 
 #   VLAN name    (example: cloud-admin)
@@ -350,6 +360,8 @@ SSH_FILE_LIST=""
 VLAN_LIST=""
 
 
+# This is used to create basic Linux bridges
+#
 # The bridge names in BRIDGE_LIST should be a space delimited list of
 # comma delimited values in this order: 
 #   bridge name    (example: cloud-admin)
@@ -360,6 +372,8 @@ VLAN_LIST=""
 #   Note: If the bridge should not have an IP address assigned to it, 
 #         enter - into the bridge network field. 
 #
+#   Note: The node number is used for the last octet of the nodes IP address
+#
 #   Note: The ethernet device parameter is optional. If not supplied,
 #         the first unconfigured ethernet device will be used.
 #
@@ -367,6 +381,74 @@ VLAN_LIST=""
 # Example 2: "cloud-admin,1,192.168.124.0/24,vlan-admin cloud-storage,1,192.168.125.0/24,vlan-storage"
 #
 BRIDGE_LIST=""
+
+
+# This is used to create virtual network interfaces on the host
+# These are typically used for host interfaces on VLANS when using 
+# Open vSwitch bridges.
+#
+# Note: When used with a VLAN and an Open vSwitch bridge, the veth pair
+#       can be created during the bridge creation rather than here.
+#
+# The veth names in VETH_LIST should be a space delimited list of
+# comma delimited values in this order: 
+#   veth name    (example: vlan99)
+#   node number  (example: 1)
+#   veth network (example: 192.168.99.1/24)
+#
+#   Note: If the veth should not have an IP address assigned to it, 
+#         or it will be assigned durring the Open vSwitch bridge creation,
+#         enter - into the veth network field. 
+#
+#   Note: The node number is used for the last octet of the nodes IP address
+#
+# Example 1: "veth99,1,-"
+# Example 2: "veth99,1,192.168.99.0/24"
+# Example 3: "veth99,1,192.168.99.0/24 veth100,1,192.168.100.1/24"
+#
+VETH_LIST=""
+
+
+# This is used to create OpenvSwitch based bridges and VLANS
+#
+# The bridge names in OVS_BRIDGE_LIST should be a space delimited list of
+# comma delimited values in this order: 
+#   Open vSwitch bridge name    (example: cloud-admin)
+#   node number                 (example: 1)
+#   Open vSwitch bridge network (example: 192.168.124.0/24)
+#   physical device             (example: eth1)
+#   parent bridge               (example: ovsbr0)
+#   VLAN tag                    (example: 124)
+#
+#   Note: If the bridge should not have an IP address assigned to it, 
+#         enter - into the bridge network field. 
+#
+#   Note: The node number is used for the last octet of the nodes IP address
+#
+#   Note: The physical device is the physical network device to attach to the
+#         bridge. Note that a network device of any type (ethernet, wifi, etc)
+#         can be listed. If the bridge should have no physical device attached
+#         enter a - into the physical device field. 
+#         If the physical device specified doesn't exist then a veth pair is
+#         created with that name.
+#
+#   Note: The parent bridge field is used when creating a new bridge that
+#         corresponds to a VLAN on an Open vSwitch bridge (i.e. a child bridge
+#         on a VLAN tagged port on an existing bridge). 
+#         The parent bridge should be the name of the Open vSwitch bridge to
+#         create the VLAN port on.
+#         This parent bridge must be listed in the OVS_BRIDGE_LIST variable
+#         before the VLAN tagged bridge is listed. This must be used in 
+#         conjunction with VLAN tag.
+#         If the bridge is _not_ a VLAN bridge, enter a - into the
+#         parent bridge field. 
+#
+# Example 1: "ovsbr0,1,-,-,-,-"
+# Example 1: "ovsbr0,1,192.168.99.0/24,vlan99,-,-"
+# Example 2: "ovsbr1,1,-,eth1,-,-"
+# Example 3: "ovsbr1,1,-,eth1,-,- cloud-admin,1,192.168.124.0/24,veth124,ovsbr0,124 cloud-public,1,192.168.126.0/24,veth126,ovsbr0,126"
+#
+OVS_BRIDGE_LIST=""
 
 
 # List of VMware VM tarballs. 
