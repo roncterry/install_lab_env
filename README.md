@@ -15,16 +15,24 @@ The Installer Framwork used the lab environment standards defined in the **https
 
 Open a command prompt in the installer directory and run the following command:
 ```
-bash ./install_lab_env.sh
+bash ./install_lab_env.sh [nocolor] [--testonly] [--force]
 ```
+
+Option | Description
+------------ | -------------
+**--nocolor** |		turns off colorization of output
+**--testonly** |		only runs tests then exits
+**--force** |	forces install to run even if tests fail
 
 ## Remove a Lab Environment
 
 Open a command prompt in the **~/scripts/<COURSE_ID>/** directory (or the installer directory) and run the following command:
 ```
-bash ./remove_lab_env.sh
+bash ./remove_lab_env.sh [nocolor]
 ```
-
+Option | Description
+------------ | -------------
+**--nocolor** |		turns off colorization of output
 
 ## Create a New Lab Environment Installer Package
 
@@ -207,6 +215,8 @@ This variable contains the course number (i.e. Course ID) or Session ID of the c
 
 **REQUIRE_VIRTUALBMC**
 
+**REQUIRE_OPENVSWITCH**
+
 These variables specify which tests to run on the lab machine before attempting to install the lab environment onto the lab machine. The default behaviour is to run all tests unless specifically told not to. This behaviour allows additional tests to be added to the installation script yet still have older configuration files still work. If you are not sure which tests you need for your lab environment, just allow all tests to run.
 
 To disable a test, set the variable's value to **N**.
@@ -343,6 +353,14 @@ This variable is used to have the installation script create Linux bridges when 
 
 The most common use of this feature is to create Linux bridges on the VLANs. These bridges will be used as the virtual networks the VMs are connected to.
 
+**OVS_BRIDGE_LIST**
+
+This variable is used to have the installation script create OpenvSwitch bridges when the lab environment is installed. It is a space delimited list of OpenvSwitch bridge definitions which are in turn comma delimited lists. The description of the fields in the Linux bridge definition are described in the comments in the **lab_env.cfg** file.
+
+The most common use of this feature is in multi-lab machine environments to create OpenvSwitch bridges with VLANs. These bridges will be used as the virtual networks the VMs are connected to. 
+
+They can also be used in single lab machine environments where your Libvirt virtual networks are attached to OpenvSwitch bridges rather than Linux bridges.
+
 # Use the *backup_lab_env.sh* Script
 
 ## Intro:
@@ -351,8 +369,9 @@ This script is part of the Lab Environment Installer Framework but is also provi
 
 This script can be used to backup the current state of a currently installed lab environment. For the backup, it creates an installer package (using the Lab Environment Installer Framework) for the lab environment that includes archives of the current state of the VMs, ISO images, cloud images, course files, scripts, etc. These backups are created in **/install/courses/** and the directories that map to the backup/installer package are named using the following format: 
 
-**<COURSE_ID>-backup-<DATE_STAMP>.<UNIX_TIME_STAMP>** 
-
+```
+<COURSE_ID>-backup-<DATE_STAMP>.<UNIX_TIME_STAMP>
+```
 
 ## Usage:
 ```
@@ -375,6 +394,7 @@ Archive Format | Description
 
 The p7zip formats are **strongly recommended** because they split the archive into smaller chunks that can reside on a FAT filesystem that is used by default when creating student media flash drives. For quicker backup operations where the size of the backup (installer package) is not as important, using the **7zcopy** archive format is recommended.
 
+One thing to watch for when using this script is to ensure that the permission on all files being backed up (i.e. ISO images, virtual machine disk images, etc.) have permissions that allow them to be read and copied by the user running the backup script. If they don't then the files will be missing in the backup.
 
 ## Creating the Initial Installer Package:
 
@@ -385,7 +405,7 @@ Because this script creates, as its backup, an installer package using the Lab E
  |                   |-install_lab_env.sh
  |                   |-remove_lab_env.sh
  |                   |-backup_lab_env.sh
-  |                  |-restore-virtual-bmc-devices.sh
+ |                   |-restore-virtual-bmc-devices.sh
  |                   |-restore-virtualization-environment.sh
  |                   |-config/
  |                           |-lab_env.cfg
@@ -407,4 +427,5 @@ Once this directory structure is created, simply running the command:
 ```
 will create a usable installer package in the **/install/courses/** directory.
 
+One thing to watch for when using this script is to ensure that the permission on all files being backed up (i.e. ISO images, virtual machine disk images, etc.) have permissions that allow them to be read and copied by the user running the backup script. If they don't then the files will be missing in the backup.
 
