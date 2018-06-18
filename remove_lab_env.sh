@@ -1,6 +1,6 @@
 #!/bin/bash
-# Version: 2.7.1
-# Date: 2018-03-15
+# Version: 2.8.1
+# Date: 2018-06-15
 
 DEFAULT_CONFIG="config/lab_env.cfg"
 
@@ -22,7 +22,7 @@ else
   source ${CONFIG}
 fi
 
-if echo $* | grep -q "nocolor"
+if echo $* | grep -E -q "(--nocolor|nocolor)"
 then
   echo "[Not using colors]"
 else
@@ -96,6 +96,10 @@ remove_libvirt_volumes
 remove_libvirt_pools
 
 remove_libvirt_networks
+
+remove_new_ovs_bridges
+
+remove_new_veth_interfaces
 
 remove_new_bridges
 

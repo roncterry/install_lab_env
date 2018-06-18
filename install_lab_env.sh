@@ -1,6 +1,6 @@
 #!/bin/bash
-# Version: 3.2.0
-# Date: 2018-04-17
+# Version: 3.3.1
+# Date: 2018-06-15
 
 DEFAULT_CONFIG="./config/lab_env.cfg"
 
@@ -22,21 +22,21 @@ else
   source ${CONFIG}
 fi
 
-if echo $* | grep -q "testonly"
+if echo $* | grep -q "--testonly"
 then
-  TEST_ONLY=y
+  export TEST_ONLY=y
 else
-  TEST_ONLY=n
+  export TEST_ONLY=n
 fi
 
-if echo $* | grep -q "force"
+if echo $* | grep -q "--force"
 then
-  FORCE=y
+  export FORCE=y
 else
-  FORCE=n
+  export FORCE=n
 fi
 
-if echo $* | grep -q "nocolor"
+if echo $* | grep -E -q "(--nocolor|nocolor)"
 then
   echo "[Not using colors]"
 else
@@ -125,6 +125,10 @@ install_rpms
 install_vmware
 
 create_vmware_networks
+
+create_new_veth_interfaces
+
+create_new_ovs_bridges
 
 create_libvirt_virtual_networks
 
