@@ -1,6 +1,6 @@
 ##############  Remove Lab Env Functions ##################################
-# version: 4.3.0
-# date: 2018-06-04
+# version: 4.4.0
+# date: 2018-07-10
 #
 
 remove_libvirt_networks() {
@@ -176,6 +176,7 @@ remove_virtual_bmcs() {
     local BMC_PORT=$(echo ${BMC} | cut -d , -f 3)
     local BMC_USERNAME=$(echo ${BMC} | cut -d , -f 4)
     local BMC_PASSWORD=$(echo ${BMC} | cut -d , -f 5)
+    local BMC_URI=$(echo ${BMC} | cut -d , -f 6)
 
     #>Option 1: use virtualbmc directly
     #
@@ -183,7 +184,7 @@ remove_virtual_bmcs() {
     #run sudo vbmc delete ${VM_NAME}
 
     #>Option 2: use a function that uses virtualbmc
-    virtualbmc_control remove ${VM_NAME} ${BMC_ADDR} ${BMC_PORT} ${VIRTUAL_BMC_NETWORK} ${BMC_USERNAME} ${BMC_PASSWORD}
+    virtualbmc_control remove ${VM_NAME} ${BMC_ADDR} ${BMC_PORT} ${VIRTUAL_BMC_NETWORK} ${BMC_USERNAME} ${BMC_PASSWORD} ${BMC_URI}
 
     #>Option 3: use a function that uses some other method
     #

@@ -1,6 +1,6 @@
 ##############  Lab Env Install and Configure Functions ######################
-# version: 5.3.2
-# date: 2018-06-18
+# version: 5.4.0
+# date: 2018-07-10
 #
 
 create_directories() {
@@ -137,7 +137,7 @@ create_new_veth_interfaces() {
     configure_new_veth_interfaces ${VETH_NAME} ${NODE_NUM} ${VETH_NET}
 
     #--test--------------------------------------------------
-    if ip addr show | grep -q ${VETH_NAME_A}
+    if ! ip addr show | grep -q ${VETH_NAME_A}
     then
       IS_ERROR=Y
       FAILED_TASKS="${FAILED_TASKS},install_functions.create_new_ovs_bridges:${VETH_NAME}"
@@ -167,7 +167,7 @@ create_new_ovs_bridges() {
     configure_new_ovs_bridge ${OVS_BRIDGE_NAME} ${NODE_NUM} ${OVS_BRIDGE_NET} ${OVS_BRIDGE_PHYSDEV} ${OVS_BRIDGE_PARENT_BRIDGE} ${OVS_BRIDGE_VLAN_TAG}
 
     #--test--------------------------------------------------
-    if sudo ovs-vsctl show | grep -q ${OVS_BRIDGE_NAME}
+    if ! sudo ovs-vsctl show | grep -q ${OVS_BRIDGE_NAME}
     then
       IS_ERROR=Y
       FAILED_TASKS="${FAILED_TASKS},install_functions.create_new_ovs_bridges:${OVS_BRIDGE_NAME}"
@@ -224,7 +224,7 @@ create_new_bridges() {
     configure_new_bridge ${BRIDGE_NAME} ${NODE_NUM} ${BRIDGE_NET} ${BRIDGE_ETHERDEV}
 
     #--test--------------------------------------------------
-    if sudo /usr/sbin/brctl show | grep -q ${BRIDGE_NAME}
+    if ! sudo /usr/sbin/brctl show | grep -q ${BRIDGE_NAME}
     then
       IS_ERROR=Y
       FAILED_TASKS="${FAILED_TASKS},install_functions.create_new_bridges:${BRIDGE_NAME}"
@@ -405,6 +405,7 @@ create_virtual_bmcs() {
   local DEFAULT_BMC_PORT=623
   local DEFAULT_BMC_USERNAME=admin
   local DEFAULT_BMC_PASSWORD=password
+  local DEFAULT_BMC_URI=qemu:///system
 
   if [ -z "${VIRTUAL_BMC_LIST}" ]
   then
@@ -449,12 +450,18 @@ create_virtual_bmcs() {
       BMC_PASSWORD=${DEFAULT_BMC_PASSWORD}
     fi
 
+    local BMC_URI=$(echo ${BMC} | cut -d , -f 6)
+    if [ -z ${BMC_URI} ]
+    then
+      BMC_URI=${DEFAULT_BMC_URI}
+    fi
+
     # --create the bmc---------------------------------------
 
     #>Option 1: use virtualbmc directly
     #if ! sudo vbmc list | grep -q ${VM_NAME}
     #then
-    #  run sudo vbmc add ${VM_NAME} --address ${BMC_ADDR} --port ${BMC_PORT} --username ${BMC_USERNAME} --password ${BMC_PASSWORD}
+    #  run sudo vbmc add ${VM_NAME} --address ${BMC_ADDR} --port ${BMC_PORT} --username ${BMC_USERNAME} --password ${BMC_PASSWORD} --libvirt-uri ${BMC_URI}
     #  run sudo vbmc start ${VM_NAME}
     #  run sudo vbmc show ${VM_NAME}
     #fi
@@ -468,10 +475,10 @@ create_virtual_bmcs() {
     ##--------------------------------------------------------
 
     #>Option 2: use a function that uses virtualbmc
-    virtualbmc_control create ${VM_NAME} ${BMC_ADDR} ${BMC_PORT} ${VIRTUAL_BMC_NETWORK} ${BMC_USERNAME} ${BMC_PASSWORD}
+    virtualbmc_control create ${VM_NAME} ${BMC_ADDR} ${BMC_PORT} ${VIRTUAL_BMC_NETWORK} ${BMC_USERNAME} ${BMC_PASSWORD} ${BMC_URI}
 
     #--test--------------------------------------------------
-    if ! virtualbmc_control test ${VM_NAME} ${BMC_ADDR} ${BMC_PORT} ${VIRTUAL_BMC_NETWORK} ${BMC_USERNAME} ${BMC_PASSWORD}
+    if ! virtualbmc_control test ${VM_NAME} ${BMC_ADDR} ${BMC_PORT} ${VIRTUAL_BMC_NETWORK} ${BMC_USERNAME} ${BMC_PASSWORD} ${BMC_URI}
     then
       IS_ERROR=Y
       FAILED_TASKS="${FAILED_TASKS},install_functions.create_virtual_bmcs:${VM_NAME}"
