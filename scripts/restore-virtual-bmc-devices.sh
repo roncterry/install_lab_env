@@ -1,6 +1,6 @@
 #!/bin/bash
-# Version: 1.0.3
-# Date: 2018-04-25
+# Version: 1.1.0
+# Date: 2018-07-10
 
 if [ -d ./config ]
 then
@@ -19,6 +19,7 @@ create_virtual_bmc() {
   local DEFAULT_BMC_PORT=623
   local DEFAULT_BMC_USERNAME=admin
   local DEFAULT_BMC_PASSWORD=password
+  local DEFAULT_BMC_URI=qemu:///system
 
   if [ -z "${VIRTUAL_BMC_LIST}" ]
   then
@@ -63,8 +64,14 @@ create_virtual_bmc() {
       BMC_PASSWORD=${DEFAULT_BMC_PASSWORD}
     fi
 
-    run virtualbmc_control remove ${VM_NAME} ${BMC_ADDR} ${BMC_PORT} ${VIRTUAL_BMC_NETWORK} ${BMC_USERNAME} ${BMC_PASSWORD}
-    run virtualbmc_control create ${VM_NAME} ${BMC_ADDR} ${BMC_PORT} ${VIRTUAL_BMC_NETWORK} ${BMC_USERNAME} ${BMC_PASSWORD}
+    local BMC_URI=$(echo ${BMC} | cut -d , -f 6)
+    if [ -z ${BMC_URI} ]
+    then
+      BMC_URI=${DEFAULT_BMC_URI}
+    fi
+
+    run virtualbmc_control remove ${VM_NAME} ${BMC_ADDR} ${BMC_PORT} ${VIRTUAL_BMC_NETWORK} ${BMC_USERNAME} ${BMC_PASSWORD} ${BMC_URI}
+    run virtualbmc_control create ${VM_NAME} ${BMC_ADDR} ${BMC_PORT} ${VIRTUAL_BMC_NETWORK} ${BMC_USERNAME} ${BMC_PASSWORD} ${BMC_URI}
     echo "====================================================================="
   done
 }

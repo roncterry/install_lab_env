@@ -1,6 +1,6 @@
 #!/bin/bash
-# Version: 1.5.1
-# Date: 2018-06-15
+# Version: 1.6.0
+# Date: 2018-07-10
 
 ### Colors ###
 RED='\e[0;31m'
@@ -86,7 +86,7 @@ VMWARE_INSTALLER_DIR="./vmware"
 ##############################################################################
 
 virtualbmc_control() {
-  local USAGE_STRING="USAGE: ${0} <action> <vm_name> <bmc_addr> <bnc_port> <bmc_network_name> <bmc_username> <bmc_password>"
+  local USAGE_STRING="USAGE: ${0} <action> <vm_name> <bmc_addr> <bnc_port> <bmc_network_name> <bmc_username> <bmc_password> <libvirt_uri>"
 
   if [ -z ${1} ]
   then
@@ -153,6 +153,7 @@ virtualbmc_control() {
   local BMC_NETWORK_NAME=${5}
   local BMC_USERNAME=${6}
   local BMC_PASSWORD=${7}
+  local BMC_URI=${8}
   local BMC_NETWORK_CIDR=$(ip addr show dev ${BMC_NETWORK_NAME} | grep " .inet " | awk '{ print $2 }' | cut -d "/" -f 2)
 
   #echo
@@ -164,6 +165,7 @@ virtualbmc_control() {
   #echo BMC_NETWORK_NAME=${BMC_NETWORK_NAME}
   #echo BMC_USERNAME=${BMC_USERNAME}
   #echo BMC_PASSWORD=${BMC_PASSWORD}
+  #echo BMC_URI=${BMC_URI}
   #echo BMC_NETWORK_CIDR=${BMC_NETWORK_CIDR}
   #echo "########################################################"
   #echo;read
@@ -231,7 +233,7 @@ virtualbmc_control() {
       if ! sudo vbmc list | grep -q ${VM_NAME}
       then
         # Create and start the BMC
-        run sudo vbmc add ${VM_NAME} --address ${BMC_ADDR} --port ${BMC_PORT} --username ${BMC_USERNAME} --password ${BMC_PASSWORD}
+        run sudo vbmc add ${VM_NAME} --address ${BMC_ADDR} --port ${BMC_PORT} --username ${BMC_USERNAME} --password ${BMC_PASSWORD} --libvirt-uri ${BMC_URI}
         run sudo vbmc start ${VM_NAME}
         run sudo vbmc show ${VM_NAME}
 
