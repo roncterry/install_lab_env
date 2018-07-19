@@ -429,3 +429,14 @@ will create a usable installer package in the **/install/courses/** directory.
 
 One thing to watch for when using this script is to ensure that the permission on all files being backed up (i.e. ISO images, virtual machine disk images, etc.) have permissions that allow them to be read and copied by the user running the backup script. If they don't then the files will be missing in the backup.
 
+# Video Guides
+
+[Lab Environment Standards](https://s3-us-west-2.amazonaws.com/training-howtos/lab_environment_standards.mp4)
+
+[Create a Lab Environment Installer Package](https://s3-us-west-2.amazonaws.com/training-howtos/create_a_lab_environment_installer_package.mp4)
+
+[Install a Lab Environment](https://s3-us-west-2.amazonaws.com/training-howtos/install_a_lab_environment.mp4)
+
+[Back Up a Lab Environment](https://s3-us-west-2.amazonaws.com/training-howtos/backup_a_lab_environment.mp4)
+
+[Remove a Lab Environment](https://s3-us-west-2.amazonaws.com/training-howtos/remove_a_lab_environment.mp4)
