@@ -37,15 +37,16 @@ Option | Description
 ## Create a New Lab Environment Installer Package
 
 1. Check out the files from github
-2. Rename **config/lab_env.cfg.example** to **config/lab_env.cfg**
-3. Edit the **lab_env.cfg** as described later in this document
+2. Run **install_lab_env/scripts/create_skeleton_installed_course.sh COURSE_ID**
+3. Edit the **~/scripts/COURSE_ID/config/lab_env.cfg** as described later in this document
 4. Make sure your VMs have been created following the lab environment standards as described in the **https://github.com/roncterry/lab_env_tools** git repository
-5. Create archives of your VMs and put the archives in the **VMs** directory
-6. Export/create network definition XML files and put them in the **config/libvirt.cfg/** directory
+5. Create archives of your VMs and put the archives in the **/hime/VMs/COURSE_ID/** directory
+6. Export/create network definition XML files and put them in the **~/scripts/COURSE_ID/config/libvirt.cfg/** directory
 7. Put any other files in their corresponding directories
-8. Test installing and removing your lab environment on another machine
+8. Create a course installer by running: **backup_lab_env.sh COURSE_ID**
+9. Test installing and removing your lab environment on another machine
 
-(**Hint**: The **backup_lab_env.sh** script can help you automate this process. See instructions later on in this document.)
+(**Hint**:Your new course instller will be: **/install/courses/COURSE_ID_backup-some_tiem/date_stamp**)
 
 # Directory Structure
 
@@ -415,7 +416,7 @@ One thing to watch for when using this script is to ensure that the permission o
 
 ## Creating the Initial Installer Package:
 
-Because this script creates, as its backup, an installer package using the Lab Environment Installer Framework you can also use the script to create the initial installer package for a lab environment. As long as the VMs and ISO image (and cloud images) are in the appropriate directory structure as described earlier all you need to do is create a directory **~/scripts/<COURSE_ID>/** that contains the following files from the Installer Framework in the following directory structure (this matches the installed directory structure created when installing a course):
+Because this script creates, as its backup, an installer package using the Lab Environment Installer Framework you can also use the script to create the initial installer package for a lab environment. As long as the VMs and ISO image (and cloud images) are in the appropriate directory structure as described earlier all you need to do is create a directory **~/scripts/COURSE_ID/** that contains the following files from the Installer Framework in the following directory structure (this matches the installed directory structure created when installing a course):
 ```
 ~/
  |-scripts/<COURSE_ID>/
@@ -438,6 +439,8 @@ Because this script creates, as its backup, an installer package using the Lab E
  |-course_files/<COURSE_ID>/
                            |-(your additional course files)
 ```
+**Hint:** This basic directory structure can be created using the **install_lab_env/scripts/create_skeleton_installed_course.sh** script. 
+
 Once this directory structure is created, simply running the command:
 ```
  backup_lab_env.sh <COURSE_ID> 
