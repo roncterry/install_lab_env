@@ -1,4 +1,4 @@
-# Config File Syntax Version: 2018071001
+# Config File Syntax Version: 2018082801
 ##############################################################################
 #                          Variables
 ##############################################################################
@@ -39,6 +39,12 @@ COURSE_NUM="TEST101"
 # REQUIRE_MIN_DISKSPACE
 #   This will check to make sure that the lab machine has enough free disk space
 #   as specified in the MIN_DISK_FREE variable later in this configuration file.
+#
+# REQUIRE_REGULAR_USER
+#   This will check to make sure the current user is a regular user and not
+#   the root user. 
+#
+#   This should always be set to Y unless you know for sure it should be N.
 #
 # REQUIRE_SUDO_NOPASSWD
 #   This will check to make sure sudo is installed and the the current user has
@@ -114,6 +120,7 @@ COURSE_NUM="TEST101"
 REQUIRE_VT_ENABLED=Y
 REQUIRE_MIN_MEMORY=Y
 REQUIRE_MIN_DISKSPACE=Y
+REQURE_REGULAR_USER=Y
 REQUIRE_SUDO_NOPASSWD=Y
 REQUIRE_P7ZIP=Y
 REQUIRE_KVM_VIRT=Y
