@@ -1,6 +1,6 @@
 ##############  System Test Functions #####################################
-# version: 3.5.1
-# date: 2018-06-15
+# version: 3.6.0
+# date: 2018-08-28
 
 #=========  Hardware Test Functions  =============
 
@@ -63,6 +63,19 @@ test_for_vt_enabled() {
     ;;
     amd)
       grep -q svm /proc/cpuinfo && VT_ENABLED=Y
+    ;;
+  esac
+}
+
+#=========  User Test Functions  =============
+
+test_for_regular_user() {
+  case $(whoami) in
+    root)
+      REGULAR_USER=N
+    ;;
+    *)
+      REGULAR_USER=Y
     ;;
   esac
 }
@@ -382,6 +395,41 @@ run_test_memory() {
       echo -e "${RED}        V     V     V${NC}"
       echo -e "  ${ORANGE}There must be ${MIN_MEMORY}GB memory to run the lab environment.${NC}"
       echo -e "  ${ORANGE}Add ememory and then rerun this script.${NC}"
+      echo
+      echo -e "${ORANGE}------------------------------------------------------------------------${NC}"
+      echo
+      TEST_FAIL=y
+      #exit 2
+    ;;
+  esac
+}
+
+run_test_for_regular_user() {
+  echo -e "${LTBLUE}Checking user ...${NC}"
+  echo -e "${LTBLUE}-------------------------------------------------------------------${NC}"
+  echo
+  test_for_regular_user
+  case ${ENOUGH_MEMORY} in
+    Y)
+      echo -e "  ${LTCYAN}  REGULAR_USER=${GREEN}Y${NC}"
+      echo
+      echo -e "  ${LTCYAN}    Continuing ...${NC}"
+      echo
+    ;;
+    N)
+      echo -e "  ${LTCYAN}  REGULAR_USER=${LTRED}N${NC}"
+      echo
+      echo -e "${ORANGE}------------------------------------------------------------------------${NC}"
+      echo -e "${RED}[Problem]${NC}"
+      echo -e "  ${LTRED}You should not run the installer/lab environment as the root user.${NC}"
+      echo
+      echo -e "${RED}[Remediation Required]${NC}"
+      echo -e "${RED}        |     |     |${NC}"
+      echo -e "${RED}        V     V     V${NC}"
+      echo -e "  ${ORANGE}Create/log in as a regular user and run the installer again.${NC}"
+      echo
+      echo -e "  ${ORANGE}Note: Ensure that the user can sudo without a password and is a member${NC}"
+      echo -e "  ${ORANGE}      of the libvirt group.${NC}"
       echo
       echo -e "${ORANGE}------------------------------------------------------------------------${NC}"
       echo
@@ -1252,6 +1300,18 @@ run_tests() {
     ;;
     *)
       run_test_disk_space
+    ;;
+  esac
+
+  #### Test User ####
+
+  #-regular user
+  case ${REQUIRE_REGULAR_USER} in
+    N|n)
+      REGULAR_USER=NA
+    ;;
+    *)
+      run_test_for_regular_user
     ;;
   esac
 
