@@ -1,5 +1,5 @@
 ##############  System Test Functions #####################################
-# version: 3.6.0
+# version: 3.6.1
 # date: 2018-08-28
 
 #=========  Hardware Test Functions  =============
@@ -78,6 +78,7 @@ test_for_regular_user() {
       REGULAR_USER=Y
     ;;
   esac
+
 }
 
 #=========  Software/Utility Test Functions  =============
@@ -409,7 +410,7 @@ run_test_for_regular_user() {
   echo -e "${LTBLUE}-------------------------------------------------------------------${NC}"
   echo
   test_for_regular_user
-  case ${ENOUGH_MEMORY} in
+  case ${REGULAR_USER} in
     Y)
       echo -e "  ${LTCYAN}  REGULAR_USER=${GREEN}Y${NC}"
       echo
