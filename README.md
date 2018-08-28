@@ -215,6 +215,8 @@ This variable contains the course number (i.e. Course ID) or Session ID of the c
 
 **REQUIRE_MIN_DISKSPACE**
 
+**REQUIRE_REGULAR_USER**
+
 **REQUIRE_SUDO_NOPASSWD**
 
 **REQUIRE_P7ZIP**
