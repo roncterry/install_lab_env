@@ -46,7 +46,7 @@ Option | Description
 8. Create a course installer by running: **backup_lab_env.sh COURSE_ID**
 9. Test installing and removing your lab environment on another machine
 
-(**Hint**:Your new course instller will be: **/install/courses/COURSE_ID_backup-some_tiem/date_stamp**)
+(**Hint**:Your new course installer will be: **/install/courses/COURSE_ID_backup-some_time/date_stamp**)
 
 # Directory Structure
 
