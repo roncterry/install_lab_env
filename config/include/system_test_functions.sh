@@ -1,6 +1,6 @@
 ##############  System Test Functions #####################################
-# version: 3.6.1
-# date: 2018-08-28
+# version: 3.6.2
+# date: 2018-09-19
 
 #=========  Hardware Test Functions  =============
 
@@ -712,7 +712,7 @@ run_test_for_kvm_virt() {
               echo
               echo -e "  ${LTCYAN}  NESTED_VIRT=${GREEN}Y${NC}"
               echo
-              echo -e "  ${LTCNAN}    Continuing ...${NC}"
+              echo -e "  ${LTCYAN}    Continuing ...${NC}"
               echo
             ;;
             N)
