@@ -1,6 +1,6 @@
 ##############  Lab Env Install and Configure Functions ######################
-# version: 5.4.0
-# date: 2018-07-10
+# version: 5.5.0
+# date: 2018-09-17
 #
 
 create_directories() {
@@ -1050,19 +1050,52 @@ extract_register_libvirt_vms() {
     then
       echo -e "${LTBLUE}Registering VM with Libvirt ...${NC}"
       run sudo virsh define ${VM_DEST_DIR}/"${VM}"/"${VM_CONFIG}"
+
+      #--test--------------------------------------------------
+      if ! virsh list --all | grep -q ${VM}
+      then
+        if [ -e ${VM_DEST_DIR}/"${VM}"/"${VM_CONFIG}" ]
+        then
+          IS_ERROR=Y
+          FAILED_TASKS="${FAILED_TASKS},install_functions.extract_register_libvirt_vms.register_vm:${VM}"
+        fi
+      fi
+      #--------------------------------------------------------
     fi
     echo
 
-    #--test--------------------------------------------------
-    if ! virsh list --all | grep -q ${VM}
+    local VM_POOL_CONFIG=${VM}.pool.xml
+
+    if [ -e ${VM_DEST_DIR}/"${VM}"/"${VM_POOL_CONFIG}" ]
     then
-      if [ -e ${VM_DEST_DIR}/"${VM}"/"${VM_CONFIG}" ]
+      if ! sudo virsh pool-list | grep -q "${VM}$"
       then
-        IS_ERROR=Y
-        FAILED_TASKS="${FAILED_TASKS},install_functions.extract_register_libvirt_vms.register_vm:${VM}"
+      echo -e "${LTBLUE}Creating storage pool for VM ...${NC}"
+        run sudo virsh pool-define ${VM_DEST_DIR}/"${VM}"/"${VM_POOL_CONFIG}"
+        run sudo virsh pool-build ${VM}
+        run sudo virsh pool-autostart ${VM}
+        run sudo virsh pool-start ${VM}
+      elif [ "$(sudo virsh pool-list | grep  ${VM} | awk '{ print $2 }')" != active ]
+      then
+        run sudo virsh pool-autostart ${VM}
+        if [ "$(sudo virsh pool-list | grep  ${VM} | awk '{ print $3 }')" != yes ]
+        then
+          run sudo virsh pool-start ${VM}
+        fi
       fi
-    fi
-    #--------------------------------------------------------
+
+      #--test--------------------------------------------------
+      if ! virsh pool-list --all | grep -q ${VM}
+      then
+        if [ -e ${VM_DEST_DIR}/"${VM}"/"${VM_POOL_CONFIG}" ]
+        then
+          IS_ERROR=Y
+          FAILED_TASKS="${FAILED_TASKS},install_functions.extract_register_libvirt_vms.create_pool_for_vm:${VM}"
+        fi
+      fi
+      #--------------------------------------------------------
+      fi
+      echo
   done
   echo
 }

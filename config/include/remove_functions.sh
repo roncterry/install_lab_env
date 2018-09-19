@@ -1,6 +1,6 @@
 ##############  Remove Lab Env Functions ##################################
-# version: 4.4.0
-# date: 2018-07-10
+# version: 4.5.1
+# date: 2018-09-19
 #
 
 remove_libvirt_networks() {
@@ -355,6 +355,17 @@ remove_libvirt_vms() {
     echo -e "${LTCYAN}---------------------------------------------------------------${NC}"
     run sudo virsh destroy ${VM}
     run sudo virsh undefine --nvram --remove-all-storage --snapshots-metadata --wipe-storage ${VM}
+
+    local VM_POOL_CONFIG=${VM}.pool.xml
+
+    if [ -e ${VM_DEST_DIR}/"${VM}"/"${VM_POOL_CONFIG}" ]
+    then
+      echo -e "${LTCYAN}Removing storage pool for VM${NC}"
+      run sudo virsh pool-destroy ${VM}
+      #run sudo virsh pool-delete ${VM}
+      run sudo virsh pool-undefine ${VM}
+    fi
+
     echo
     echo -e "${LTCYAN}Deleting:${GREEN} ${VM_DEST_DIR}/${VM}${NC}"
     echo -e "${LTCYAN}-------------------------------------${NC}"
