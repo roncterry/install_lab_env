@@ -1,6 +1,6 @@
 ##############  Helper Functions #############################################
-# version: 3.8.0
-# date: 2018-07-10
+# version: 3.8.1
+# date: 2018-09-19
 #
 
 configure_nic() {
@@ -1477,6 +1477,7 @@ virtualbmc_control() {
       then
         # Create and start the BMC
         run sudo vbmc add ${VM_NAME} --address ${BMC_ADDR} --port ${BMC_PORT} --username ${BMC_USERNAME} --password ${BMC_PASSWORD} --libvirt-uri ${BMC_URI}
+        sleep 2
         run sudo vbmc start ${VM_NAME}
         run sudo vbmc show ${VM_NAME}
 
