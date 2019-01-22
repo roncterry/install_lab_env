@@ -1,6 +1,6 @@
 #!/bin/bash
-# Version: 1.1.0
-# Date: 2018-07-10
+# Version: 2.0.0
+# Date: 2018-09-20
 
 if [ -d ./config ]
 then
@@ -74,7 +74,25 @@ create_virtual_bmc() {
     run virtualbmc_control create ${VM_NAME} ${BMC_ADDR} ${BMC_PORT} ${VIRTUAL_BMC_NETWORK} ${BMC_USERNAME} ${BMC_PASSWORD} ${BMC_URI}
     echo "====================================================================="
   done
+  echo
+}
+
+create_vm_virtual_bmc() {
+  for VM in ${LIBVIRT_VM_LIST}
+  do
+    if which vbmcctl > /dev/null
+    then
+      local VM_VBMC_CONFIG=${VM}.vbmc
+      if [ -e ${VM_DEST_DIR}/"${VM}"/"${VM_VBMC_CONFIG}" ]
+      then
+        run vbmcctl delete config=${VM_DEST_DIR}/"${VM}"/"${VM_VBMC_CONFIG}"
+        run vbmcctl create config=${VM_DEST_DIR}/"${VM}"/"${VM_VBMC_CONFIG}"
+        echo "====================================================================="
+      fi
+    echo
+    fi
+  done
 }
 
 create_virtual_bmc
-
+create_vm_virtual_bmc

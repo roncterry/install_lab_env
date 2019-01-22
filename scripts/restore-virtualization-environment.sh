@@ -1,6 +1,6 @@
 #!/bin/bash
-# Version: 1.6.0
-# Date: 2018-07-10
+# Version: 1.8.0
+# Date: 2018-09-20
 
 ### Colors ###
 RED='\e[0;31m'
@@ -311,6 +311,43 @@ define_virtual_machines() {
         run sudo virsh define ${VM_DEST_DIR}/${VM}/${VM}.xml
       ;;
     esac
+
+    local VM_POOL_CONFIG=${VM}.pool.xml
+    if [ -e ${VM_DEST_DIR}/"${VM}"/"${VM_POOL_CONFIG}" ]
+    then
+      if ! sudo virsh pool-list | grep -q "${VM}$"
+      then
+      echo -e "${LTCYAN}Creating storage pool for VM ...${NC}"
+        run sudo virsh pool-define ${VM_DEST_DIR}/"${VM}"/"${VM_POOL_CONFIG}"
+        run sudo virsh pool-build ${VM}
+        run sudo virsh pool-autostart ${VM}
+        run sudo virsh pool-start ${VM}
+      elif [ "$(sudo virsh pool-list | grep  ${VM} | awk '{ print $2 }')" != active ]
+      then
+        run sudo virsh pool-autostart ${VM}
+        if [ "$(sudo virsh pool-list | grep  ${VM} | awk '{ print $3 }')" != yes ]
+        then
+          run sudo virsh pool-start ${VM}
+        fi
+      fi
+    fi
+
+    if which vbmcctl > /dev/null
+    then
+      local VM_VBMC_CONFIG=${VM}.vbmc
+      if [ -e ${VM_DEST_DIR}/"${VM}"/"${VM_VBMC_CONFIG}" ]
+      then
+        if ! sudo vbmc list | grep -q "${VM}"
+        then
+        echo -e "${LTBLUE}Creating virtual BMC device for VM ...${NC}"
+          run vbmcctl create config=${VM_DEST_DIR}/"${VM}"/"${VM_VBMC_CONFIG}"
+        elif ! sudo vbmc list | grep "${VM}" | grep -q running
+        then
+          run vbmcctl delete config=${VM_DEST_DIR}/"${VM}"/"${VM_VBMC_CONFIG}"
+          run vbmcctl create config=${VM_DEST_DIR}/"${VM}"/"${VM_VBMC_CONFIG}"
+        fi
+      fi
+    fi
   done
   echo
 }
