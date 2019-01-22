@@ -37,10 +37,10 @@ Option | Description
 ## Create a New Lab Environment Installer Package
 
 1. Check out the files from github
-2. Run **install_lab_env/scripts/create_skeleton_installed_course.sh COURSE_ID**
+2. Run: **install_lab_env/scripts/create_skeleton_installed_course.sh <COURSE_ID>**
 3. Edit the **~/scripts/COURSE_ID/config/lab_env.cfg** as described later in this document
-4. Make sure your VMs have been created following the lab environment standards as described in the **https://github.com/roncterry/lab_env_tools** git repository
-5. Create archives of your VMs and put the archives in the **/hime/VMs/COURSE_ID/** directory
+4. Make sure your VMs have been created following the lab environment standards as described in the **README-lab_environment_standards.md** file (also described in the **https://github.com/roncterry/lab_env_tools** git repository)
+5. Create archives of your VMs and put the archives in the **/home/VMs/COURSE_ID/** directory
 6. Export/create network definition XML files and put them in the **~/scripts/COURSE_ID/config/libvirt.cfg/** directory
 7. Put any other files in their corresponding directories
 8. Create a course installer by running: **backup_lab_env.sh COURSE_ID**
