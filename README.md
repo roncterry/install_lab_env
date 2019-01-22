@@ -7,7 +7,7 @@ The Installer Framework comprises the following:
 * Installation and removal scripts and their corresponding include files
 * A standardized directory structure for the course, its lab environment and related files
 
-The Installer Framwork used the lab environment standards defined in the **README-lab_environment_standards.md** file (also defined in the **https://github.com/roncterry/lab_env_tools** git repository).
+The Installer Framwork used the lab environment standards defined in the `README-lab_environment_standards.md` file (also defined in the **https://github.com/roncterry/lab_env_tools** git repository).
 
 # Usage - TL:DR
 
@@ -26,7 +26,7 @@ Option | Description
 
 ## Remove a Lab Environment
 
-Open a command prompt in the **~/scripts/<COURSE_ID>/** directory (or the installer directory) and run the following command:
+Open a command prompt in the `~/scripts/<COURSE_ID>/` directory (or the installer directory) and run the following command:
 ```
 bash ./remove_lab_env.sh [nocolor]
 ```
