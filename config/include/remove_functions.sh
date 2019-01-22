@@ -1,6 +1,6 @@
 ##############  Remove Lab Env Functions ##################################
-# version: 4.5.1
-# date: 2018-09-19
+# version: 4.6.1
+# date: 2019-01-22
 #
 
 remove_libvirt_networks() {
@@ -353,11 +353,8 @@ remove_libvirt_vms() {
     echo -e "${LTCYAN}---------------------------------------------------------------${NC}"
     echo -e "${LTCYAN}VM Name:${GREEN} ${VM}${NC}"
     echo -e "${LTCYAN}---------------------------------------------------------------${NC}"
-    run sudo virsh destroy ${VM}
-    run sudo virsh undefine --nvram --remove-all-storage --snapshots-metadata --wipe-storage ${VM}
 
     local VM_POOL_CONFIG=${VM}.pool.xml
-
     if [ -e ${VM_DEST_DIR}/"${VM}"/"${VM_POOL_CONFIG}" ]
     then
       echo -e "${LTCYAN}Removing storage pool for VM${NC}"
@@ -366,10 +363,25 @@ remove_libvirt_vms() {
       run sudo virsh pool-undefine ${VM}
     fi
 
+    if which vbmcctl > /dev/null
+    then
+      local VM_VBMC_CONFIG=${VM}.vbmc
+      if [ -e ${VM_DEST_DIR}/"${VM}"/"${VM_VBMC_CONFIG}" ]
+      then
+        echo -e "${LTCYAN}Removing virtual BMC device for VM${NC}"
+        vbmcctl delete config=${VM_DEST_DIR}/"${VM}"/"${VM_VBMC_CONFIG}"
+      fi
+    fi
+
+    echo -e "${LTCYAN}Removing VM${NC}"
+    run sudo virsh destroy ${VM}
+    run sudo virsh undefine --nvram --remove-all-storage --snapshots-metadata --wipe-storage ${VM}
+
     echo
     echo -e "${LTCYAN}Deleting:${GREEN} ${VM_DEST_DIR}/${VM}${NC}"
     echo -e "${LTCYAN}-------------------------------------${NC}"
     run sudo rm -rf ${VM_DEST_DIR}/${VM}
+    echo
   done
 
   run rm -rf ${VM_DEST_DIR}

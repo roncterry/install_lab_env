@@ -1,6 +1,6 @@
 ##############  Lab Env Install and Configure Functions ######################
-# version: 5.5.0
-# date: 2018-09-17
+# version: 5.6.0
+# date: 2018-09-20
 #
 
 create_directories() {
@@ -1065,7 +1065,6 @@ extract_register_libvirt_vms() {
     echo
 
     local VM_POOL_CONFIG=${VM}.pool.xml
-
     if [ -e ${VM_DEST_DIR}/"${VM}"/"${VM_POOL_CONFIG}" ]
     then
       if ! sudo virsh pool-list | grep -q "${VM}$"
@@ -1094,8 +1093,37 @@ extract_register_libvirt_vms() {
         fi
       fi
       #--------------------------------------------------------
+    fi
+    echo
+
+    if which vbmcctl > /dev/null
+    then
+      local VM_VBMC_CONFIG=${VM}.vbmc
+      if [ -e ${VM_DEST_DIR}/"${VM}"/"${VM_VBMC_CONFIG}" ]
+      then
+        if ! sudo vbmc list | grep -q "${VM}"
+        then
+        echo -e "${LTBLUE}Creating virtual BMC device for VM ...${NC}"
+          run vbmcctl create config=${VM_DEST_DIR}/"${VM}"/"${VM_VBMC_CONFIG}"
+        elif ! sudo vbmc list | grep "${VM}" | grep -q running
+        then
+          run vbmcctl delete config=${VM_DEST_DIR}/"${VM}"/"${VM_VBMC_CONFIG}"
+          run vbmcctl create config=${VM_DEST_DIR}/"${VM}"/"${VM_VBMC_CONFIG}"
+        fi
+      
+        #--test--------------------------------------------------
+        if ! sudo vbmc list | grep -q ${VM}
+        then
+          if [ -e ${VM_DEST_DIR}/"${VM}"/"${VM_VBMC_CONFIG}" ]
+          then
+            IS_ERROR=Y
+            FAILED_TASKS="${FAILED_TASKS},install_functions.extract_register_libvirt_vms.create_vbmc_for_vm:${VM}"
+          fi
+        fi
+        #--------------------------------------------------------
       fi
-      echo
+    fi
+    echo
   done
   echo
 }
