@@ -1,4 +1,6 @@
 #!/bin/bash
+# Version: 1.1.0
+# Date: 2019-01-22
 
 source ../config/include/colors.sh
 source ../config/include/common_functions.sh
@@ -62,6 +64,8 @@ copy_files() {
   if [ -d ~/scripts/${COURSE_NUM} ]
   then
     run cp -R ../config ~/scripts/${COURSE_NUM}/
+    run mkdir -p ~/scripts/${COURSE_NUM}/config/libvirt.cfg
+    run mkdir -p ~/scripts/${COURSE_NUM}/config/ssh
   fi
 
   if [ -d ~/scripts/${COURSE_NUM} ]
