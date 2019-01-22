@@ -1,6 +1,6 @@
 # Introduction to the Lab Environment Standards
 
-This guide describes the lab environment standards used by the **install_lab_env** framework. 
+This guide describes the lab environment standards used by the **Installation Framework** framework. 
 
 
 # Networking
@@ -34,7 +34,7 @@ The Libvirt virtual network definition XML file should be provided as part of th
 virsh net-dumpxml <NETWORK_NAME> > <NETWORK_NAME>.xml
 ```
 
-The name of the file should be the name of the **<NETWORK_NAME>.xml** where **<NETWORK_NAME>** = the name of the virtual network (i.e. cloud-admin).
+The name of the file should be the name of the `<NETWORK_NAME>.xml` where `<NETWORK_NAME>` = the name of the virtual network (i.e. cloud-admin).
 
 The following is an example of one of these network definition XML files:
 
@@ -60,11 +60,11 @@ The following is an example of one of these network definition XML files:
 
 It is possible to spread a lab environment for a single student across multiple lab machines. When doing this it will typically require a different networking configuration to allow the VMs to communicate with each other when they are running on different lab machines. This different networking environment typically consists of a secondary network connection between the lab machines with separate VLANs with corresponding Linux bridges attached to them running across this secondary network. These Linux bridges take the place of the Libvirt virtual networks that the VMs are typically connected to.
 
-When providing for this multi lab machine environment, each VM will require an addition XML definition file that specifies these bridges instead of Libvirt networks. Both XML definition files are required (single lab machine and multi lab machine versions) and should reside in the VM specific directory in **/home/VMs/<COURSE_ID>/** (i.e. **/home/VMs/<COURSE_ID>/<NAME_OF_VM>/**).
+When providing for this multi lab machine environment, each VM will require an addition XML definition file that specifies these bridges instead of Libvirt networks. Both XML definition files are required (single lab machine and multi lab machine versions) and should reside in the VM specific directory in `/home/VMs/<COURSE_ID>/` (i.e. `/home/VMs/<COURSE_ID>/<NAME_OF_VM>/`).
 
-(Where **<COURSE_ID>** is the course ID number).
+(Where `<COURSE_ID>` is the course ID number).
 
-To have the VM connect to these Linux bridges on the VLANs rather than the Libvirt networks, you edit the VM’s secondary multi lab machine specific XML definition (typically named **\<NAME_OF_VM>-multi_lm.xml**). In the network interface descriptions, change "network" to ‘bridge”. See the following example configuration snippets for the configuration changes. The values that need to be modified are bolded.
+To have the VM connect to these Linux bridges on the VLANs rather than the Libvirt networks, you edit the VM’s secondary multi lab machine specific XML definition (typically named `<NAME_OF_VM>-multi_lm.xml`). In the network interface descriptions, change "network" to ‘bridge”. See the following example configuration snippets for the configuration changes. The values that need to be modified are bolded.
 
 Example with Libvirt networks (original VM definition file):
 ```
@@ -98,11 +98,11 @@ When creating virtual machines, the following guidelines should be followed:
 
 ## Virtual Machine Directory
 
-All files related to a virtual machine should exist in a single directory and the name of the directory should be the name of the virtual machine (as defined in the virtual machine’s Libvirt XML file). These individual virtual machine specific directories should all be subdirectories of: **/home/VMs/<COURSE_ID>** 
+All files related to a virtual machine should exist in a single directory and the name of the directory should be the name of the virtual machine (as defined in the virtual machine’s Libvirt XML file). These individual virtual machine specific directories should all be subdirectories of: `/home/VMs/<COURSE_ID>` 
 
-Example: **/home/VMs/<COURSE_ID>/<NAME_OF_VM>/** 
+Example: `/home/VMs/<COURSE_ID>/<NAME_OF_VM>/` 
 
-(Where **<COURSE_ID>** is the course ID number or SUSECON session ID and  **<NAME_OF_VM>** is the name of the virtual machine as defined in the VM’s XML definition file).
+(Where `<COURSE_ID>` is the course ID number or SUSECON session ID and  `<NAME_OF_VM>` is the name of the virtual machine as defined in the VM’s XML definition file).
 
 The files in the individual virtual machine directory should include at least the following:
 
@@ -122,19 +122,19 @@ If you use Virt-Manager to create the new VM, it is easiest to manually create t
 
 ## Virtual Machine XML Description
 
-The virtual machine’s XML definition file should be named **<NAME_OF_VM>.xml** (where **<NAME_OF_VM>** is the name of the virtual machine as defined in the VM’s XML definition file).
+The virtual machine’s XML definition file should be named `<NAME_OF_VM>.xml` (where `<NAME_OF_VM>` is the name of the virtual machine as defined in the VM’s XML definition file).
 
 The virtual machine’s XML definition file can be created using the following command:
 ```
 virsh dumpxml <NAME_OF_VM> > /home/VMs/<COURSE_ID>/<NAME_OF_VM>/<NAME_OF_VM>.xml
 ```
-After creating the VM’s XML definition file, you need to edit the file and remove the **<uuid>** and **<cpu>** sections as these will be auto-generated when the VM is registered with Libvirt on the lab machine. If the VM wasn’t originally created in the required directory (**/home/VMs/<COURSE_ID>/<NAME_OF_VM>/**), you will also need to edit the path to the disk images in the XML definition file to reside in this path.
+After creating the VM’s XML definition file, you need to edit the file and remove the **<uuid>** and **<cpu>** sections as these will be auto-generated when the VM is registered with Libvirt on the lab machine. If the VM wasn’t originally created in the required directory (`/home/VMs/<COURSE_ID>/<NAME_OF_VM>/`), you will also need to edit the path to the disk images in the XML definition file to reside in this path.
 
 ## Virtual Machine Disks
 
 Virtual machine disks should be of format QCOW2 when at all possible. The size of the disks should be as small as possible to meet the requirements of the course. (This helps keep the overall size of the student media smaller).
 
-The disk image files should reside in the VM’s directory (**/home/VMs/<COURSE_ID>/<NAME_OF_VM>/**). It is important to note that if you are creating the VM using Virt-Manager, there is no option to create the images here.  You must first manually create the disk image in that directory using the **qemu-img** command and then, in Virt-Manager, select it as an existing disk image when creating the VM.
+The disk image files should reside in the VM’s directory (`/home/VMs/<COURSE_ID>/<NAME_OF_VM>/`). It is important to note that if you are creating the VM using Virt-Manager, there is no option to create the images here.  You must first manually create the disk image in that directory using the **qemu-img** command and then, in Virt-Manager, select it as an existing disk image when creating the VM.
 
 Example **qemu-img** command: 
 ```
@@ -143,11 +143,11 @@ qemu-img create -f qcow2 /home/VMs/<COURSE_ID>/<NAME_OF_VM>/disk01.qcow2 20G
 
 ## Virtual Machine Storage Pools (Optional)
 
-If you wish to have a storage pool automatically created for the VM's directory (/home/VMs/<COURSE_ID>/<NAME_OF_VM>) when the VM is registered with Libvirt, then create a file in the VM's directory named <NAME_OF_VM>.pool.xml that contains the pool description. 
+If you wish to have a storage pool automatically created for the VM's directory (`/home/VMs/<COURSE_ID>/<NAME_OF_VM>`) when the VM is registered with Libvirt, then create a file in the VM's directory named `<NAME_OF_VM>.pool.xml` that contains the pool description. 
 
 ## Virtual Machine Virtual BMC Devices (Optional)
 
-If you wish to have virtual BMC devices created for your VM when it is registered with Libvirt, then create a file in the VM's directory named <NAME_OF_VM>.vbmc that contains the virtual BMC device description. An example of this file can be found in the [vbmcctl](https://github.com/roncterry/vbmcctl) project (vbmcctl.cfg.example). The **vbmcctl** command must be installed on the host machine for this functionality to work. 
+If you wish to have virtual BMC devices created for your VM when it is registered with Libvirt, then create a file in the VM's directory named `<NAME_OF_VM>.vbmc` that contains the virtual BMC device description. An example of this file can be found in the [vbmcctl](https://github.com/roncterry/vbmcctl) project (`vbmcctl.cfg.example`). The **vbmcctl** command must be installed on the host machine for this functionality to work. 
 
 # ISO Images
 
@@ -155,11 +155,11 @@ If your virtual machines require ISO images or if you want to provide ISO images
 
 ## ISO Image Directory
 
-All ISO images related to a course should reside in a single directory named: **/home/iso/<COURSE_ID>** 
+All ISO images related to a course should reside in a single directory named: `/home/iso/<COURSE_ID>` 
 
 *Example*: **/home/iso/<COURSE_ID>/my-iso.iso**
 
-Or, if the ISO image will only be used by a single VM, the ISO image can reside in the VM’s directory (see Virtual Machine Directory above).
+Or, if the ISO image will <u>only</u> be used by a single VM, the ISO image can reside in the VM’s directory (see Virtual Machine Directory above).
 
 # Cloud Images
 
@@ -176,7 +176,6 @@ All cloud images related to a course should reside in a single directory named: 
 
 
 # Video Guides
-[Back Up a Lab Environment](https://s3-us-west-2.amazonaws.com/training-howtos/backup_a_lab_environment.mp4)
+[Lab Environment Standards](https://s3-us-west-2.amazonaws.com/training-howtos/lab_environment_standards.mp4)
 
-[Create a Live USB](https://s3-us-west-2.amazonaws.com/training-howtos/create_a_live_usb.mp4)
 
