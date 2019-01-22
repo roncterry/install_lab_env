@@ -90,7 +90,7 @@ The directory structure is as follows:
 
 **<COURSE_DIRECTORY>** 
 
-This is the main directory that contains all files belonging to the course (or hands-on session). In the case of training courses, this directory should be named the **Course ID** of the course. In the case of hands-on sessions (i.e. SUSECon) this directory should be named the **Session ID** of the session.
+This is the main directory that contains all files belonging to the course (or hands-on session). In the case of training courses, this directory should be named the **Course ID** of the course. In the case of hands-on sessions (i.e. SUSECON) this directory should be named the **Session ID** of the session.
 
 _**Example 1 (course)**_: A course with a course ID of **SOC201**, would have a directory name of **SOC201**.
 
@@ -157,7 +157,7 @@ Example archive creation commands:
 
 (This creates an archive in 7z format, uncompressed and split into files no larger than 2GB. The file names will be `<VM_NAME>.7z.00#` - where # is the number of the file that is part of the archive. This unpacks quicker and is good for situations where you need to install the lab environment quicker but it creates a larger student media package.)
 
-NOTE: There is a script that makes creating 7z archives easier named **create-archive.sh**. This script can be downloaded from the [lab_env_tools](https://github.com/roncterry/lab_env_tools) github project. 
+NOTE: There is a script that makes creating 7z archives easier named `create-archive.sh`. This script can be downloaded from the [lab_env_tools](https://github.com/roncterry/lab_env_tools) github project. 
 
 The syntax for this script to perform the previous two examples are:
 
