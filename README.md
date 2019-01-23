@@ -458,7 +458,7 @@ One thing to watch for when using this script is to ensure that the permission o
 
 [1) Install the Installer Framework](https://s3-us-west-2.amazonaws.com/training-howtos/install_the_installer_framework.mp4)
 
-[2) Create a Skeleton Installed Course Lab Environment](https://s3-us-west-2.amazonaws.com/training-howtos/create_a_skeleton_installed_course_environment.mp4)
+[2) Create a Skeleton Installed Course Lab Environment](https://s3-us-west-2.amazonaws.com/training-howtos/create_a_skeleton_installed_course_lab_environment.mp4)
 
 [3) Move Existing VMs into the Installer Framework](https://s3-us-west-2.amazonaws.com/training-howtos/move_existing_vms_into_the_installer_framework.mp4)
 
