@@ -1,13 +1,13 @@
 # Introduction
 
-The lab environment Installer Framework is a set of scripts and script libraries that can be used to install and remove everything pertaining to al lab environment to and from a lab machine. This framework can dramatically simplify the deployment and then cleanup of lab environments used during training courses or hands-on sessions at conferences. The things related to the Installer Frameworks and the corresponding course and lab environment files are commonly referred to as the **student media** for a course.
+The lab environment Installer Framework is a set of scripts and script libraries that can be used to install and remove everything pertaining to a lab environment to and from a lab machine. This framework can dramatically simplify the deployment and then cleanup of lab environments used during training courses or hands-on sessions at conferences. The things related to the Installer Frameworks and the corresponding course and lab environment files are commonly referred to as the **student media** for a course.
 
 The Installer Framework comprises the following:
 
 * Installation and removal scripts and their corresponding include files
 * A standardized directory structure for the course, its lab environment and related files
 
-The Installer Framwork used the lab environment standards defined in the `README-lab_environment_standards.md` file (also defined in the **https://github.com/roncterry/lab_env_tools** git repository).
+The Installer Framework used the lab environment standards defined in the `README-lab_environment_standards.md` file (also defined in the **https://github.com/roncterry/lab_env_tools** git repository).
 
 # Usage - TL:DR
 
@@ -36,15 +36,14 @@ Option | Description
 
 ## Create a New Lab Environment Installer Package
 
-1. Check out the files from github
+1. Download the Installer Framework files from github
 2. Run: `install_lab_env/scripts/create_skeleton_installed_course.sh <COURSE_ID>`
-3. Edit the `~/scripts/COURSE_ID/config/lab_env.cfg` as described later in this document
-4. Make sure your VMs have been created following the lab environment standards as described in the `README-lab_environment_standards.md` file (also described in the **https://github.com/roncterry/lab_env_tools** git repository)
-5. Create archives of your VMs and put the archives in the `/home/VMs/<COURSE_ID>/` directory
-6. Export/create network definition XML files and put them in the `~/scripts/COURSE_ID/config/libvirt.cfg/` directory
-7. Put any other files in their corresponding directories
-8. Create a course installer by running: `backup_lab_env.sh <COURSE_ID>`
-9. Test installing and removing your lab environment on another machine
+3. Make sure your VMs have been created following the lab environment standards as described in the `README-lab_environment_standards.md` file (also described in the **https://github.com/roncterry/lab_env_tools** git repository) ensuring they are in the `/home/VMs/<COURSE_ID>` directory with config files edited appropriately
+4. Export/create network definition XML files and put them in the `~/scripts/COURSE_ID/config/libvirt.cfg/` directory
+5. Put any other files in their corresponding directories
+6. Edit the `~/scripts/COURSE_ID/config/lab_env.cfg` as described later in this document
+7. Create a course installer by running: `backup_lab_env.sh <COURSE_ID>`
+8. Test installing and removing your lab environment on another machine
 
 (**Hint**:Your new course installer will be: `/install/courses/COURSE_ID_backup-<time_and_date_stamp>`)
 
@@ -136,7 +135,7 @@ This directory contains the PDF manuals and any other PDF files related to the l
 
 **scripts/**
 
-This directory contains any scripts that are used in the course/session or lab environment such as lab automations scripts or automated VM creation scripts. These get copied to the `~/scripts/<COURSE_ID>/` directory when the lab environment is installed.
+This directory contains any scripts that are used in the course/session or lab environment such as lab automation scripts or automated VM creation scripts. These get copied to the `~/scripts/<COURSE_ID>/` directory when the lab environment is installed.
 
 **VMs/**
 
@@ -237,7 +236,7 @@ This variable contains the course number (i.e. Course ID) or Session ID of the c
 
 **REQUIRE_OPENVSWITCH**
 
-These variables specify which tests to run on the lab machine before attempting to install the lab environment onto the lab machine. The default behaviour is to run all tests unless specifically told not to. This behaviour allows additional tests to be added to the installation script yet still have older configuration files still work. If you are not sure which tests you need for your lab environment, just allow all tests to run.
+These variables specify which tests to run on the lab machine before attempting to install the lab environment onto the lab machine. The default behavior is to run all tests unless specifically told not to. This behavior allows additional tests to be added to the installation script yet still have older configuration files still work. If you are not sure which tests you need for your lab environment, just allow all tests to run.
 
 To disable a test, set the variable's value to **N**.
 
@@ -287,11 +286,11 @@ The values in this list are the names of the XML network definition files (minus
 
 This is the network that the virtual BMC devices will be created on.
 
-This should be a single network and the name should match the name of one of the network listed in LIBVIRT_NETWORK_LIST or BRIDGE_LIST. If it is a Libvirt network then it mst match the name of the brige created by the Libvirt network.
+This should be a single network and the name should match the name of one of the network listed in LIBVIRT_NETWORK_LIST or BRIDGE_LIST. If it is a Libvirt network then it mst match the name of the bridge created by the Libvirt network.
 
 **VIRTUAL_BMC_LIST**
 
-This is a space delimited list of comma delimitied lists where each of the comma delimited lists describe a virtual BMC that should be created.
+This is a space delimited list of comma delimited lists where each of the comma delimited lists describe a virtual BMC that should be created.
 
 **LIBVIRT_POOL_LIST**
 
