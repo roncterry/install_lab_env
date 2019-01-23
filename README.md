@@ -455,7 +455,7 @@ One thing to watch for when using this script is to ensure that the permission o
 
 [Lab Environment Standards](https://s3-us-west-2.amazonaws.com/training-howtos/lab_environment_standards.mp4)
 
-[Create a Lab Environment Installer Package](https://s3-us-west-2.amazonaws.com/training-howtos/create_a_lab_environment_installer_package.mp4)
+[Create a Lab Environment Installer Package from Existing VMs](https://s3-us-west-2.amazonaws.com/training-howtos/create_a_lab_environment_installer_package_from_existing_vms.mp4)
 
 [Install a Lab Environment](https://s3-us-west-2.amazonaws.com/training-howtos/install_a_lab_environment.mp4)
 
