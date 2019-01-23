@@ -11,6 +11,8 @@ The Installer Framework used the lab environment standards defined in the `READM
 
 # Usage - TL:DR
 
+(See the Video Guides at the end in addition to these quick steps)
+ 
 ## Install a Lab Environment
 
 Open a command prompt in the installer directory and run the following command:
@@ -452,12 +454,32 @@ One thing to watch for when using this script is to ensure that the permission o
 
 # Video Guides
 
+**Create an Installer Package:**
+
+[1) Install the Installer Framework](https://s3-us-west-2.amazonaws.com/training-howtos/install_the_installer_framework.mp4)
+
+[2) Create a Skeleton Installed Course Lab Environment](https://s3-us-west-2.amazonaws.com/training-howtos/create_a_skeleton_installed_course_environment.mp4)
+
+[3) Move Existing VMs into the Installer Framework](https://s3-us-west-2.amazonaws.com/training-howtos/move_existing_vms_into_the_installer_framework.mp4)
+
+[4) Move Virtual Networks into the Installer Framework](https://s3-us-west-2.amazonaws.com/training-howtos/move_virtual_networks_into_the_installer_framework.mp4)
+
+[5) Create a Lab Environment Installer Package from Existing VMs](https://s3-us-west-2.amazonaws.com/training-howtos/create_a_lab_environment_installer_package_from_existing_vms.mp4)
+
+[6) Edit the Lab Installer Config File](https://s3-us-west-2.amazonaws.com/training-howtos/edit_the_lab_installer_config_file.mp4)
+
+[7) Create an Installer Package](https://s3-us-west-2.amazonaws.com/training-howtos/create_an_installer_package.mp4)
+
+
+**Work with Installer Packages:**
+
+
+[1) Install a Lab Environment](https://s3-us-west-2.amazonaws.com/training-howtos/install_a_lab_environment.mp4)
+
+[2) Back Up a Lab Environment](https://s3-us-west-2.amazonaws.com/training-howtos/backup_a_lab_environment.mp4)
+
+[3) Remove a Lab Environment](https://s3-us-west-2.amazonaws.com/training-howtos/remove_a_lab_environment.mp4)
+
+**Lab Environment Standards:**
+
 [Lab Environment Standards](https://s3-us-west-2.amazonaws.com/training-howtos/lab_environment_standards.mp4)
-
-[Create a Lab Environment Installer Package from Existing VMs](https://s3-us-west-2.amazonaws.com/training-howtos/create_a_lab_environment_installer_package_from_existing_vms.mp4)
-
-[Install a Lab Environment](https://s3-us-west-2.amazonaws.com/training-howtos/install_a_lab_environment.mp4)
-
-[Back Up a Lab Environment](https://s3-us-west-2.amazonaws.com/training-howtos/backup_a_lab_environment.mp4)
-
-[Remove a Lab Environment](https://s3-us-west-2.amazonaws.com/training-howtos/remove_a_lab_environment.mp4)
