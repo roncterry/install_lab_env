@@ -1,4 +1,4 @@
-# Config File Syntax Version: 2018082801
+# Config File Syntax Version: 2018092001
 ##############################################################################
 #                          Variables
 ##############################################################################
@@ -120,7 +120,7 @@ COURSE_NUM="TEST101"
 REQUIRE_VT_ENABLED=Y
 REQUIRE_MIN_MEMORY=Y
 REQUIRE_MIN_DISKSPACE=Y
-REQURE_REGULAR_USER=Y
+REQIURE_REGULAR_USER=Y
 REQUIRE_SUDO_NOPASSWD=Y
 REQUIRE_P7ZIP=Y
 REQUIRE_KVM_VIRT=Y
@@ -259,6 +259,22 @@ LIBVIRT_VNET_LIST=""
 # in LIBVIRT_NETWORK_LIST or BRIDGE_LIST. If it is a Libvirt network then
 # it must match the name of the bridge created by the Libvirt network.
 #
+# Note: 
+#       You can also define the virtual BMC devices on a per VM basis by
+#       creating a file in the VM's directory named VM.vbmc (where VM
+#       matches the name of the VM). This file should contain this
+#       variable (VIRTUAL_BMC_NETWORK) and the following variable
+#       (VIRTUAL_BMC_LIST) with only values matching the prameters for 
+#       the virtual BMC device for that VM. The syntax for the variables 
+#       is the same as in this file.
+#
+#       For the per VM method to work you must have the vbmcctl command
+#       installed on your host machine and in your path.
+#
+#       It is recommended that you only define a virtual BMC device in one
+#       place, either in the variable in this file or in a file in the VM's
+#       directory.
+#
 VIRTUAL_BMC_NETWORK=""
 
 
@@ -280,6 +296,22 @@ VIRTUAL_BMC_NETWORK=""
 #  VIRTUAL_BMC_LIST="SOC201-controller01,192.168.124.1,6230,,, SOC201-compute01,192.168.124.1,6231,,,"
 #
 # The VM names should only be VMs that are listed in $LIBVIRT_VM_LIST.
+#
+# Note: 
+#       You can also define the virtual BMC devices on a per VM basis by
+#       creating a file in the VM's directory named VM.vbmc (where VM
+#       matches the name of the VM). This file should contain this
+#       variable (VIRTUAL_BMC_LIST) and the previous variable
+#       (VIRTUAL_BMC_NETWORK) with only values matching the prameters for 
+#       the virtual BMC device for that VM. The syntax for the variables 
+#       is the same as in this file.
+#
+#       For the per VM method to work you must have the vbmcctl command
+#       installed on your host machine and in your path.
+#
+#       It is recommended that you only define a virtual BMC device in one
+#       place, either in the variable in this file or in a file in the VM's
+#       directory.
 #
 VIRTUAL_BMC_LIST=""
 
