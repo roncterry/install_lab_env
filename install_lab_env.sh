@@ -1,6 +1,6 @@
 #!/bin/bash
-# Version: 3.3.1
-# Date: 2018-06-15
+# Version: 3.3.2
+# Date: 2019-02-12
 
 DEFAULT_CONFIG="./config/lab_env.cfg"
 
@@ -22,14 +22,14 @@ else
   source ${CONFIG}
 fi
 
-if echo $* | grep -q "--testonly"
+if echo $* | grep -q "\-\-testonly"
 then
   export TEST_ONLY=y
 else
   export TEST_ONLY=n
 fi
 
-if echo $* | grep -q "--force"
+if echo $* | grep -q "\-\-force"
 then
   export FORCE=y
 else
