@@ -128,7 +128,7 @@ The virtual machine’s XML definition file can be created using the following c
 ```
 virsh dumpxml <NAME_OF_VM> > /home/VMs/<COURSE_ID>/<NAME_OF_VM>/<NAME_OF_VM>.xml
 ```
-After creating the VM’s XML definition file, you need to edit the file and remove the **<uuid>** and **<cpu>** sections as these will be auto-generated when the VM is registered with Libvirt on the lab machine. If the VM wasn’t originally created in the required directory (`/home/VMs/<COURSE_ID>/<NAME_OF_VM>/`), you will also need to edit the path to the disk images in the XML definition file to reside in this path.
+After creating the VM’s XML definition file, you need to edit the file and remove the `<uuid>` and `<cpu>` sections as these will be auto-generated when the VM is registered with Libvirt on the lab machine. If the VM wasn’t originally created in the required directory (`/home/VMs/<COURSE_ID>/<NAME_OF_VM>/`), you will also need to edit the path to the disk images in the XML definition file to reside in this path.
 
 ## Virtual Machine Disks
 
