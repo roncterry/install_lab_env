@@ -1,6 +1,6 @@
 ##############  System Test Functions #####################################
-# version: 3.6.2
-# date: 2018-09-19
+# version: 3.8.0
+# date: 2019-06-26
 
 #=========  Hardware Test Functions  =============
 
@@ -16,13 +16,22 @@ get_cpu_type() {
   fi
 }
 
+test_num_cpus() {
+  if [ "$(grep ^processor /proc/cpuinfo | wc -l)" -ge ${MIN_CPUS} ]
+  then
+    ENOUGH_CPUS=Y
+  else
+    ENOUGH_CPUS=N
+  fi
+}
+
 test_memory() {
-    if [ "$(free -g | grep ^Mem | awk '{ print $2}')" -ge "${MIN_MEMORY}" ]
-    then
-      ENOUGH_MEMORY=Y
-    else
-      ENOUGH_MEMORY=N
-    fi
+  if [ "$(free -g | grep ^Mem | awk '{ print $2}')" -ge "${MIN_MEMORY}" ]
+  then
+    ENOUGH_MEMORY=Y
+  else
+    ENOUGH_MEMORY=N
+  fi
 }
 
 test_disk_space() {
@@ -168,6 +177,15 @@ test_for_kvm_virt() {
       fi
     ;;
   esac
+}
+
+test_for_qemu_installed() {
+  if which qemu-kvm > /dev/null
+  then
+    QEMU_INSTALLED=Y
+  else
+    QEMU_INSTALLED=N
+  fi
 }
 
 test_for_kvm_nested_virt() {
@@ -371,6 +389,40 @@ run_test_for_vt_enabled() {
   esac
 }
 
+run_test_num_cpus() {
+  echo -e "${LTBLUE}Checking for enough CPUs ...${NC}"
+  echo -e "${LTBLUE}-------------------------------------------------------------------${NC}"
+  echo -e "${LTCYAN}Minimum CPUs: ${GREEN}${MIN_CPUS}${NC}"
+  echo
+  test_num_cpus
+  case ${ENOUGH_CPUS} in
+    Y)
+      echo -e "  ${LTCYAN}  ENOUGH_CPUS=${GREEN}Y${NC}"
+      echo
+      echo -e "  ${LTCYAN}    Continuing ...${NC}"
+      echo
+    ;;
+    N)
+      echo -e "  ${LTCYAN}  ENOUGH_CPUS=${LTRED}N${NC}"
+      echo
+      echo -e "${ORANGE}------------------------------------------------------------------------${NC}"
+      echo -e "${RED}[Problem]${NC}"
+      echo -e "  ${LTRED}There are not enough CPUs${NC}"
+      echo
+      echo -e "${RED}[Remediation Required]${NC}"
+      echo -e "${RED}        |     |     |${NC}"
+      echo -e "${RED}        V     V     V${NC}"
+      echo -e "  ${ORANGE}There must be ${MIN_CPUS} CPUs to run the lab environment.${NC}"
+      echo -e "  ${ORANGE}Add CPUs and then rerun this script.${NC}"
+      echo
+      echo -e "${ORANGE}------------------------------------------------------------------------${NC}"
+      echo
+      TEST_FAIL=y
+      #exit 2
+    ;;
+  esac
+}
+
 run_test_memory() {
   echo -e "${LTBLUE}Checking for enough memory ...${NC}"
   echo -e "${LTBLUE}-------------------------------------------------------------------${NC}"
@@ -395,7 +447,7 @@ run_test_memory() {
       echo -e "${RED}        |     |     |${NC}"
       echo -e "${RED}        V     V     V${NC}"
       echo -e "  ${ORANGE}There must be ${MIN_MEMORY}GB memory to run the lab environment.${NC}"
-      echo -e "  ${ORANGE}Add ememory and then rerun this script.${NC}"
+      echo -e "  ${ORANGE}Add memory and then rerun this script.${NC}"
       echo
       echo -e "${ORANGE}------------------------------------------------------------------------${NC}"
       echo
@@ -698,6 +750,41 @@ run_test_for_kvm_virt() {
       echo
       echo -e "  ${LTCYAN}    Continuing ...${NC}"
       echo
+
+      test_for_qemu_installed
+      case ${QEMU_INSTALLED} in
+        Y)
+          echo -e "${LTBLUE}Checking for qemu-kvm ...${NC}"
+          echo -e "${LTBLUE}-------------------------------------------------------------------${NC}"
+          echo
+          echo -e "  ${LTCYAN}  QEMU_INSTALLED=${GREEN}Y${NC}"
+          echo
+          echo -e "  ${LTCYAN}    Continuing ...${NC}"
+          echo
+        ;;
+        N)
+          echo -e "  ${LTCYAN}  QEMU_INSTALLED=${LTRED}N${NC}"
+          echo
+          echo -e "${ORANGE}------------------------------------------------------------------------${NC}"
+          echo -e "${RED}[Problem]${NC}"
+          echo -e "  ${LTRED}The qemu-kvm application is not installed.${NC}"
+          echo
+          echo -e "${RED}[Remediation Required]${NC}"
+          echo -e "${RED}        |     |     |${NC}"
+          echo -e "${RED}        V     V     V${NC}"
+          echo -e "  ${ORANGE}As the root user, install the qemu-kvm package${NC}"
+          echo
+          echo -e "  ${ORANGE}Example: ${NC}"
+          echo -e "  ${ORANGE}  zypper in -y qemu-kvm${NC}"
+          echo
+          echo -e "  ${ORANGE}Then rerun this script.${NC}"
+          echo
+          echo -e "${ORANGE}------------------------------------------------------------------------${NC}"
+          echo
+          TEST_FAIL=y
+          #exit 6
+        ;;
+      esac
 
       case ${REQUIRE_KVM_NESTED} in
         N)
@@ -1281,6 +1368,16 @@ run_tests() {
     ;;
     *)
       run_test_for_vt_enabled
+    ;;
+  esac
+
+  #-Minimum number of CPUs
+  case ${REQUIRE_MIN_CPUS} in
+    N|n)
+      ENOUGH_CPUS=NA
+    ;;
+    *)
+      run_test_num_cpus
     ;;
   esac
 
