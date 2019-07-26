@@ -1,4 +1,4 @@
-# Config File Syntax Version: 2018092001
+# Config File Syntax Version: 2019052001
 ##############################################################################
 #                          Variables
 ##############################################################################
@@ -31,6 +31,10 @@ COURSE_NUM="TEST101"
 #   the lab environment. 
 #
 #   This should probably be set to Y.
+#
+# REQUIRE_MIN_CPUS
+#   This will check to make sure that the lab machine has enough CPUs as
+#   specified in the MIN_CPUS variable later in this configuration file.
 #
 # REQUIRE_MIN_MEMORY
 #   This will check to make sure that the lab machine has enough memory as
@@ -118,6 +122,7 @@ COURSE_NUM="TEST101"
 #   When using the standard lab machine image it is safe to leave this set to Y.
 #
 REQUIRE_VT_ENABLED=Y
+REQUIRE_MIN_CPUS=Y
 REQUIRE_MIN_MEMORY=Y
 REQUIRE_MIN_DISKSPACE=Y
 REQIURE_REGULAR_USER=Y
@@ -166,6 +171,11 @@ MULTI_LM_EXT="multi_lm"
 #
 MIN_DISK_FREE=10
 MIN_MEMORY=1
+
+
+# This is the number of CPUs required to run the lab environment.
+#
+MIN_CPUS=1
 
 
 # A space delimited list of ISO Images
