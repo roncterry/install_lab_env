@@ -401,7 +401,7 @@ backup_lab_env.sh <COURSE_ID> [<ARCHIVE_FORMAT>]
 
 ## Detailed Description:
 
-By default VM archives are created using **p7zip** with the compression format of **LZMA2**. This can be overridden at the command line using the `<ARCHIVE_FORMAT>` shown in the example above. The supported archive formats are:
+By default VM archives are created using **p7zip** with the compression format of **LZMA**. This can be overridden at the command line using the `<ARCHIVE_FORMAT>` shown in the example above. The supported archive formats are:
 
 Archive Format | Description
 ------------ | -------------
