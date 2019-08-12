@@ -1,6 +1,6 @@
 #!/bin/bash
-# version: 1.1.2
-# date: 2019-08-12
+# version: 1.1.1
+# date: 2017-09-05
 
 ### Colors ###
 RED='\e[0;31m'
@@ -121,7 +121,7 @@ in
     ARCHIVE_EXT="txz"
   ;;
   *)
-    ARCHIVE_CMD="7z a -t7z -m0=LZMA -mmt=on -v2g"
+    ARCHIVE_CMD="7z a -t7z -m0=LZMA2 -mmt=on -v2g"
     ARCHIVE_EXT="7z"
   ;;
 esac
