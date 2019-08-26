@@ -1,6 +1,6 @@
 ##############  Lab Env Install and Configure Functions ######################
-# version: 5.6.0
-# date: 2018-09-20
+# version: 5.6.1
+# date: 2019-08-26
 #
 
 create_directories() {
@@ -529,22 +529,25 @@ copy_iso_images() {
     done
  
       #--test--------------------------------------------------
-      local SRC_ISOS="$(cd ${ISO_SRC_DIR};ls *.iso)"
-      local DST_ISOS="$(cd ${ISO_DEST_DIR}/${COURSE_NUM}/;ls *.iso)"
+    if [ -d ${ISO_SRC_DIR} ]
+    then
+      local SRC_ISOS="$(cd ${ISO_SRC_DIR};ls | grep .iso)"
+      local DST_ISOS="$(cd ${ISO_DEST_DIR}/${COURSE_NUM}/;ls | grep .iso)"
   
       #echo SRC_ISOS="${SRC_ISOS}"
       #echo
       #echo DST_ISOS="${DST_ISOS}"
       #echo
  
-    for SRC_ISO in ${SRC_ISOS}
-    do
-      if ! echo "${DST_ISOS}" | grep -q ${SRC_ISO}
-      then
-        IS_ERROR=Y
-        FAILED_TASKS="${FAILED_TASKS},install_functions.copy_iso_images.copy_iso:${SRC_ISO}"
-      fi 
-    done
+      for SRC_ISO in ${SRC_ISOS}
+      do
+        if ! echo "${DST_ISOS}" | grep -q ${SRC_ISO}
+        then
+          IS_ERROR=Y
+          FAILED_TASKS="${FAILED_TASKS},install_functions.copy_iso_images.copy_iso:${SRC_ISO}"
+        fi 
+      done
+    fi
     #--------------------------------------------------------
   else
     echo
@@ -588,22 +591,28 @@ copy_cloud_images() {
     done
  
     #--test--------------------------------------------------
-    local SRC_IMAGES=$(cd ${IMAGE_SRC_DIR};ls)
-    local DST_IMAGES=$(cd ${IMAGE_DEST_DIR}/${COURSE_NUM}/;ls)
+    if [ -d ${IMAGE_SRC_DIR} ]
+    then
+      local SRC_IMAGES=$(cd ${IMAGE_SRC_DIR};ls)
+      local DST_IMAGES=$(cd ${IMAGE_DEST_DIR}/${COURSE_NUM}/;ls)
+  
+      #echo SRC_IMAGES="${SRC_IMAGES}"
+      #echo
+      #echo DST_IMAGES="${DST_IMAGES}"
+      #echo
  
-    #echo SRC_IMAGES="${SRC_IMAGES}"
-    #echo
-    #echo DST_IMAGES="${DST_IMAGES}"
-    #echo
- 
-    for SRC_IMAGE in ${SRC_IMAGES}
-    do
-      if ! echo ${DST_IMAGES} | grep -q ${SRC_IMAGE}
-      then
-        IS_ERROR=Y
-        FAILED_TASKS="${FAILED_TASKS},install_functions.copy_cloud_images.copy_image:${SRC_IMAGE}"
-      fi 
-    done
+      for SRC_IMAGE in ${SRC_IMAGES}
+      do
+        if echo ${CLOUD_IMAGE_LIST} | grep -q $(basename ${SRC_IMAGE})
+        then
+          if ! echo ${DST_IMAGES} | grep -q ${SRC_IMAGE}
+          then
+            IS_ERROR=Y
+            FAILED_TASKS="${FAILED_TASKS},install_functions.copy_cloud_images.copy_image:${SRC_IMAGE}"
+          fi 
+        fi
+      done
+    fi
     #--------------------------------------------------------
   else
     echo
