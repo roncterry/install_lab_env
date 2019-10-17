@@ -1,6 +1,6 @@
 #!/bin/bash
-# Version: 1.1.0
-# Date: 2019-10-15
+# Version: 1.1.1
+# Date: 2019-10-16
 
 source ../config/include/colors.sh
 source ../config/include/common_functions.sh
@@ -317,7 +317,7 @@ print_what_to_do_next() {
   echo -e "${ORANGE} |   ${LTPURPLE}${SCRIPTS_DEST_DIR}/${COURSE_NUM}/config/libvirt.cfg${NC}"
   echo -e "${ORANGE} |    Please ensure that network and bridge names follow the standards, updating${NC}"
   echo -e "${ORANGE} |    them if needed.${NC}"
-  echo -e "${ORANGE} |  - Edit the lab_env.cfg file in: ${LTPURPLE}${SCRIPTS_DEST_DIR}/${COURSE_NUM}/config/${NC}"
+  echo -e "${ORANGE} |  - Edit the ${LTPURPLE}lab_env.cfg${ORANGE} file in: ${LTPURPLE}${SCRIPTS_DEST_DIR}/${COURSE_NUM}/config/${NC}"
   echo -e "${ORANGE} |${NC}"
   echo -e "${ORANGE} | When your lab environment is ready, to create a lab environment installer,${NC}"
   echo -e "${ORANGE} | run the following command: ${GRAY}backup_lab_env.sh ${COURSE_NUM}${NC}"
