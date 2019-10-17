@@ -1,6 +1,6 @@
 ##############  Lab Env Install and Configure Functions ######################
-# version: 5.6.1
-# date: 2019-08-26
+# version: 5.7.0
+# date: 2019-10-15
 #
 
 create_directories() {
@@ -36,19 +36,19 @@ create_directories() {
   fi 
   #--------------------------------------------------------
 
-  if ! [ -d ${VM_DEST_DIR} ]
+  if ! [ -d "${VM_DEST_DIR}/${COURSE_NUM}" ]
   then
     echo -e "${LTBLUE}Creating directory for virtual machines ...${NC}"
     echo -e "${LTBLUE}---------------------------------------------------------${NC}"
-    run sudo mkdir -p ${VM_DEST_DIR}
-    run sudo chmod -R 2777 ${VM_DEST_DIR}
+    run sudo mkdir -p ${VM_DEST_DIR}/${COURSE_NUM}
+    run sudo chmod -R 2777 ${VM_DEST_DIR}/${COURSE_NUM}
     echo
   fi
   #--test--------------------------------------------------
-  if ! [ -d ${VM_DEST_DIR} ]
+  if ! [ -d "${VM_DEST_DIR}/${COURSE_NUM}" ]
   then
     IS_ERROR=Y
-    FAILED_TASKS="${FAILED_TASKS},install_functions.create_directories:${VM_DEST_DIR}"
+    FAILED_TASKS="${FAILED_TASKS},install_functions.create_directories:${VM_DEST_DIR}/${COURSE_NUM}"
   fi
   #--------------------------------------------------------
 
@@ -664,7 +664,6 @@ copy_lab_environment_restore_scripts() {
       echo
     fi
  
-    #local LAB_ENV_REST_SCRIPTS="restore-virtualization-environment.sh restore-virtual-bmc-devices.sh"
     local LAB_ENV_REST_SCRIPTS="$(cd ${SCRIPTS_SRC_DIR};ls)"
 
     for LAB_ENV_REST_SCRIPT in ${LAB_ENV_REST_SCRIPTS}
@@ -994,19 +993,18 @@ extract_register_libvirt_vms() {
     local ARCHIVE_TYPE=$(get_archive_type "${VM_SRC_DIR}/${VM}")
 
     echo -e "${LTBLUE}Extracting VM ...${NC}"
-    extract_archive "${VM_SRC_DIR}/${VM}" ${VM_DEST_DIR} ${ARCHIVE_TYPE}
+    extract_archive "${VM_SRC_DIR}/${VM}" "${VM_DEST_DIR}/${COURSE_NUM}" ${ARCHIVE_TYPE}
 
 
     #--test--------------------------------------------------
-    #rm -rf ${VM_DEST_DIR}/${VM}/*.qcow2
-    if ! [ -d ${VM_DEST_DIR} ]
+    if ! [ -d "${VM_DEST_DIR}/${COURSE_NUM}" ]
     then
       IS_ERROR=Y
-      FAILED_TASKS="${FAILED_TASKS},install_functions.extract_register_libvirt_vms.create_dir:${VM_DEST_DIR}"
+      FAILED_TASKS="${FAILED_TASKS},install_functions.extract_register_libvirt_vms.create_dir:${VM_DEST_DIR}/${COURSE_NUM}"
     fi
 
     local SRC_VMFILES=$(list_archive "${VM_SRC_DIR}/${VM}" ${ARCHIVE_TYPE})
-    local DST_VMFILES=$(cd ${VM_DEST_DIR}/;ls ${VM})
+    local DST_VMFILES=$(cd "${VM_DEST_DIR}/${COURSE_NUM}/";ls ${VM})
 
     local COUNT=1
     for SRC_VMFILE in ${SRC_VMFILES}
@@ -1038,32 +1036,32 @@ extract_register_libvirt_vms() {
     #case ${MULTI_LAB_MACHINE}
     #in
     #  y|Y|yes|Yes|YES|t|T|true|True|TRUE)
-    #    if [ -e ${VM_DEST_DIR}/"${VM}"/"${VM_CONFIG}" ]
+    #    if [ -e "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_CONFIG}" ]
     #    then
     #      echo -e "${LTBLUE}Registering VM with Libvirt ...${NC}"
-    #      run sudo virsh define ${VM_DEST_DIR}/"${VM}"/"${VM_CONFIG}"
+    #      run sudo virsh define "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_CONFIG}"
     #    fi
     #    echo
     #  ;;
     #  *)
-    #    if [ -e ${VM_DEST_DIR}/"${VM}"/"${VM_CONFIG}" ]
+    #    if [ -e "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_CONFIG}" ]
     #    then
     #      echo -e "${LTBLUE}Registering VM with Libvirt ...${NC}"
-    #      run sudo virsh define ${VM_DEST_DIR}/"${VM}"/"${VM_CONFIG}"
+    #      run sudo virsh define "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_CONFIG}"
     #    fi
     #    echo
     #  ;;
     #esac
 
-    if [ -e ${VM_DEST_DIR}/"${VM}"/"${VM_CONFIG}" ]
+    if [ -e "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_CONFIG}" ]
     then
       echo -e "${LTBLUE}Registering VM with Libvirt ...${NC}"
-      run sudo virsh define ${VM_DEST_DIR}/"${VM}"/"${VM_CONFIG}"
+      run sudo virsh define "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_CONFIG}"
 
       #--test--------------------------------------------------
       if ! virsh list --all | grep -q ${VM}
       then
-        if [ -e ${VM_DEST_DIR}/"${VM}"/"${VM_CONFIG}" ]
+        if [ -e "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_CONFIG}" ]
         then
           IS_ERROR=Y
           FAILED_TASKS="${FAILED_TASKS},install_functions.extract_register_libvirt_vms.register_vm:${VM}"
@@ -1074,12 +1072,12 @@ extract_register_libvirt_vms() {
     echo
 
     local VM_POOL_CONFIG=${VM}.pool.xml
-    if [ -e ${VM_DEST_DIR}/"${VM}"/"${VM_POOL_CONFIG}" ]
+    if [ -e "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_POOL_CONFIG}" ]
     then
       if ! sudo virsh pool-list | grep -q "${VM}$"
       then
       echo -e "${LTBLUE}Creating storage pool for VM ...${NC}"
-        run sudo virsh pool-define ${VM_DEST_DIR}/"${VM}"/"${VM_POOL_CONFIG}"
+        run sudo virsh pool-define "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_POOL_CONFIG}"
         run sudo virsh pool-build ${VM}
         run sudo virsh pool-autostart ${VM}
         run sudo virsh pool-start ${VM}
@@ -1095,7 +1093,7 @@ extract_register_libvirt_vms() {
       #--test--------------------------------------------------
       if ! virsh pool-list --all | grep -q ${VM}
       then
-        if [ -e ${VM_DEST_DIR}/"${VM}"/"${VM_POOL_CONFIG}" ]
+        if [ -e "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_POOL_CONFIG}" ]
         then
           IS_ERROR=Y
           FAILED_TASKS="${FAILED_TASKS},install_functions.extract_register_libvirt_vms.create_pool_for_vm:${VM}"
@@ -1108,22 +1106,22 @@ extract_register_libvirt_vms() {
     if which vbmcctl > /dev/null
     then
       local VM_VBMC_CONFIG=${VM}.vbmc
-      if [ -e ${VM_DEST_DIR}/"${VM}"/"${VM_VBMC_CONFIG}" ]
+      if [ -e "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_VBMC_CONFIG}" ]
       then
         if ! sudo vbmc list | grep -q "${VM}"
         then
         echo -e "${LTBLUE}Creating virtual BMC device for VM ...${NC}"
-          run vbmcctl create config=${VM_DEST_DIR}/"${VM}"/"${VM_VBMC_CONFIG}"
+          run vbmcctl create config="${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_VBMC_CONFIG}"
         elif ! sudo vbmc list | grep "${VM}" | grep -q running
         then
-          run vbmcctl delete config=${VM_DEST_DIR}/"${VM}"/"${VM_VBMC_CONFIG}"
-          run vbmcctl create config=${VM_DEST_DIR}/"${VM}"/"${VM_VBMC_CONFIG}"
+          run vbmcctl delete config="${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_VBMC_CONFIG}"
+          run vbmcctl create config="${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_VBMC_CONFIG}"
         fi
       
         #--test--------------------------------------------------
         if ! sudo vbmc list | grep -q ${VM}
         then
-          if [ -e ${VM_DEST_DIR}/"${VM}"/"${VM_VBMC_CONFIG}" ]
+          if [ -e "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_VBMC_CONFIG}" ]
           then
             IS_ERROR=Y
             FAILED_TASKS="${FAILED_TASKS},install_functions.extract_register_libvirt_vms.create_vbmc_for_vm:${VM}"
@@ -1248,7 +1246,7 @@ extract_vmware_vms() {
 
     local ARCHIVE_TYPE=$(get_archive_type ${VM_SRC_DIR}/)
 
-    extract_archive "${VM_SRC_DIR}/${VM}" ${VM_DEST_DIR} ${ARCHIVE_TYPE}
+    extract_archive "${VM_SRC_DIR}/${VM}" "${VM_DEST_DIR}/${COURSE_NUM}" ${ARCHIVE_TYPE}
 
     echo
 
@@ -1267,7 +1265,7 @@ start_vmware_vms() {
   do
     echo -e "${LTCYAN}VM Name:${GREEN}${VM}${NC}"
     echo -e "${LTCYAN}---------------------${NC}"
-    run vmrun start ${VM_DEST_DIR}/${VM}
+    run vmrun start "${VM_DEST_DIR}/${COURSE_NUM}/${VM}"
     echo
   done
 

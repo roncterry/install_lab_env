@@ -1,6 +1,6 @@
 ##############  Remove Lab Env Functions ##################################
-# version: 4.6.1
-# date: 2019-01-22
+# version: 4.7.0
+# date: 2019-10-15
 #
 
 remove_libvirt_networks() {
@@ -151,6 +151,7 @@ remove_new_nics() {
       run sudo rm -rf ${IFCFG_FILE}
     fi
   done
+  echo
 }
 
 remove_virtual_bmcs() {
@@ -284,7 +285,7 @@ remove_lab_scripts() {
       echo
     fi
     
-    if [ -e ${LOCAL_LIBVIRT_CONFIG_DIR} ]
+    if [ -e "${LOCAL_LIBVIRT_CONFIG_DIR}" ]
     then
       echo -e "${LTCYAN}Libvirt configs ...${NC}"
       run rm -rf ${LOCAL_LIBVIRT_CONFIG_DIR}
@@ -355,7 +356,7 @@ remove_libvirt_vms() {
     echo -e "${LTCYAN}---------------------------------------------------------------${NC}"
 
     local VM_POOL_CONFIG=${VM}.pool.xml
-    if [ -e ${VM_DEST_DIR}/"${VM}"/"${VM_POOL_CONFIG}" ]
+    if [ -e "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_POOL_CONFIG}" ]
     then
       echo -e "${LTCYAN}Removing storage pool for VM${NC}"
       run sudo virsh pool-destroy ${VM}
@@ -366,10 +367,10 @@ remove_libvirt_vms() {
     if which vbmcctl > /dev/null
     then
       local VM_VBMC_CONFIG=${VM}.vbmc
-      if [ -e ${VM_DEST_DIR}/"${VM}"/"${VM_VBMC_CONFIG}" ]
+      if [ -e "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_VBMC_CONFIG}" ]
       then
         echo -e "${LTCYAN}Removing virtual BMC device for VM${NC}"
-        vbmcctl delete config=${VM_DEST_DIR}/"${VM}"/"${VM_VBMC_CONFIG}"
+        vbmcctl delete config="${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_VBMC_CONFIG}"
       fi
     fi
 
@@ -378,13 +379,13 @@ remove_libvirt_vms() {
     run sudo virsh undefine --nvram --remove-all-storage --snapshots-metadata --wipe-storage ${VM}
 
     echo
-    echo -e "${LTCYAN}Deleting:${GREEN} ${VM_DEST_DIR}/${VM}${NC}"
+    echo -e "${LTCYAN}Deleting:${GREEN} ${VM_DEST_DIR}/${COURSE_NUM}/${VM}${NC}"
     echo -e "${LTCYAN}-------------------------------------${NC}"
-    run sudo rm -rf ${VM_DEST_DIR}/${VM}
+    run sudo rm -rf ${VM_DEST_DIR}/${COURSE_NUM}/${VM}
     echo
   done
 
-  run rm -rf ${VM_DEST_DIR}
+  run rm -rf ${VM_DEST_DIR}/${COURSE_NUM}
 
   if ! [ -z ${LIBVIRT_AUTOBUILD_VM_CONFIG} ]
   then
@@ -410,12 +411,12 @@ remove_vmware_vms() {
     echo -e "${LTCYAN}---------------------${NC}"
     run vmrun stop ${VM}
     echo
-    echo -e "${LTCYAN}Deleting: ${VM_DEST_DIR}/${VM}${NC}"
+    echo -e "${LTCYAN}Deleting: ${VM_DEST_DIR}/${COURSE_NUM}/${VM}${NC}"
     echo -e "${LTCYAN}---------------------------------${NC}"
-    run rm -rf ${VM_DEST_DIR}/${VM}
+    run rm -rf ${VM_DEST_DIR}/${COURSE_NUM}/${VM}
   done
 
-  run rm -rf ${VM_DEST_DIR}
+  run rm -rf ${VM_DEST_DIR}/${COURSE_NUM}
   echo
 }
 

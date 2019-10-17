@@ -1,6 +1,6 @@
 ##############  Helper Functions #############################################
-# version: 3.8.1
-# date: 2018-09-19
+# version: 3.9.0
+# date: 2019-10-15
 #
 
 configure_nic() {
@@ -783,7 +783,7 @@ edit_libvirt_domxml() {
       ;;
     esac
 
-    if [ -e ${VM_DEST_DIR}/"${VM}"/"${VM_CONFIG}" ]
+    if [ -e "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_CONFIG}" ]
     then
       echo -e "${LTBLUE}Updating VM configuration file ...${NC}"
 
@@ -791,7 +791,7 @@ edit_libvirt_domxml() {
       case ${LIBVIRT_SET_CPU_TO_HYPERVISOR_DEFUALT} in
         y|Y|yes|Yes)
           echo -e "  ${LTCYAN}Changing CPU to Hypervisor Default ...${NC}"
-          run sed -i -e '/<cpu/,/cpu>/ d' ${VM_DEST_DIR}/"${VM}"/"${VM_CONFIG}"
+          run sed -i -e '/<cpu/,/cpu>/ d' "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_CONFIG}"
           echo
         ;;
         *)
@@ -837,13 +837,13 @@ edit_libvirt_domxml() {
         ;;
         N)
           echo -e "  ${LTCYAN}Removing vmport parameter ...${NC}"
-          run sed -i "/vmport/d"  ${VM_DEST_DIR}/"${VM}"/"${VM_CONFIG}"
+          run sed -i "/vmport/d"  "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_CONFIG}"
           echo
         ;;
       esac
  
       #--- machine type ---
-      local MACHINE_TYPE_STRING=$(grep "machine=" ${VM_DEST_DIR}/"${VM}"/"${VM_CONFIG}" | awk '{ print $3 }' | cut -d \> -f 1 | cut -d \' -f 2)
+      local MACHINE_TYPE_STRING=$(grep "machine=" "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_CONFIG}" | awk '{ print $3 }' | cut -d \> -f 1 | cut -d \' -f 2)
       local MACHINE_TYPE=$(echo ${MACHINE_TYPE_STRING} | cut -d \- -f 2)
       local MACHINE_TYPE_VER=$(echo ${MACHINE_TYPE_STRING} | cut -d \- -f 3)
       
@@ -858,11 +858,11 @@ edit_libvirt_domxml() {
           case ${MACHINE_TYPE} in
             i440fx)
               echo -e "  ${LTCYAN}Changing machine type to highest supported version ...${NC}"
-              run sed -i "s/pc-i440fx-.../pc-i440fx-${HIGHEST_440FX_VER}/"  ${VM_DEST_DIR}/"${VM}"/"${VM_CONFIG}"
+              run sed -i "s/pc-i440fx-.../pc-i440fx-${HIGHEST_440FX_VER}/"  "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_CONFIG}"
             ;;
             q35)
               echo -e "  ${LTCYAN}Changing machine type to highest supported version ...${NC}"
-              run sed -i "s/pc-q35-.../pc-q35-${HIGHEST_Q35_VER}/"  ${VM_DEST_DIR}/"${VM}"/"${VM_CONFIG}"
+              run sed -i "s/pc-q35-.../pc-q35-${HIGHEST_Q35_VER}/"  "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_CONFIG}"
             ;;
           esac
         ;;
@@ -872,7 +872,7 @@ edit_libvirt_domxml() {
               if ! echo ${AVAILABLE_440FX_VERS} | grep -q ${MACHINE_TYPE_VER}
               then
                 echo -e "  ${LTCYAN}Changing machine type to highest supported version ...${NC}"
-                run sed -i "s/pc-i440fx-.../pc-i440fx-${HIGHEST_440FX_VER}/"  ${VM_DEST_DIR}/"${VM}"/"${VM_CONFIG}"
+                run sed -i "s/pc-i440fx-.../pc-i440fx-${HIGHEST_440FX_VER}/"  "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_CONFIG}"
                 echo
               else
                 echo -e "  ${LTCYAN}Machine type is a supported version: ${GRAY}${MACHINE_TYPE_VER} ${NC}"
@@ -883,7 +883,7 @@ edit_libvirt_domxml() {
               if ! echo ${AVAILABLE_Q35_VERS} | grep -q ${MACHINE_TYPE_VER}
               then
                 echo -e "  ${LTCYAN}Changing machine type to highest supported version ...${NC}"
-                run sed -i "s/pc-q35-.../pc-q35-${HIGHEST_Q35_VER}/"  ${VM_DEST_DIR}/"${VM}"/"${VM_CONFIG}"
+                run sed -i "s/pc-q35-.../pc-q35-${HIGHEST_Q35_VER}/"  "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_CONFIG}"
                 echo
               else
                 echo -e "  ${LTCYAN}Machine type is a supported version: ${GRAY}${MACHINE_TYPE_VER} ${NC}"
@@ -898,10 +898,10 @@ edit_libvirt_domxml() {
       for BRIDGE in ${BRIDGE_LIST}
       do
         local BRIDGE_NAME="$(echo ${BRIDGE} | cut -d , -f 1)"
-        if grep -q "network=${BRIDGE_NAME}" ${VM_DEST_DIR}/"${VM}"/"${VM_CONFIG}"
+        if grep -q "network=${BRIDGE_NAME}" "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_CONFIG}"
         then
           echo -e "  ${LTCYAN}Changing network= to bridge= ...${NC}"
-          run sed -i "s/network=${BRIDGE_NAME}/bridge=${BRIDGE_NAME}/g" ${VM_DEST_DIR}/"${VM}"/"${VM_CONFIG}"
+          run sed -i "s/network=${BRIDGE_NAME}/bridge=${BRIDGE_NAME}/g" "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_CONFIG}"
           echo
         fi
       done
