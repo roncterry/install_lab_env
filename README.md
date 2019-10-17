@@ -77,6 +77,8 @@ The directory structure is as follows:
     |-pdf/
     |
     |-scripts/
+    |        |-create_installed_course_from_existing.sh
+    |        |-create_skeleton_installed_course.sh
     |        |-restore-virtual-bmc-devices.sh
     |        |-restore-virtualization-environment.sh
     |
@@ -232,7 +234,7 @@ This variable contains the course number (i.e. Course ID) or Session ID of the c
 
 **REQUIRE_LIBVIRT_TCP_LISTEN**
 
-**REQUIRE_VNC_SPICE_LISTEN**
+**REQUIRE_LIBVIRT_QEMU_VNC_SPICE_LISTEN**
 
 **REQUIRE_VIRTUALBMC**
 
@@ -290,13 +292,19 @@ This is the network that the virtual BMC devices will be created on.
 
 This should be a single network and the name should match the name of one of the network listed in LIBVIRT_NETWORK_LIST or BRIDGE_LIST. If it is a Libvirt network then it mst match the name of the bridge created by the Libvirt network.
 
+(Note: This can also be defined on a per VM basis in a VM_NAME.vbmc file in the VM's directory)
+
 **VIRTUAL_BMC_LIST**
 
 This is a space delimited list of comma delimited lists where each of the comma delimited lists describe a virtual BMC that should be created.
 
+(Note: This can also be defined on a per VM basis in a VM_NAME.vbmc file in the VM's directory)
+
 **LIBVIRT_POOL_LIST**
 
 A space delimited list of Libvirt storage pools. The pool configs in LIBVIRT_POOL_LIST should be the names of the Libvirt storage pools.
+
+(Note: This can also be defined on a per VM basis in a VM_NAME.pool.xml file in the VM's directory)
 
 **LIBVIRT_VOLUME_LIST**
 
