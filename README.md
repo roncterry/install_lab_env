@@ -30,7 +30,7 @@ Option | Description
 
 Open a command prompt in the `~/scripts/<COURSE_ID>/` directory (or the installer directory) and run the following command:
 ```
-bash ./remove_lab_env.sh [nocolor]
+bash ./remove_lab_env.sh [--nocolor]
 ```
 Option | Description
 ------------ | -------------
