@@ -1,7 +1,8 @@
 #!/bin/bash
-# Version: 1.1.0
-# Date: 2019-01-22
+# Version: 1.2.0
+# Date: 2019-10-15
 
+source ../config/include/global_vars.sh
 source ../config/include/colors.sh
 source ../config/include/common_functions.sh
 
@@ -29,29 +30,29 @@ create_directories() {
   echo -e "${LTCYAN}Creating required directories ...${NC}"
   echo -e "${LTCYAN}-----------------------------------------${NC}"
 
-  if ! [ -d ~/course_files/${COURSE_NUM} ]
+  if ! [ -d ${COURSE_FILES_DEST_DIR}/${COURSE_NUM} ]
   then
-    run mkdir -p ~/course_files/${COURSE_NUM}
+    run mkdir -p ${COURSE_FILES_DEST_DIR}/${COURSE_NUM}
   fi
 
-  if ! [ -d ~/scripts/${COURSE_NUM} ]
+  if ! [ -d ${SCRIPTS_DEST_DIR}/${COURSE_NUM} ]
   then
-    run mkdir -p ~/scripts/${COURSE_NUM}
+    run mkdir -p ${SCRIPTS_DEST_DIR}/${COURSE_NUM}
   fi
 
-  if ! [ -d ~/pdf/${COURSE_NUM} ]
+  if ! [ -d ${PDF_DEST_DIR}/${COURSE_NUM} ]
   then
-    run mkdir -p ~/pdf/${COURSE_NUM}
+    run mkdir -p ${PDF_DEST_DIR}/${COURSE_NUM}
   fi
 
-  if ! [ -d /home/VMs/${COURSE_NUM} ]
+  if ! [ -d ${VM_DEST_DIR}/${COURSE_NUM} ]
   then
-    run mkdir -p /home/VMs/${COURSE_NUM}
+    run mkdir -p ${VM_DEST_DIR}/${COURSE_NUM}
   fi
 
-  if ! [ -d /home/iso/${COURSE_NUM} ]
+  if ! [ -d ${ISO_DEST_DIR}/${COURSE_NUM} ]
   then
-    run mkdir -p /home/iso/${COURSE_NUM}
+    run mkdir -p ${ISO_DEST_DIR}/${COURSE_NUM}
   fi
 
   echo
@@ -61,41 +62,41 @@ copy_files() {
   echo -e "${LTCYAN}Copying required files ...${NC}"
   echo -e "${LTCYAN}-----------------------------------------${NC}"
 
-  if [ -d ~/scripts/${COURSE_NUM} ]
+  if [ -d ${SCRIPTS_DEST_DIR}/${COURSE_NUM} ]
   then
-    run cp -R ../config ~/scripts/${COURSE_NUM}/
-    run mkdir -p ~/scripts/${COURSE_NUM}/config/libvirt.cfg
-    run mkdir -p ~/scripts/${COURSE_NUM}/config/ssh
+    run cp -R ../config ${SCRIPTS_DEST_DIR}/${COURSE_NUM}/
+    run mkdir -p ${LOCAL_LIBVIRT_CONFIG_DIR}
+    run mkdir -p ${SCRIPTS_DEST_DIR}/${COURSE_NUM}/config/ssh
   fi
 
-  if [ -d ~/scripts/${COURSE_NUM} ]
+  if [ -d ${SCRIPTS_DEST_DIR}/${COURSE_NUM} ]
   then
-    run cp -R ../scripts/* ~/scripts/${COURSE_NUM}/
+    run cp -R ../scripts/* ${SCRIPTS_DEST_DIR}/${COURSE_NUM}/
   fi
 
-  if [ -d ~/scripts/${COURSE_NUM} ]
+  if [ -d ${SCRIPTS_DEST_DIR}/${COURSE_NUM} ]
   then
-    run cp -R ../install_lab_env.sh ~/scripts/${COURSE_NUM}/
+    run cp -R ../install_lab_env.sh ${SCRIPTS_DEST_DIR}/${COURSE_NUM}/
   fi
 
-  if [ -d ~/scripts/${COURSE_NUM} ]
+  if [ -d ${SCRIPTS_DEST_DIR}/${COURSE_NUM} ]
   then
-    run cp -R ../remove_lab_env.sh ~/scripts/${COURSE_NUM}/
+    run cp -R ../remove_lab_env.sh ${SCRIPTS_DEST_DIR}/${COURSE_NUM}/
   fi
 
-  if [ -d ~/scripts/${COURSE_NUM} ]
+  if [ -d ${SCRIPTS_DEST_DIR}/${COURSE_NUM} ]
   then
-    run cp -R ../backup_lab_env.sh ~/scripts/${COURSE_NUM}/
+    run cp -R ../backup_lab_env.sh ${SCRIPTS_DEST_DIR}/${COURSE_NUM}/
   fi
 
-  run mv ~/scripts/${COURSE_NUM}/config/lab_env.cfg.example ~/scripts/${COURSE_NUM}/config/lab_env.cfg
+  run mv ${SCRIPTS_DEST_DIR}/${COURSE_NUM}/config/lab_env.cfg.example ${SCRIPTS_DEST_DIR}/${COURSE_NUM}/config/lab_env.cfg
 
   echo
 }
 
 update_config() {
-  run sed -i "s+^COURSE_NAME=.*+COURSE_NAME=\"${COURSE_NUM}: \"+g" ~/scripts/${COURSE_NUM}/config/lab_env.cfg
-  run sed -i "s+^COURSE_NUM=.*+COURSE_NUM=\"${COURSE_NUM}\"+g" ~/scripts/${COURSE_NUM}/config/lab_env.cfg
+  run sed -i "s+^COURSE_NAME=.*+COURSE_NAME=\"${COURSE_NUM}: \"+g" ${SCRIPTS_DEST_DIR}/${COURSE_NUM}/config/lab_env.cfg
+  run sed -i "s+^COURSE_NUM=.*+COURSE_NUM=\"${COURSE_NUM}\"+g" ${SCRIPTS_DEST_DIR}/${COURSE_NUM}/config/lab_env.cfg
 }
 
 print_what_to_do_next() {
@@ -106,11 +107,11 @@ print_what_to_do_next() {
   echo -e "${ORANGE} | What's next?${NC}"
   echo -e "${ORANGE} |${NC}"
   echo -e "${ORANGE} | Next you need to:${NC}"
-  echo -e "${ORANGE} |  - create (or copy) your VMs in: ${LTPURPLE}/home/VMs/${COURSE_NUM}${NC}"
+  echo -e "${ORANGE} |  - create (or copy) your VMs in: ${LTPURPLE}${VM_DEST_DIR}/${COURSE_NUM}${NC}"
   echo -e "${ORANGE} |  - create (or copy) your Libvirt configs (virtual network definitions,${NC}"
   echo -e "${ORANGE} |    storage pool definitions, etc) in:${NC}"
-  echo -e "${ORANGE} |   ${LTPURPLE}~/scripts/${COURSE_NUM}/config/libvirt.cfg${NC}"
-  echo -e "${ORANGE} |  - Edit the lab_env.cfg file in: ${LTPURPLE}~/scripts/${COURSE_NUM}/config/${NC}"
+  echo -e "${ORANGE} |   ${LTPURPLE}${LOCAL_LIBVIRT_CONFIG_DIR}${NC}"
+  echo -e "${ORANGE} |  - Edit the lab_env.cfg file in: ${LTPURPLE}${SCRIPTS_DEST_DIR}/${COURSE_NUM}/config/${NC}"
   echo -e "${ORANGE} |${NC}"
   echo -e "${ORANGE} | When your lab environment is ready, to create a lab environment installer,${NC}"
   echo -e "${ORANGE} | Run the following command: ${GRAY}backup_lab_env.sh ${COURSE_NUM}${NC}"
@@ -128,14 +129,14 @@ main() {
   echo -e "${LTBLUE}################################################################${NC}"
   echo
   echo -e "${LTPURPLE}Course ID:               ${COURSE_NUM}${NC}"
-  echo -e "${LTPURPLE}VM Directory:            /home/VMs/${COURSE_NUM}${NC}"
-  echo -e "${LTPURPLE}ISO Directory:           /home/iso/${COURSE_NUM}${NC}"
-  echo -e "${LTPURPLE}course_files Directory:  ~/course_files/${COURSE_NUM}${NC}"
-  echo -e "${LTPURPLE}scripts Directory:       ~/scripts/${COURSE_NUM}${NC}"
-  echo -e "${LTPURPLE}pdf Directory:           ~/pdf/${COURSE_NUM}${NC}"
+  echo -e "${LTPURPLE}VM Directory:            ${VM_DEST_DIR}/${COURSE_NUM}${NC}"
+  echo -e "${LTPURPLE}ISO Directory:           ${ISO_DEST_DIR}/${COURSE_NUM}${NC}"
+  echo -e "${LTPURPLE}course_files Directory:  ${COURSE_FILES_DEST_DIR}/${COURSE_NUM}${NC}"
+  echo -e "${LTPURPLE}scripts Directory:       ${SCRIPTS_DEST_DIR}/${COURSE_NUM}${NC}"
+  echo -e "${LTPURPLE}pdf Directory:           ${PDF_DEST_DIR}/${COURSE_NUM}${NC}"
   echo
 
-  if ! [ -d /home/VMs${COURSE_NUM} ]
+  if ! [ -d ${VM_DEST_DIR}${COURSE_NUM} ]
   then
     create_directories
     copy_files

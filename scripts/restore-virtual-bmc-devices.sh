@@ -1,6 +1,6 @@
 #!/bin/bash
-# Version: 2.0.0
-# Date: 2018-09-20
+# Version: 2.1.0
+# Date: 2019-10-15
 
 if [ -d ./config ]
 then
@@ -83,10 +83,10 @@ create_vm_virtual_bmc() {
     if which vbmcctl > /dev/null
     then
       local VM_VBMC_CONFIG=${VM}.vbmc
-      if [ -e ${VM_DEST_DIR}/"${VM}"/"${VM_VBMC_CONFIG}" ]
+      if [ -e ${VM_DEST_DIR}/${COURSE_NUM}/"${VM}"/"${VM_VBMC_CONFIG}" ]
       then
-        run vbmcctl delete config=${VM_DEST_DIR}/"${VM}"/"${VM_VBMC_CONFIG}"
-        run vbmcctl create config=${VM_DEST_DIR}/"${VM}"/"${VM_VBMC_CONFIG}"
+        run vbmcctl delete config=${VM_DEST_DIR}/${COURSE_NUM}/"${VM}"/"${VM_VBMC_CONFIG}"
+        run vbmcctl create config=${VM_DEST_DIR}/${COURSE_NUM}/"${VM}"/"${VM_VBMC_CONFIG}"
         echo "====================================================================="
       fi
     echo

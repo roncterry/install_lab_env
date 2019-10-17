@@ -1,6 +1,6 @@
 #!/bin/bash
-# Version: 1.8.0
-# Date: 2018-09-20
+# Version: 1.9.0
+# Date: 2019-10-15
 
 ### Colors ###
 RED='\e[0;31m'
@@ -56,6 +56,9 @@ CONFIG_SRC_DIR="./config"
 PDF_SRC_DIR="./pdf"
 PDF_DEST_DIR="${HOME}/pdf"
 
+COURSE_FILES_SRC_DIR="./course_files"
+COURSE_FILES_DEST_DIR="${HOME}/course_files"
+
 SCRIPTS_SRC_DIR="./scripts"
 SCRIPTS_DEST_DIR="${HOME}/scripts"
 
@@ -66,7 +69,7 @@ LAB_SCRIPT_DIR="lab-automation"
 DEPLOY_CLOUD_SCRIPT_DIR="lab-automation"
 
 VM_SRC_DIR="./VMs"
-VM_DEST_DIR="/home/VMs/${COURSE_NUM}"
+VM_DEST_DIR="/home/VMs"
 
 ISO_SRC_DIR="./iso"
 ISO_DEST_DIR="/home/iso"
@@ -301,24 +304,24 @@ activate_libvirt_virtual_networks() {
 define_virtual_machines() {
   echo -e "${LTBLUE}Defining Libvirt virtual machine(s) ...${NC}"
   echo -e "${LTBLUE}---------------------------------------------------------${NC}"
-  for VM in $(cd ${VM_DEST_DIR} ; ls)
+  for VM in $(cd ${VM_DEST_DIR}/${COURSE_NUM} ; ls)
   do
     case ${MULTI_LAB_MACHINE} in
       y|Y|Yes|Yes|YES)
-        run sudo virsh define ${VM_DEST_DIR}/${VM}/${VM}-${MULTI_LM_EXT}.xml
+        run sudo virsh define ${VM_DEST_DIR}/${COURSE_NUM}/${VM}/${VM}-${MULTI_LM_EXT}.xml
       ;;
       *)
-        run sudo virsh define ${VM_DEST_DIR}/${VM}/${VM}.xml
+        run sudo virsh define ${VM_DEST_DIR}/${COURSE_NUM}/${VM}/${VM}.xml
       ;;
     esac
 
     local VM_POOL_CONFIG=${VM}.pool.xml
-    if [ -e ${VM_DEST_DIR}/"${VM}"/"${VM_POOL_CONFIG}" ]
+    if [ -e ${VM_DEST_DIR}/${COURSE_NUM}/"${VM}"/"${VM_POOL_CONFIG}" ]
     then
       if ! sudo virsh pool-list | grep -q "${VM}$"
       then
       echo -e "${LTCYAN}Creating storage pool for VM ...${NC}"
-        run sudo virsh pool-define ${VM_DEST_DIR}/"${VM}"/"${VM_POOL_CONFIG}"
+        run sudo virsh pool-define ${VM_DEST_DIR}/${COURSE_NUM}/"${VM}"/"${VM_POOL_CONFIG}"
         run sudo virsh pool-build ${VM}
         run sudo virsh pool-autostart ${VM}
         run sudo virsh pool-start ${VM}
@@ -335,16 +338,16 @@ define_virtual_machines() {
     if which vbmcctl > /dev/null
     then
       local VM_VBMC_CONFIG=${VM}.vbmc
-      if [ -e ${VM_DEST_DIR}/"${VM}"/"${VM_VBMC_CONFIG}" ]
+      if [ -e ${VM_DEST_DIR}/${COURSE_NUM}/"${VM}"/"${VM_VBMC_CONFIG}" ]
       then
         if ! sudo vbmc list | grep -q "${VM}"
         then
         echo -e "${LTBLUE}Creating virtual BMC device for VM ...${NC}"
-          run vbmcctl create config=${VM_DEST_DIR}/"${VM}"/"${VM_VBMC_CONFIG}"
+          run vbmcctl create config=${VM_DEST_DIR}/${COURSE_NUM}/"${VM}"/"${VM_VBMC_CONFIG}"
         elif ! sudo vbmc list | grep "${VM}" | grep -q running
         then
-          run vbmcctl delete config=${VM_DEST_DIR}/"${VM}"/"${VM_VBMC_CONFIG}"
-          run vbmcctl create config=${VM_DEST_DIR}/"${VM}"/"${VM_VBMC_CONFIG}"
+          run vbmcctl delete config=${VM_DEST_DIR}/${COURSE_NUM}/"${VM}"/"${VM_VBMC_CONFIG}"
+          run vbmcctl create config=${VM_DEST_DIR}/${COURSE_NUM}/"${VM}"/"${VM_VBMC_CONFIG}"
         fi
       fi
     fi
