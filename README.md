@@ -36,18 +36,45 @@ Option | Description
 ------------ | -------------
 **--nocolor** |		turns off colorization of output
 
-## Create a New Lab Environment Installer Package
+## Create a New Lab Environment Installer Package from Scratch
 
 1. Download the Installer Framework files from github
 2. Run: `install_lab_env/scripts/create_skeleton_installed_course.sh <COURSE_ID>`
 3. Make sure your VMs have been created following the lab environment standards as described in the `README-lab_environment_standards.md` file (also described in the **https://github.com/roncterry/lab_env_tools** git repository) ensuring they are in the `/home/VMs/<COURSE_ID>` directory with config files edited appropriately
 4. Export/create network definition XML files and put them in the `~/scripts/COURSE_ID/config/libvirt.cfg/` directory
-5. Put any other files in their corresponding directories
+5. Put any other files in their corresponding directories (~/course_files/COURSE_ID/, ~/pdf/COURSE_ID/, etc.)
 6. Edit the `~/scripts/COURSE_ID/config/lab_env.cfg` as described later in this document
 7. Create a course installer by running: `backup_lab_env.sh <COURSE_ID>`
 8. Test installing and removing your lab environment on another machine
 
 (**Hint**:Your new course installer will be: `/install/courses/COURSE_ID_backup-<time_and_date_stamp>`)
+
+## Create a New Lab Environment Installer Package from Existing VMs/Virtual Networks
+
+1. Create your virtual networks and install your VMs using the default Libvirt tools in the default locations
+2. Download the Installer Framework files from github
+3. Run: `install_lab_env/scripts/create_installed_course_from_existing.sh <COURSE_ID> vms=<comma_delimited_list_of_VM_names> networks=<comma_delimited_list_of_networks>`
+
+    This will create directories as if the VMs/networks had been installed via a lab environment installer. (`~/home/VMs/COURSE_ID/`, `/home/iso/COURSE_ID/`, `~/scripts/COURSE_ID/`, `~/course_file/COURSE_ID/`, etc.)
+
+    It will:
+
+    Move the VM disk image files into the VMs' directories (`/home/VMs/COURSE_ID/VM_NAME/`) and change the disk paths to match their new location in the filesystem.
+
+    Export the VM's XML config to the VMs' directories (`/home/VMs/COURSE_ID/VM_NAME/VM_NAME.xml`)
+
+    Export the network XML config to `~/scripts/COURSE_ID/config/libvirt.cfg/NETWORK_NAME.xml`
+
+    You must then continue doing the following:
+
+4. Put any other files in their corresponding directories (`~/course_files/COURSE_ID/`, `~/pdf/COURSE_ID/`, etc.)
+5. Edit the `~/scripts/COURSE_ID/config/lab_env.cfg` as described later in this document
+
+    Verify your VMs follow the lab environment standards as described in the `README-lab_environment_standards.md` file (also described in the **https://github.com/roncterry/lab_env_tools** git repository) ensuring they are in the `/home/VMs/<COURSE_ID>` directory with config files edited appropriately
+
+6. Create a course installer by running: `backup_lab_env.sh <COURSE_ID>`
+7. Test installing and removing your lab environment on another machine
+
 
 # Directory Structure
 
