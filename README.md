@@ -65,12 +65,18 @@ Option | Description
 
     Export the network XML config to `~/scripts/COURSE_ID/config/libvirt.cfg/NETWORK_NAME.xml`
 
+    **Note**: You can manually edit the VM and virtual network configuration of VMs/networks registered with Libvirt using the `virsh edit` and `virsh net-edit` commands if needed. (Make sure you syc any changed you make with those command with the XML files that were exported by the command.)
+    
     You must then continue doing the following:
 
 4. Put any other files in their corresponding directories (`~/course_files/COURSE_ID/`, `~/pdf/COURSE_ID/`, etc.)
 5. Edit the `~/scripts/COURSE_ID/config/lab_env.cfg` as described later in this document
 
-    Verify your VMs follow the lab environment standards as described in the `README-lab_environment_standards.md` file (also described in the **https://github.com/roncterry/lab_env_tools** git repository) ensuring they are in the `/home/VMs/<COURSE_ID>` directory with config files edited appropriately
+    Verify your VMs follow the lab environment standards as described in the `README-lab_environment_standards.md` file (also described in the **https://github.com/roncterry/lab_env_tools** git repository) ensuring they are in the `/home/VMs/<COURSE_ID>` directory with config files edited appropriately.
+
+    Verify your network configuration follows the lab environment standards as described in the `README-lab_environment_standards.md` file. (You will most likely need to edit the `bridge name=` tag in the XML file to be the network's name not "virbr*").
+
+    Verify any other Libvirt configuration you manually copied in follows the lab environment standards as described in the `README-lab_environment_standards.md` file.
 
 6. Create a course installer by running: `backup_lab_env.sh <COURSE_ID>`
 7. Test installing and removing your lab environment on another machine
@@ -489,7 +495,7 @@ One thing to watch for when using this script is to ensure that the permission o
 
 # Video Guides
 
-**Create an Installer Package:**
+**Create an Installer Package (from exiting VMs manually):**
 
 [1) Install the Installer Framework](https://s3-us-west-2.amazonaws.com/training-howtos/install_the_installer_framework.mp4)
 
