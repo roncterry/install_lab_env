@@ -1,6 +1,6 @@
 #!/bin/bash
-# Version: 1.1.1
-# Date: 2019-10-16
+# Version: 1.1.2
+# Date: 2020-01-03
 
 source ../config/include/colors.sh
 source ../config/include/common_functions.sh
@@ -302,19 +302,22 @@ print_what_to_do_next() {
   echo -e "${ORANGE} +---------------------------------------------------------------------------${NC}"
   echo -e "${ORANGE} |${NC}"
   echo -e "${ORANGE} | An installed course has been created for: ${LTPURPLE}${COURSE_NUM}${NC}"
-  echo -e "${ORANGE} | The VMs, networks, files, ISOs, cloud images, etc you specified have been copied into it.${NC}"
+  echo -e "${ORANGE} | The VMs, networks, files, ISOs, cloud images, etc you specified have been${NC}"
+  echo -e "${ORANGE} | copied into it.${NC}"
   echo -e "${ORANGE} |${NC}"
   echo -e "${ORANGE} | What's next?${NC}"
   echo -e "${ORANGE} |${NC}"
   echo -e "${ORANGE} | Next you need to:${NC}"
   echo -e "${ORANGE} |  - Verify your VMs in: ${LTPURPLE}${VM_DEST_DIR}/${COURSE_NUM}${NC}"
   echo -e "${ORANGE} |  - Verify the disk paths were updated to the new location of the VM's disks.${NC}"
-  echo -e "${ORANGE} |    If you have multiple VMs sharing the same ISO, please move that ISO image into${NC}"
-  echo -e "${ORANGE} |    ${LTPURPLE}${ISO_DEST_DIR}/${COURSE_NUM}${ORANGE} and update the VMs to point to it instead.${NC}"
-  echo -e "${ORANGE} |    (delete the copies of the ISO image that were copied into the individual VM directroies)${NC}"
+  echo -e "${ORANGE} |    If you have multiple VMs sharing the same ISO, please move that ISO image${NC}"
+  echo -e "${ORANGE} |    into ${LTPURPLE}${ISO_DEST_DIR}/${COURSE_NUM}${ORANGE} and update the VMs to point to it instead.${NC}"
+  echo -e "${ORANGE} |    (delete the copies of the ISO image that were copied into the individual${NC}"
+  echo -e "${ORANGE} |    VM directories)${NC}"
   echo -e "${ORANGE} |    Please ensure that VM names follow the standards, updating them if needed.${NC}"
-  echo -e "${ORANGE} |  - Verify your Libvirt configs (network definitions, storage pool definitions, etc) in:${NC}"
-  echo -e "${ORANGE} |   ${LTPURPLE}${SCRIPTS_DEST_DIR}/${COURSE_NUM}/config/libvirt.cfg${NC}"
+  echo -e "${ORANGE} |  - Verify your Libvirt configs (network definitions, storage pool${NC}"
+  echo -e "${ORANGE} |    definitions, etc) in:${NC}"
+  echo -e "${ORANGE} |    ${LTPURPLE}${SCRIPTS_DEST_DIR}/${COURSE_NUM}/config/libvirt.cfg${NC}"
   echo -e "${ORANGE} |    Please ensure that network and bridge names follow the standards, updating${NC}"
   echo -e "${ORANGE} |    them if needed.${NC}"
   echo -e "${ORANGE} |  - Edit the ${LTPURPLE}lab_env.cfg${ORANGE} file in: ${LTPURPLE}${SCRIPTS_DEST_DIR}/${COURSE_NUM}/config/${NC}"
