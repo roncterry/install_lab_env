@@ -495,7 +495,7 @@ One thing to watch for when using this script is to ensure that the permission o
 
 # Video Guides
 
-**Create an Installer Package (from exiting VMs manually):**
+**OPTION 1: Create an Installer Package (from exiting VMs - manually):**
 
 [1) Install the Installer Framework](https://s3-us-west-2.amazonaws.com/training-howtos/install_the_installer_framework.mp4)
 
@@ -511,6 +511,15 @@ One thing to watch for when using this script is to ensure that the permission o
 
 
 [(long version of 1-5 from above) Create a Lab Environment Installer Package from Existing VMs](https://s3-us-west-2.amazonaws.com/training-howtos/create_a_lab_environment_installer_package_from_existing_vms.mp4)
+
+
+**OPTION 2: Create an Installer Package (from exiting VMs - scripted):**
+
+[1) Install the Installer Framework](https://s3-us-west-2.amazonaws.com/training-howtos/install_the_installer_framework.mp4)
+
+[2) Create an Installed Course Lab Environment from Existing VMs](https://s3-us-west-2.amazonaws.com/training-howtos/create_an_installed_course_lab_environment_from_existing_vms.mp4)
+
+[3) Create an Installer Package](https://s3-us-west-2.amazonaws.com/training-howtos/create_an_installer_package.mp4)
 
 
 **Work with Installer Packages:**
