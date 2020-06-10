@@ -1,6 +1,6 @@
 #!/bin/bash
-# Version: 1.1.2
-# Date: 2020-01-03
+# Version: 1.2.0
+# Date: 2020-01-23
 
 source ../config/include/colors.sh
 source ../config/include/common_functions.sh
@@ -30,6 +30,7 @@ then
 fi
 
 source ../config/include/global_vars.sh
+#source ../config/include/helper_functions.sh
 
 #############################################################################
 #          Functions
@@ -139,13 +140,16 @@ copy_existing_vms() {
     if virsh list --all | grep -q ${EXISTING_VM}
     then
       echo -e "${LTBLUE}VM: ${GRAY}${EXISTING_VM}${NC}"
+      # create VM dir
       run mkdir -p ${VM_DEST_DIR}/${COURSE_NUM}/${EXISTING_VM}
 
+      # dump out VM config
+      echo -e "${LTCYAN}(VM XML config)${NC}"
       echo -e "${LTGREEN}COMMAND: ${GRAY}virsh dumpxml ${EXISTING_VM} > ${VM_DEST_DIR}/${COURSE_NUM}/${EXISTING_VM}/${EXISTING_VM}.xml${NC}"
       virsh dumpxml ${EXISTING_VM} > ${VM_DEST_DIR}/${COURSE_NUM}/${EXISTING_VM}/${EXISTING_VM}.xml
 
+      # copy VM disks
       local EXISTING_VM_DISK_LIST=$(virsh dumpxml ${EXISTING_VM} | grep "<source file=.*" | cut -d \' -f 2)
- 
       for EXISTING_VM_DISK in ${EXISTING_VM_DISK_LIST}
       do
         echo -e "${LTCYAN}(Disk: ${GRAY}${EXISTING_VM_DISK}${LTBLUE})${NC}"
@@ -156,6 +160,38 @@ copy_existing_vms() {
         run sed -i "s+\(.*<source file=\)'.*${EXISTING_VM_DISK}'\(.*\)+\1'${VM_DEST_DIR}/${COURSE_NUM}/${EXISTING_VM}/$(basename ${EXISTING_VM_DISK})'\2+" ${VM_DEST_DIR}/${COURSE_NUM}/${EXISTING_VM}/${EXISTING_VM}.xml
       done
 
+      # copy VM snapshots
+      local VM_SNAPSHOTS="$(virsh snapshot-list ${EXISTING_VM} | grep -v "^----" | grep -v "^ Name")"
+      if ! [ -z "${VM_SNAPSHOTS}" ]
+      then
+        echo -e "${LTCYAN}(VM snapshot XML configs)${NC}"
+        if ! [ -e ${VM_DEST_DIR}/${COURSE_NUM}/${EXISTING_VM}/snapshots ]
+        then
+          mkdir ${VM_DEST_DIR}/${COURSE_NUM}/${EXISTING_VM}/snapshots
+        fi
+        run sudo cp /var/lib/libvirt/qemu/snapshots/${EXISTING_VM}/*.xml ${VM_DEST_DIR}/${COURSE_NUM}/${EXISTING_VM}/snapshots/
+
+        #update_vm_snapshot_uuid ${EXISTING_VM}
+        for SNAPSHOT_FILE in $(ls ${VM_DEST_DIR}/${COURSE_NUM}/${EXISTING_VM}/snapshots/) 
+        do 
+          VM_UUID=$(virsh dumpxml ${VM_NAME} | grep uuid | head -1 | cut -d ">" -f 2 | cut -d "<" -f 1)
+          run sed "s+\( .\)<uuid>.*+\1<uuid>${VM_UUID}</uuid>+g" ${VM_DEST_DIR}/${COURSE_NUM}/${EXISTING_VM}/snapshots/${SNAPSHOT_FILE}
+        done
+
+        #update_vm_snapshot_disk_paths ${EXISTING_VM}
+        for SNAPSHOT_FILE in $(ls ${VM_DEST_DIR}/${COURSE_NUM}/${EXISTING_VM}/snapshotsls/*.xml)
+        do
+          local SNAPSHOT_DISK_LIST=$(grep "<source file=.*" ${VM_DEST_DIR}/${COURSE_NUM}/${EXISTING_VM}/snapshots/${SNAPSHOT_FILE} | cut -d \' -f 2)
+          for SNAPSHOT_DISK in ${SNAPSHOT_DISK_LIST}
+          do
+            run sed -i "s+\(.*<source file=\)'.*${SNAPSHOT_DISK}'\(.*\)+\1'${VM_DEST_DIR}/${COURSE_NUM}/${EXISTING_VM}/$(basename ${SNAPSHOT_DISK})'\2+" ${VM_DEST_DIR}/${COURSE_NUM}/${EXISTING_VM}/snapshots/${SNAPSHOT_FILE}
+          done
+        done
+      fi
+      unset VM_SNAPSHOTS
+
+      # copy VM nvram file
+      #mv_vm_nvram_file ${EXISTING_VM}
       local NVRAM_FILE=$(virsh dumpxml ${EXISTING_VM} | grep nvram | cut -d \> -f 2 | cut -d \< -f 1)
       if ! [ -z ${NVRAM_FILE} ]
       then
@@ -164,22 +200,37 @@ copy_existing_vms() {
         run mkdir -p ${VM_DEST_DIR}/${COURSE_NUM}/${EXISTING_VM}/nvram
         run sudo mv ${NVRAM_FILE} ${VM_DEST_DIR}/${COURSE_NUM}/${EXISTING_VM}/nvram/
         run sudo chmod -R u+rwx,g+rws,o+r ${VM_DEST_DIR}/${COURSE_NUM}/${EXISTING_VM}/nvram
-        #run sudo cp ${NVRAM_FILE} ${VM_DEST_DIR}/${COURSE_NUM}/${EXISTING_VM}/nvram/
         run sed -i "s+\(^ *\)<nvram>.*+\1<nvram>${VM_DEST_DIR}/${COURSE_NUM}/${EXISTING_VM}/nvram/${NVRAM_FILE_NAME}</nvram>+" ${VM_DEST_DIR}/${COURSE_NUM}/${EXISTING_VM}/${EXISTING_VM}.xml
       fi
 
       echo -e "${LTCYAN}(Cleanup XML${LTBLUE})${NC}"
-      run sed -i '/^ *<uuid.*/d' ${VM_DEST_DIR}/${COURSE_NUM}/${EXISTING_VM}/${EXISTING_VM}.xml
+      #run sed -i '/^ *<uuid.*/d' ${VM_DEST_DIR}/${COURSE_NUM}/${EXISTING_VM}/${EXISTING_VM}.xml
 
+      # determine VM networks and ISOs
       export VM_NETWORKS="${VM_NETWORKS} $(virsh dumpxml ${EXISTING_VM} | grep "<source network=.*" | cut -d \' -f 2)"
       export VM_ISOS="${VM_ISOS} $(virsh dumpxml ${EXISTING_VM} | grep "<source file=.*" | cut -d \' -f 2 | grep ".iso")"
 
+      # redefine VM
       echo -e "${LTCYAN}(Redefine VM)${NC}"
       run sudo chown -R ${USER}.users ${VM_DEST_DIR}/${COURSE_NUM}/${EXISTING_VM}
       run sudo chmod u+rwx,g+rws,o+r ${VM_DEST_DIR}/${COURSE_NUM}/${EXISTING_VM}
       run virsh undefine --nvram --remove-all-storage --managed-save --delete-snapshots ${EXISTING_VM}
       run virsh define ${VM_DEST_DIR}/${COURSE_NUM}/${EXISTING_VM}/${EXISTING_VM}.xml
+      #local VM_UUID=$(virsh dumpxml ${EXISTING_VM} | grep uuid | head -1 | cut -d ">" -f 2 | cut -d "<" -f 1)
 
+      # redefine VM snapshots
+      #restore_vm_snapshots ${EXISTING_VM}
+      if [ -e ${VM_DEST_DIR}/${COURSE_NUM}/${EXISTING_VM}/snapshots/ ]
+      then
+        echo -e "${LTCYAN}(Redefine VM snapshots)${NC}"
+        for SNAP_FILE in $(ls ${VM_DEST_DIR}/${COURSE_NUM}/${EXISTING_VM}/snapshots/)
+        do
+          #run sed "s+\( .\)<uuid>.*+\1<uuid>${VM_UUID}</uuid>+g" ${VM_DEST_DIR}/${COURSE_NUM}/${EXISTING_VM}/snapshots/${SNAPSHOT_FILE}
+          run virsh snapshot-create ${VM_NAME} ${VM_DEST_DIR}/${COURSE_NUM}/${EXISTING_VM}/snapshots/${SNAP_FILE} --redefine
+        done
+      fi
+
+      unset VM_UUID
       echo
     else
       echo "${LTBLUE} (VM ${LTGRAY}${EXISTING_VM}${LTBLUE} not found. Skipping.)"
@@ -321,6 +372,20 @@ print_what_to_do_next() {
   echo -e "${ORANGE} |    Please ensure that network and bridge names follow the standards, updating${NC}"
   echo -e "${ORANGE} |    them if needed.${NC}"
   echo -e "${ORANGE} |  - Edit the ${LTPURPLE}lab_env.cfg${ORANGE} file in: ${LTPURPLE}${SCRIPTS_DEST_DIR}/${COURSE_NUM}/config/${NC}"
+  echo -e "${ORANGE} |  - If the VM had snapshots:${NC}"
+  echo -e "${ORANGE} |    * Open the snpashot XML files in: ${NC}"
+  echo -e "${ORANGE} |        ${LTPURPLE}${VM_DEST_DIR}/${COURSE_NUM}/${VM_NAME}/snapshots/${NC}"
+  echo -e "${ORANGE} |    * Edit the first instance of the <name> tag to be a name without spaces ${NC}"
+  echo -e "${ORANGE} |      (If the name does not contain spaces then leave it unedited)${NC}"
+  echo -e "${ORANGE} |    * Delete the comment section at the top of the file beginning with <!-- ${NC}"
+  echo -e "${ORANGE} |      and ending with --> ${NC}"
+  echo -e "${ORANGE} |    * Save the files after editing.${NC}"
+  echo -e "${ORANGE} |    * Rename all snapshot XML files using the following format: ${NC}"
+  echo -e "${ORANGE} |        ${LTPURPLE}<creation_time>.<snapshot_name>.xml ${NC}"
+  echo -e "${ORANGE} |     Where:${NC}"
+  echo -e "${ORANGE} |       <creation_time> is the value in the <creationTime> tag in the file ${NC}"
+  echo -e "${ORANGE} |       <snapshot_name>  is the  name of the snapshot (with no spaces in the name)${NC}"
+  echo -e "${ORANGE} |       (i.e. value in the <name>> tag in the file) ${NC}"
   echo -e "${ORANGE} |${NC}"
   echo -e "${ORANGE} | When your lab environment is ready, to create a lab environment installer,${NC}"
   echo -e "${ORANGE} | run the following command: ${GRAY}backup_lab_env.sh ${COURSE_NUM}${NC}"
@@ -374,7 +439,7 @@ main() {
     update_config
   else
     echo
-    echo -e "${LTRED}ERROR: The specified course already exists. Exiting."
+    echo -e "${LTRED}ERROR: The specified course already exists. Exiting.${NC}"
     echo
     exit 1
   fi
