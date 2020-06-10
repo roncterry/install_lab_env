@@ -1,6 +1,6 @@
 #!/bin/bash
-# version: 1.1.1
-# date: 2017-09-05
+# version: 1.2.0
+# date: 2020-01-23
 
 ### Colors ###
 RED='\e[0;31m'
@@ -266,6 +266,80 @@ back_up_images() {
   fi
 }
 
+mv_vm_nvram_file() {
+  if [ -z ${1} ]
+  then
+    echo -e "${RED}ERROR: You must supply a VM name.${NC}"
+    echo 
+    echo "  USAGE: mv_vm_nvram_file <vm_name>"
+  else
+    local VM_NAME=${1}
+  fi
+
+  local NVRAM_FILE=$(virsh dumpxml ${VM_NAME} | grep nvram | cut -d \> -f 2 | cut -d \< -f 1)
+  if echo ${NVRAM_FILE} | grep -q "/var/lib/libvirt/qemu/nvram"
+  then
+    if ! [ -z ${NVRAM_FILE} ]
+    then
+      local NVRAM_FILE_NAME=$(basename ${NVRAM_FILE})
+      echo -e "${LTCYAN}(NVRAM: ${GRAY}${NVRAM_FILE}${LTBLUE})${NC}"
+      run mkdir -p ${VM_DIR}/${COURSE_ID}/${VM_NAME}/nvram
+      run sudo mv ${NVRAM_FILE} ${VM_DIR}/${COURSE_ID}/${VM_NAME}/nvram/
+      run sudo chmod -R u+rwx,g+rws,o+r ${VM_DIR}/${COURSE_ID}/${VM_NAME}/nvram
+      run sed -i "s+\(^ *\)<nvram>.*+\1<nvram>${VM_DIR}/${COURSE_ID}/${VM_NAME}/nvram/${NVRAM_FILE_NAME}</nvram>+" ${VM_DIR}/${COURSE_ID}/${VM_NAME}/${VM_NAME}.xml
+    fi
+  elif echo ${NVRAM_FILE} | grep -q "${VM_DIR}/${COURSE_ID}/${VM_NAME}/nvram/"
+  then
+    echo -e "${LTCYAN}(NVRAM file already in VM's directory ... Skipping)${NC}"
+  fi
+  echo
+}
+
+dump_vm_snapshots() {
+  if [ -z ${1} ]
+  then
+    echo -e "${RED}ERROR: You must supply a VM name.${NC}"
+    echo 
+    echo "  USAGE: dump_vm_snapshots <vm_name>"
+  else
+    local VM_NAME=${1}
+  fi
+
+  local SNAPSHOT_LIST=$(virsh snapshot-list ${VM_NAME} | grep -v "^---" | grep -v "^ Name" | grep -v "^$" | awk '{ print $1 }')
+
+  if ! [ -z "${SNAPSHOT_LIST}" ]
+  then
+    echo -e "${LTCYAN}Dumping out snapshots for VM ${LTPURPLE}${VM} ${LTCYAN}...${NC}"
+    if [ -e "${VM_DIR}/${COURSE_ID}/${VM_NAME}"/snapshots ]
+    then
+      run rm -rf ${VM_DIR}/${COURSE_ID}/${VM_NAME}/snapshots
+      run mkdir ${VM_DIR}/${COURSE_ID}/${VM_NAME}/snapshots
+    else
+      run mkdir ${VM_DIR}/${COURSE_ID}/${VM_NAME}/snapshots
+    fi
+ 
+    for SNAPSHOT in ${SNAPSHOT_LIST}
+    do
+      echo -e "${LTGREEN}COMMAND:${GRAY} virsh snapshot-dumpxml ${VM_NAME} ${SNAPSHOT} > ${VM_DIR}/${COURSE_ID}/${VM_NAME}/snapshots/${SNAPSHOT}.xml${NC}"
+      virsh snapshot-dumpxml ${VM_NAME} ${SNAPSHOT} > ${VM_DIR}/${COURSE_ID}/${VM_NAME}/snapshots/${SNAPSHOT}.xml
+ 
+      local VM_UUID=$(virsh dumpxml ${VM_NAME} | grep uuid | head -1 | cut -d ">" -f 2 | cut -d "<" -f 1)
+      local SNAPSHOT_CREATION_TIME=$(grep "<creationTime>.*" ${VM_DIR}/${COURSE_ID}/${VM_NAME}/snapshots/${SNAPSHOT}.xml | cut -d ">" -f 2 | cut -d "<" -f 1)
+ 
+      run mv ${VM_DIR}/${COURSE_ID}/${VM_NAME}/snapshots/${SNAPSHOT}.xml ${VM_DIR}/${COURSE_ID}/${VM_NAME}/snapshots/${SNAPSHOT_CREATION_TIME}.${SNAPSHOT}.xml
+ 
+      unset VM_UUID
+      unset SNAPSHOT_CREATION_TIME
+    done
+  else
+    echo -e "${LTCYAN}Removing stale snapshots for VM ${LTPURPLE}${VM} ${LTCYAN}...${NC}"
+    if [ -e "${VM_DIR}/${COURSE_ID}/${VM_NAME}"/snapshots ]
+    then
+      run rm -rf ${VM_DIR}/${COURSE_ID}/${VM_NAME}/snapshots
+    fi
+  fi
+}
+
 back_up_vms() {
   echo -e "${LTBLUE}Backing up VMs ...${NC}"
   echo -e "${LTBLUE}---------------------------------------------------------${NC}"
@@ -274,6 +348,10 @@ back_up_vms() {
 
   for VM in $(ls)
   do
+    echo
+    mv_vm_nvram_file ${VM}
+    echo
+    dump_vm_snapshots ${VM}
     echo
     echo -e "${LTCYAN}Backing up VM: ${LTPURPLE}${VM}${NC}"
     run ${ARCHIVE_CMD} ${VM}.${ARCHIVE_EXT} ${VM}
