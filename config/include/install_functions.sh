@@ -1,6 +1,6 @@
 ##############  Lab Env Install and Configure Functions ######################
-# version: 5.7.0
-# date: 2019-10-15
+# version: 5.8.0
+# date: 2020-01-23
 #
 
 create_directories() {
@@ -427,31 +427,31 @@ create_virtual_bmcs() {
     local VM_NAME=$(echo ${BMC} | cut -d , -f 1)
     local BMC_ADDR=$(echo ${BMC} | cut -d , -f 2)
 
-    if [ -z ${BMC_ADDR} ]
+    if [ -z "${BMC_ADDR}" ]
     then
       BMC_ADDR=${DEFAULT_BMC_ADDR}
     fi
 
     local BMC_PORT=$(echo ${BMC} | cut -d , -f 3)
-    if [ -z ${BMC_PORT} ]
+    if [ -z "${BMC_PORT}" ]
     then
       BMC_PORT=${DEFAULT_BMC_PORT}
     fi
 
     local BMC_USERNAME=$(echo ${BMC} | cut -d , -f 4)
-    if [ -z ${BMC_USERNAME} ]
+    if [ -z "${BMC_USERNAME}" ]
     then
       BMC_USERNAME=${DEFAULT_BMC_USERNAME}
     fi
 
     local BMC_PASSWORD=$(echo ${BMC} | cut -d , -f 5)
-    if [ -z ${BMC_PASSWORD} ]
+    if [ -z "${BMC_PASSWORD}" ]
     then
       BMC_PASSWORD=${DEFAULT_BMC_PASSWORD}
     fi
 
     local BMC_URI=$(echo ${BMC} | cut -d , -f 6)
-    if [ -z ${BMC_URI} ]
+    if [ -z "${BMC_URI}" ]
     then
       BMC_URI=${DEFAULT_BMC_URI}
     fi
@@ -1068,6 +1068,14 @@ extract_register_libvirt_vms() {
         fi
       fi
       #--------------------------------------------------------
+    fi
+    echo
+
+    if [ -e "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/snapshots ]
+    then
+      update_vm_snapshot_uuid ${VM}
+      #update_vm_snapshot_disk_paths ${VM}
+      restore_vm_snapshots ${VM}
     fi
     echo
 

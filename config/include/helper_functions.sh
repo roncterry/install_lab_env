@@ -1,10 +1,10 @@
 ##############  Helper Functions #############################################
-# version: 3.9.0
-# date: 2019-10-15
+# version: 3.10.0
+# date: 2020-01-23
 #
 
 configure_nic() {
-  if [ -z $1 ]
+  if [ -z "$1" ]
   then
     echo
     echo -e "${LTRED}ERROR: Missing NIC name.${NC}"
@@ -12,7 +12,7 @@ configure_nic() {
     echo -e "${GRAY}USAGE: $0 <nic_name> <node_number> <nic_network> <boot_protocol> <start_mode>${NC}"
     echo
     return 1
-  elif [ -z $2 ]
+  elif [ -z "$2" ]
   then
     echo
     echo -e "${LTRED}ERROR: Missing node number.${NC}"
@@ -27,7 +27,7 @@ configure_nic() {
     echo -e "${LTRED}ERROR: The node number must be a number between 1 and 9.${NC}"
     echo
     return 1
-  elif [ -z $3 ]
+  elif [ -z "$3" ]
   then
     echo
     echo -e "${LTRED}ERROR: The NIC network must be the network ID of the bridge with CIDR mask.${NC}"
@@ -36,7 +36,7 @@ configure_nic() {
     echo -e "${GRAY}USAGE: $0 <nic_name> <node_number> <nic_network> <boot_protocol> <start_mode>${NC}"
     echo
     return 1
-  elif [ -z $4 ]
+  elif [ -z "$4" ]
   then
     echo
     echo -e "${LTRED}ERROR: The boot protocol must be one of the following:${NC}"
@@ -47,7 +47,7 @@ configure_nic() {
     echo -e "${GRAY}USAGE: $0 <nic_name> <node_number> <nic_network> <boot_protocol> <start_mode>${NC}"
     echo
     return 1
-  elif [ -z $5 ]
+  elif [ -z "$5" ]
   then
     echo
     echo -e "${LTRED}ERROR: The start mode must be one of the following:${NC}"
@@ -85,7 +85,7 @@ configure_nic() {
       local IP_NETWORK="$(echo ${NIC_NETWORK} | cut -d / -f 1 | cut -d . -f 1,2,3)"
     ;;
   esac
-  if ! [ -z ${IP_NETWORK} ]
+  if ! [ -z "${IP_NETWORK}" ]
   then
     local IP_ADDR="${IP_NETWORK}.${NODE_NUM}"
     local CIDRMASK="/$(echo ${NIC_NETWORK} | cut -d / -f 2)"
@@ -131,7 +131,7 @@ configure_nic() {
 }
 
 configure_new_veth_interfaces() {
-  if [ -z $1 ]
+  if [ -z "$1" ]
   then
     echo
     echo -e "${LTRED}ERROR: Missing virtual ethernet interface name.${NC}"
@@ -139,7 +139,7 @@ configure_new_veth_interfaces() {
     echo -e "${GRAY}USAGE: $0 <veth_name> <node_number> <veth_network>${NC}"
     echo
     return 1
-  elif [ -z $2 ]
+  elif [ -z "$2" ]
   then
     echo
     echo -e "${LTRED}ERROR: Missing node number.${NC}"
@@ -154,7 +154,7 @@ configure_new_veth_interfaces() {
     echo -e "${LTRED}ERROR: The node number must be a number between 1 and 9.${NC}"
     echo
     return 1
-  elif [ -z $3 ]
+  elif [ -z "$3" ]
   then
     echo
     echo -e "${LTRED}ERROR: The veth network must be the network ID of the virtusl ethernet device with CIDR mask.${NC}"
@@ -181,7 +181,7 @@ configure_new_veth_interfaces() {
     ;;
     *)
       local IP_NETWORK="$(echo ${VETH_NETWORK} | cut -d / -f 1 | cut -d . -f 1,2,3)"
-      if ! [ -z ${IP_NETWORK} ]
+      if ! [ -z "${IP_NETWORK}" ]
       then
         local IP_ADDR="${IP_NETWORK}.${NODE_NUM}"
         local CIDRMASK="/$(echo ${VETH_NETWORK} | cut -d / -f 2)"
@@ -910,8 +910,161 @@ edit_libvirt_domxml() {
     fi
 }
 
+move_vm_nvram_file() {
+  if [ -z "${1}" ]
+  then
+    echo -e "${RED}ERROR: You must supply a VM name.${NC}"
+    echo 
+    echo "  USAGE: mv_vm_nvram_file <vm_name>"
+  else
+    local VM_NAME=${1}
+  fi
+
+  local NVRAM_FILE=$(virsh dumpxml ${VM_NAME} | grep nvram | cut -d \> -f 2 | cut -d \< -f 1)
+  if echo ${NVRAM_FILE} | grep -q "/var/lib/libvirt/qemu/nvram"
+  then
+    if ! [ -z "${NVRAM_FILE}" ]
+    then
+      local NVRAM_FILE_NAME=$(basename ${NVRAM_FILE})
+      echo -e "${LTCYAN}(NVRAM: ${GRAY}${NVRAM_FILE}${LTBLUE})${NC}"
+      run mkdir -p ${VM_DEST_DIR}/${COURSE_NUM}/${VM_NAME}/nvram
+      run sudo mv ${NVRAM_FILE} ${VM_DEST_DIR}/${COURSE_NUM}/${VM_NAME}/nvram/
+      run sudo chmod -R u+rwx,g+rws,o+r ${VM_DEST_DIR}/${COURSE_NUM}/${VM_NAME}/nvram
+      run sed -i "s+\(^ *\)<nvram>.*+\1<nvram>${VM_DEST_DIR}/${COURSE_NUM}/${VM_NAME}/nvram/${NVRAM_FILE_NAME}</nvram>+" ${VM_DEST_DIR}/${COURSE_NUM}/${VM_NAME}/${VM_NAME}.xml
+    fi
+  elif echo ${NVRAM_FILE} | grep -q "${VM_DEST_DIR}/${COURSE_NUM}/${VM_NAME}/nvram/"
+  then
+    echo -e "${LTCYAN}(NVRAM file already in VM's directory ... Skipping)${NC}"
+  fi
+  echo
+}
+
+dump_vm_snapshots() {
+  if [ -z "${1}" ]
+  then
+    echo -e "${RED}ERROR: You must supply a VM name.${NC}"
+    echo 
+    echo "  USAGE: dump_vm_snapshots <vm_name>"
+  else
+    local VM_NAME=${1}
+  fi
+
+  local SNAPSHOT_LIST=$(virsh snapshot-list ${VM_NAME} | grep -v "^---" | grep -v "^ Name" | grep -v "^$" | awk '{ print $1 }')
+
+  if ! [ -z "${SNAPSHOT_LIST}" ]
+  then
+    echo -e "${LTCYAN}Dumping out VM snapshots ...${NC}"
+    if ! [ -e "${VM_DEST_DIR}/${COURSE_NUM}/${VM_NAME}"/snapshots ]
+    then
+      run mkdir ${VM_DEST_DIR}/${COURSE_NUM}/${VM_NAME}/snapshots
+    fi
+ 
+    for SNAPSHOT in ${SNAPSHOT_LIST}
+    do
+      run virsh snapshot-dumpxml ${VM_NAME} ${SNAPSHOT} > ${VM_DEST_DIR}/${COURSE_NUM}/${VM_NAME}/snapshots/${SNAPSHOT}.xml
+ 
+      local VM_UUID=$(virsh dumpxml ${VM_NAME} | grep uuid | head -1 | cut -d ">" -f 2 | cut -d "<" -f 1)
+      local SNAPSHOT_CREATION_TIME=$(grep "<creationTime>.*" ${VM_DEST_DIR}/${COURSE_NUM}/${VM_NAME}/snapshots/${SNAPSHOT}.xml | cut -d ">" -f 2 | cut -d "<" -f 1)
+ 
+      run mv ${VM_DEST_DIR}/${COURSE_NUM}/${VM_NAME}/snapshots/${SNAPSHOT}.xml ${VM_DEST_DIR}/${COURSE_NUM}/${VM_NAME}/snapshots/${SNAPSHOT_CREATION_TIME}.${SNAPSHOT}.xml
+ 
+      unset VM_UUID
+      unset SNAPSHOT_CREATION_TIME
+    done
+  fi
+  echo
+}
+
+copy_vm_snapshot_files() {
+  if [ -z "${1}" ]
+  then
+    echo -e "${RED}ERROR: You must supply a VM name.${NC}"
+    echo 
+    echo "  USAGE: copy_vm_snapshot_files <vm_name>"
+  else
+    local VM_NAME=${1}
+  fi
+
+  local VM_SNAPSHOTS="$(virsh snapshot-list ${EXISTING_VM} | grep -v "^----" | grep -v "^ Name")"
+  if ! [ -z "${VM_SNAPSHOTS}" ]
+  then
+    echo -e "${LTCYAN}(VM snapshot XML configs)${NC}"
+    mkdir ${VM_DEST_DIR}/${COURSE_NUM}/${EXISTING_VM}/snapshots
+    run sudo cp /var/lib/libvirt/qemu/snapshots/${EXISTING_VM}/*.xml ${VM_DEST_DIR}/${COURSE_NUM}/${EXISTING_VM}/snapshots/
+  fi
+  unset VM_SNAPSHOTS
+  echo
+}
+
+update_vm_snapshot_uuid() {
+  if [ -z "${1}" ]
+  then
+    echo -e "${RED}ERROR: You must supply a VM name.${NC}"
+    echo 
+    echo "  USAGE: update_snapshot_uuid <vm_name>"
+  else
+    local VM_NAME=${1}
+  fi
+
+  if [ -e ${VM_DEST_DIR}/${COURSE_NUM}/${VM_NAME}/snapshots/ ]
+  then
+    echo -e "${LTBLUE}Updating VM UUID in snapshot XML files ...${NC}"
+    for SNAPSHOT_FILE in $(ls ${VM_DEST_DIR}/${COURSE_NUM}/${VM_NAME}/snapshots/) 
+    do 
+      VM_UUID=$(virsh dumpxml ${VM_NAME} | grep uuid | head -1 | cut -d ">" -f 2 | cut -d "<" -f 1)
+      run sed -i "s+\( .\)<uuid>.*+\1<uuid>${VM_UUID}</uuid>+g" ${VM_DEST_DIR}/${COURSE_NUM}/${VM_NAME}/snapshots/${SNAPSHOT_FILE}
+    done
+  #else
+  #  echo
+  #  echo -e "${LTCYAN} (No snapshot files to update)"
+  fi
+  echo
+}
+
+update_vm_snapshot_disk_paths() {
+  if [ -z "${1}" ]
+  then
+    echo -e "${RED}ERROR: You must supply a VM name.${NC}"
+    echo 
+    echo "  USAGE: update_snapshot_disk_paths <vm_name>"
+  else
+    local VM_NAME=${1}
+  fi
+
+  for SNAPSHOT_FILE in $(ls ${VM_DEST_DIR}/${COURSE_NUM}/${VM_NAME}/snapshotsls/*.xml)
+  do
+    local SNAPSHOT_DISK_LIST=$(grep "<source file=.*" ${VM_DEST_DIR}/${COURSE_NUM}/${VM_NAME}/snapshots/${SNAPSHOT_FILE} | cut -d \' -f 2)
+    for SNAPSHOT_DISK in ${SNAPSHOT_DISK_LIST}
+    do
+      run sed -i "s+\(.*<source file=\)'.*${SNAPSHOT_DISK}'\(.*\)+\1'${VM_DEST_DIR}/${COURSE_NUM}/${VM_NAME}/$(basename ${SNAPSHOT_DISK})'\2+" ${VM_DEST_DIR}/${COURSE_NUM}/${VM_NAME}/snapshots/${SNAPSHOT_FILE}
+    done
+  done
+  echo
+}
+
+restore_vm_snapshots() {
+  if [ -z "${1}" ]
+  then
+    echo -e "${RED}ERROR: You must supply a VM name.${NC}"
+    echo 
+    echo "  USAGE: restore_vm_snapshots <vm_name>"
+  else
+    local VM_NAME=${1}
+  fi
+
+  if [ -e ${VM_DEST_DIR}/${COURSE_NUM}/${VM_NAME}/snapshots/ ]
+  then
+    echo -e "${LTBLUE}Restoring snapshots for VM ...${NC}"
+    for SNAP_FILE in $(ls ${VM_DEST_DIR}/${COURSE_NUM}/${VM_NAME}/snapshots/)
+    do
+      run virsh snapshot-create ${VM_NAME} ${VM_DEST_DIR}/${COURSE_NUM}/${VM_NAME}/snapshots/${SNAP_FILE} --redefine
+    done
+  fi
+  echo
+}
+
 create_vm_snapshot() {
-  if [ -z ${1} ]
+  if [ -z "${1}" ]
   then
     echo -e "${RED}ERROR: You must supply a VM name.${NC}"
     echo 
@@ -920,7 +1073,7 @@ create_vm_snapshot() {
     local VM_NAME=${1}
   fi
 
-  if [ -z ${2} ]
+  if [ -z "${2}" ]
   then
     local SNAP_NAME=$(date --iso8601=seconds)
   else
@@ -1331,7 +1484,7 @@ list_archive() {
 virtualbmc_control() {
   local USAGE_STRING="USAGE: ${0} <action> <vm_name> <bmc_addr> <bnc_port> <bmc_network_name> <bmc_username> <bmc_password> <libvirt_uri>"
 
-  if [ -z ${1} ]
+  if [ -z "${1}" ]
   then
     echo
     echo "ERROR: You must provide the action: create | remove"
@@ -1339,7 +1492,7 @@ virtualbmc_control() {
     echo ${USAGE_STRING}
     echo
     return 1
-  elif [ -z ${2} ]
+  elif [ -z "${2}" ]
   then
     echo
     echo "ERROR: You must provide the name of the VM"
@@ -1347,7 +1500,7 @@ virtualbmc_control() {
     echo ${USAGE_STRING}
     echo
     return 1
-  elif [ -z ${3} ]
+  elif [ -z "${3}" ]
   then
     echo
     echo "ERROR: You must provide the address of the BMC"
@@ -1355,7 +1508,7 @@ virtualbmc_control() {
     echo ${USAGE_STRING}
     echo
     return 1
-  elif [ -z ${4} ]
+  elif [ -z "${4}" ]
   then
     echo
     echo "ERROR: You must provide the port of the BMC"
@@ -1363,7 +1516,7 @@ virtualbmc_control() {
     echo ${USAGE_STRING}
     echo
     return 1
-  elif [ -z ${5} ]
+  elif [ -z "${5}" ]
   then
     echo
     echo "ERROR: You must provide the name of the BMC network"
@@ -1371,7 +1524,7 @@ virtualbmc_control() {
     echo ${USAGE_STRING}
     echo
     return 1
-  elif [ -z ${6} ]
+  elif [ -z "${6}" ]
   then
     echo
     echo "ERROR: You must provide the username for the BMC"
@@ -1379,7 +1532,7 @@ virtualbmc_control() {
     echo ${USAGE_STRING}
     echo
     return 1
-  elif [ -z ${7} ]
+  elif [ -z "${7}" ]
   then
     echo
     echo "ERROR: You must provide the password for the BMC"
@@ -1428,7 +1581,7 @@ virtualbmc_control() {
     local PREF=${VM_SHORT_NAME}
   else
     local NUM=$(echo ${VM_SHORT_NAME} | grep -o [0-9]*$)
-    if [ -z ${NUM} ]
+    if [ -z "${NUM}" ]
     then
       local PREF=$(echo ${VM_SHORT_NAME} | cut -c 1,2,3,4,5,6,7)
     else
