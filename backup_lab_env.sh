@@ -1,6 +1,6 @@
 #!/bin/bash
-# version: 1.2.0
-# date: 2020-01-23
+# version: 1.2.1
+# date: 2020-08-03
 
 ### Colors ###
 RED='\e[0;31m'
@@ -210,6 +210,7 @@ back_up_scripts() {
     run mkdir -p ${COURSE_BACKUP_DIR}/scripts
     run cp -R ${SCRIPTS_DIR}/${COURSE_ID}/* ${COURSE_BACKUP_DIR}/scripts/
     echo -e "${LTCYAN}(removing install/remove scripts and config ...)${NC}"
+    test -e ${COURSE_BACKUP_DIR}/scripts/scripts && run mv ${COURSE_BACKUP_DIR}/scripts/scripts/* ${COURSE_BACKUP_DIR}/scripts/ && run rm -rf ${COURSE_BACKUP_DIR}/scripts/scripts
     test -e ${COURSE_BACKUP_DIR}/scripts/config && run rm -rf ${COURSE_BACKUP_DIR}/scripts/config
     test -e ${COURSE_BACKUP_DIR}/scripts/install_lab_env.sh && run rm -rf ${COURSE_BACKUP_DIR}/scripts/install_lab_env.sh
     test -e ${COURSE_BACKUP_DIR}/scripts/remove_lab_env.sh && run rm -rf ${COURSE_BACKUP_DIR}/scripts/remove_lab_env.sh
