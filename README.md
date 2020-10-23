@@ -9,7 +9,7 @@ The Installer Framework comprises the following:
 
 The Installer Framework used the lab environment standards defined in the `README-lab_environment_standards.md` file (also defined in the **https://github.com/roncterry/lab_env_tools** git repository).
 
-# Usage - TL:DR
+# Usage - TL;DR
 
 (See the Video Guides at the end in addition to these quick steps)
  
