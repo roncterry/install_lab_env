@@ -1,6 +1,6 @@
 #!/bin/bash
-# Version: 1.2.0
-# Date: 2019-10-15
+# Version: 1.2.1
+# Date: 2021-08-16
 
 source ../config/include/global_vars.sh
 source ../config/include/colors.sh
@@ -65,7 +65,7 @@ copy_files() {
   if [ -d ${SCRIPTS_DEST_DIR}/${COURSE_NUM} ]
   then
     run cp -R ../config ${SCRIPTS_DEST_DIR}/${COURSE_NUM}/
-    run mkdir -p ${LOCAL_LIBVIRT_CONFIG_DIR}
+    run mkdir -p ${SCRIPTS_DEST_DIR}/${COURSE_NUM}/config/libvirt.cfg
     run mkdir -p ${SCRIPTS_DEST_DIR}/${COURSE_NUM}/config/ssh
   fi
 
