@@ -59,7 +59,7 @@ COURSE_NUM="TEST101"
 #   This should always be set to Y unless you know for sure it should be N.
 #
 # REQUIRE_P7ZIP
-#   This check sto make sure the p7zip package (7z command) is installed. 
+#   This checks to make sure the p7zip package (7z command) is installed. 
 #   This is important because virtual machine archives in the student media are 
 #   typically created using this utility.
 #
@@ -134,8 +134,8 @@ REQUIRE_QEMU_OVMF=Y
 REQUIRE_LIBVIRT=Y
 REQUIRE_LIBVIRT_TCP_LISTEN=Y
 REQUIRE_LIBVIRT_QEMU_VNC_SPICE_LISTEN=Y
-REQUIRE_VIRTUALBMC=Y
-REQUIRE_OPENVSWITCH=Y
+REQUIRE_VIRTUALBMC=N
+REQUIRE_OPENVSWITCH=N
 
 
 # Will the lab environment be spread accross multiple lab machines?
