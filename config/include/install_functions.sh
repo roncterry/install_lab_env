@@ -1,6 +1,6 @@
 ##############  Lab Env Install and Configure Functions ######################
-# version: 5.8.0
-# date: 2020-01-23
+# version: 5.9.1
+# date: 2021-11-02
 #
 
 create_directories() {
@@ -1071,6 +1071,11 @@ extract_register_libvirt_vms() {
     fi
     echo
 
+    if [ -e "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/tpm ]
+    then
+      restore_vm_tpm ${VM}
+    fi
+
     if [ -e "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/snapshots ]
     then
       update_vm_snapshot_uuid ${VM}
@@ -1210,7 +1215,7 @@ print_multiple_machine_message() {
     echo -e "${ORANGE} Ensure that you run the install_lab_env.sh script on the other${NC}"
     echo -e "${ORANGE} lab machine(s) using the config file that corresponds to each machine${NC}"
     echo
-    echo -e "${ORANGE} Example: ${GRAY}bash ./install_lab_env.sh config=${GREEN}<node_specific_config_file>${NC}"
+    echo -e "${ORANGE} Example: ${NC}bash ./install_lab_env.sh config=${GREEN}<node_specific_config_file>${NC}"
     #echo
     #echo -e "${ORANGE} Enter the following command(s) on the other lab machine(s):${NC}"
     #echo
@@ -1219,7 +1224,7 @@ print_multiple_machine_message() {
     #  local BRIDGE_NAME="$(echo ${BRIDGE} | cut -d , -f 1)"
     #  local NODE_NUM=""
     #  local BRIDGE_NET="$(echo ${BRIDGE} | cut -d , -f 3)"
-    #  echo -e "${GRAY}  configure-new-bridge ${BRIDGE_NAME} <node number> ${BRIDGE_NET}${NC}"
+    #  echo -e "${NC}  configure-new-bridge ${BRIDGE_NAME} <node number> ${BRIDGE_NET}${NC}"
     #done
     #echo
     #echo -e "${ORANGE} Where <node number> is the number of the lab machine ${NC}"

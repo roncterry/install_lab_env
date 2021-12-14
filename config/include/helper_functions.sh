@@ -1,6 +1,6 @@
 ##############  Helper Functions #############################################
-# version: 3.10.0
-# date: 2020-01-23
+# version: 3.11.2
+# date: 2021-11-11
 #
 
 configure_nic() {
@@ -9,7 +9,7 @@ configure_nic() {
     echo
     echo -e "${LTRED}ERROR: Missing NIC name.${NC}"
     echo
-    echo -e "${GRAY}USAGE: $0 <nic_name> <node_number> <nic_network> <boot_protocol> <start_mode>${NC}"
+    echo -e "${NC}USAGE: $0 <nic_name> <node_number> <nic_network> <boot_protocol> <start_mode>${NC}"
     echo
     return 1
   elif [ -z "$2" ]
@@ -18,7 +18,7 @@ configure_nic() {
     echo -e "${LTRED}ERROR: Missing node number.${NC}"
     echo -e "${LTRED}       The node number must be a number between 1 and 9.${NC}"
     echo
-    echo -e "${GRAY}USAGE: $0 <nic_name> <node_number> <nic_network> <boot_protocol> <start_mode>${GRAY}"
+    echo -e "${NC}USAGE: $0 <nic_name> <node_number> <nic_network> <boot_protocol> <start_mode>${NC}"
     echo
     return 1
   elif ! echo $2 | grep -q [1-9]
@@ -31,31 +31,31 @@ configure_nic() {
   then
     echo
     echo -e "${LTRED}ERROR: The NIC network must be the network ID of the bridge with CIDR mask.${NC}"
-    echo -e "${GRAY}       Example: 192.168.124.0/24${NC}"
+    echo -e "${NC}       Example: 192.168.124.0/24${NC}"
     echo
-    echo -e "${GRAY}USAGE: $0 <nic_name> <node_number> <nic_network> <boot_protocol> <start_mode>${NC}"
+    echo -e "${NC}USAGE: $0 <nic_name> <node_number> <nic_network> <boot_protocol> <start_mode>${NC}"
     echo
     return 1
   elif [ -z "$4" ]
   then
     echo
     echo -e "${LTRED}ERROR: The boot protocol must be one of the following:${NC}"
-    echo -e "${GRAY}         static${NC}"
-    echo -e "${GRAY}         dhcp${NC}"
-    echo -e "${GRAY}         none${NC}"
+    echo -e "${NC}         static${NC}"
+    echo -e "${NC}         dhcp${NC}"
+    echo -e "${NC}         none${NC}"
     echo
-    echo -e "${GRAY}USAGE: $0 <nic_name> <node_number> <nic_network> <boot_protocol> <start_mode>${NC}"
+    echo -e "${NC}USAGE: $0 <nic_name> <node_number> <nic_network> <boot_protocol> <start_mode>${NC}"
     echo
     return 1
   elif [ -z "$5" ]
   then
     echo
     echo -e "${LTRED}ERROR: The start mode must be one of the following:${NC}"
-    echo -e "${GRAY}         auto${NC}"
-    echo -e "${GRAY}         hotplug${NC}"
-    echo -e "${GRAY}         off${NC}"
+    echo -e "${NC}         auto${NC}"
+    echo -e "${NC}         hotplug${NC}"
+    echo -e "${NC}         off${NC}"
     echo
-    echo -e "${GRAY}USAGE: $0 <nic_name> <node_number> <nic_network> <boot_protocol> <start_mode>${NC}"
+    echo -e "${NC}USAGE: $0 <nic_name> <node_number> <nic_network> <boot_protocol> <start_mode>${NC}"
     echo
     return 1
   else
@@ -100,14 +100,14 @@ configure_nic() {
   if [ -e ${IFCFG_FILE} ]
   then
     echo
-    echo -e "${LTRED}ERROR: An ifcfg- file with that name already exists:${GRAY} $(basename ${IFCFG_FILE})${NC}"
+    echo -e "${LTRED}ERROR: An ifcfg- file with that name already exists:${NC} $(basename ${IFCFG_FILE})${NC}"
     echo
     return 1
   else
     echo
-    echo -e "${LTPURPLE}NIC name:${GRAY}        ${NIC_NAME}${NC}"
-    echo -e "${LTPURPLE}IP address:${GRAY}      ${CIDR_IP_ADDR}${NC}"
-    echo -e "${LTPURPLE}Writing out:${GRAY}     ${IFCFG_FILE}${NC}"
+    echo -e "${LTPURPLE}NIC name:${NC}        ${NIC_NAME}${NC}"
+    echo -e "${LTPURPLE}IP address:${NC}      ${CIDR_IP_ADDR}${NC}"
+    echo -e "${LTPURPLE}Writing out:${NC}     ${IFCFG_FILE}${NC}"
     echo
 
     echo "#created by install_lab_env" >> ${TMP_FILE}
@@ -136,7 +136,7 @@ configure_new_veth_interfaces() {
     echo
     echo -e "${LTRED}ERROR: Missing virtual ethernet interface name.${NC}"
     echo
-    echo -e "${GRAY}USAGE: $0 <veth_name> <node_number> <veth_network>${NC}"
+    echo -e "${NC}USAGE: $0 <veth_name> <node_number> <veth_network>${NC}"
     echo
     return 1
   elif [ -z "$2" ]
@@ -145,7 +145,7 @@ configure_new_veth_interfaces() {
     echo -e "${LTRED}ERROR: Missing node number.${NC}"
     echo -e "${LTRED}       The node number must be a number between 1 and 9.${NC}"
     echo
-    echo -e "${GRAY}USAGE: $0 <veth_name> <node_number> <veth_network>${NC}"
+    echo -e "${NC}USAGE: $0 <veth_name> <node_number> <veth_network>${NC}"
     echo
     return 1
   elif ! echo $2 | grep -q [1-9]
@@ -159,10 +159,10 @@ configure_new_veth_interfaces() {
     echo
     echo -e "${LTRED}ERROR: The veth network must be the network ID of the virtusl ethernet device with CIDR mask.${NC}"
     echo -e "${LTRED}       If not used then use - rather than leaving it empty.${NC}"
-    echo -e "${GRAY}       Example: 192.168.124.0/24${NC}"
-    echo -e "${GRAY}       Example: -${NC}"
+    echo -e "${NC}       Example: 192.168.124.0/24${NC}"
+    echo -e "${NC}       Example: -${NC}"
     echo
-    echo -e "${GRAY}USAGE: $0 <veth_name> <node_number> <veth_network>${NC}"
+    echo -e "${NC}USAGE: $0 <veth_name> <node_number> <veth_network>${NC}"
     echo
     return 1
   else
@@ -224,7 +224,7 @@ configure_new_ovs_bridge() {
     echo
     echo -e "${LTRED}ERROR: Missing bridge name.${NC}"
     echo
-    echo -e "${GRAY}USAGE: $0 <bridge_name> <node_number> <bridge_network> <physical_device> <parent_bridge> <vlan_tag>${NC}"
+    echo -e "${NC}USAGE: $0 <bridge_name> <node_number> <bridge_network> <physical_device> <parent_bridge> <vlan_tag>${NC}"
     echo
     return 1
   elif [ -z $2 ]
@@ -233,7 +233,7 @@ configure_new_ovs_bridge() {
     echo -e "${LTRED}ERROR: Missing node number.${NC}"
     echo -e "${LTRED}       The node number must be a number between 1 and 9.${NC}"
     echo
-    echo -e "${GRAY}USAGE: $0 <bridge_name> <node_number> <bridge_network> <physical_device> <parent_bridge> <vlan_tag>${NC}"
+    echo -e "${NC}USAGE: $0 <bridge_name> <node_number> <bridge_network> <physical_device> <parent_bridge> <vlan_tag>${NC}"
     echo
     return 1
   elif ! echo $2 | grep -q [1-9]
@@ -247,10 +247,10 @@ configure_new_ovs_bridge() {
     echo
     echo -e "${LTRED}ERROR: The Bridge network must be the network ID of the bridge with CIDR mask.${NC}"
     echo -e "${LTRED}       If not used then use - rather than leaving it empty.${NC}"
-    echo -e "${GRAY}       Example 1: 192.168.124.0/24${NC}"
-    echo -e "${GRAY}       Example 2: -${NC}"
+    echo -e "${NC}       Example 1: 192.168.124.0/24${NC}"
+    echo -e "${NC}       Example 2: -${NC}"
     echo
-    echo -e "${GRAY}USAGE: $0 <bridge_name> <node_number> <bridge_network> <physical_device> <parent_bridge> <vlan_tag>${NC}"
+    echo -e "${NC}USAGE: $0 <bridge_name> <node_number> <bridge_network> <physical_device> <parent_bridge> <vlan_tag>${NC}"
     echo
     return 1
   elif [ -z $4 ]
@@ -258,10 +258,10 @@ configure_new_ovs_bridge() {
     echo
     echo -e "${LTRED}ERROR: The Physical Device is the physical network device to attach to the bridge.${NC}"
     echo -e "${LTRED}       If not used then use - rather than leaving it empty.${NC}"
-    echo -e "${GRAY}       Example 1: eth1${NC}"
-    echo -e "${GRAY}       Example 2: -${NC}"
+    echo -e "${NC}       Example 1: eth1${NC}"
+    echo -e "${NC}       Example 2: -${NC}"
     echo
-    echo -e "${GRAY}USAGE: $0 <bridge_name> <node_number> <bridge_network> <physical_device> <parent_bridge> <vlan_tag>${NC}"
+    echo -e "${NC}USAGE: $0 <bridge_name> <node_number> <bridge_network> <physical_device> <parent_bridge> <vlan_tag>${NC}"
     echo
     return 1
   elif [ -z $5 ]
@@ -269,10 +269,10 @@ configure_new_ovs_bridge() {
     echo
     echo -e "${LTRED}ERROR: The Parent Bridge is the bridge to create the VLAN port/bridge on.${NC}"
     echo -e "${LTRED}       If not used then use - rather than leaving it empty.${NC}"
-    echo -e "${GRAY}       Example 1: eth1${NC}"
-    echo -e "${GRAY}       Example 2: -${NC}"
+    echo -e "${NC}       Example 1: eth1${NC}"
+    echo -e "${NC}       Example 2: -${NC}"
     echo
-    echo -e "${GRAY}USAGE: $0 <bridge_name> <node_number> <bridge_network> <physical_device> <parent_bridge> <vlan_tag>${NC}"
+    echo -e "${NC}USAGE: $0 <bridge_name> <node_number> <bridge_network> <physical_device> <parent_bridge> <vlan_tag>${NC}"
     echo
     return 1
   elif [ -z $6 ]
@@ -280,10 +280,10 @@ configure_new_ovs_bridge() {
     echo
     echo -e "${LTRED}ERROR: The VLAN Tag is the VLAN tag number to use for the VLAN.${NC}"
     echo -e "${LTRED}       If not used then use - rather than leaving it empty.${NC}"
-    echo -e "${GRAY}       Example 1: eth1${NC}"
-    echo -e "${GRAY}       Example 2: -${NC}"
+    echo -e "${NC}       Example 1: eth1${NC}"
+    echo -e "${NC}       Example 2: -${NC}"
     echo
-    echo -e "${GRAY}USAGE: $0 <bridge_name> <node_number> <bridge_network> <physical_device> <parent_bridge> <vlan_tag>${NC}"
+    echo -e "${NC}USAGE: $0 <bridge_name> <node_number> <bridge_network> <physical_device> <parent_bridge> <vlan_tag>${NC}"
     echo
     return 1
   else
@@ -381,7 +381,7 @@ configure_new_vlan() {
     echo
     echo -e "${LTRED}ERROR: Missing vlan name.${NC}"
     echo
-    echo -e "${GRAY}USAGE: $0 <vlan_name> <node_number> <vlan_network> <eth_dev> <vlan_id>${NC}"
+    echo -e "${NC}USAGE: $0 <vlan_name> <node_number> <vlan_network> <eth_dev> <vlan_id>${NC}"
     echo
     return 1
   elif [ -z $2 ]
@@ -390,7 +390,7 @@ configure_new_vlan() {
     echo -e "${LTRED}ERROR: Missing node number.${NC}"
     echo -e "${LTRED}       The node number must be a number between 1 and 9.${NC}"
     echo
-    echo -e "${GRAY}USAGE: $0 <vlan_name> <node_number> <vlan_network> <eth_dev> <vlan_id>${GRAY}"
+    echo -e "${NC}USAGE: $0 <vlan_name> <node_number> <vlan_network> <eth_dev> <vlan_id>${NC}"
     echo
     return 1
   elif ! echo $2 | grep -q [1-9]
@@ -403,27 +403,27 @@ configure_new_vlan() {
   then
     echo
     echo -e "${LTRED}ERROR: The VLAN network must be the network ID of the bridge with CIDR mask.${NC}"
-    echo -e "${GRAY}       Example: 192.168.124.0/24${NC}"
+    echo -e "${NC}       Example: 192.168.124.0/24${NC}"
     echo
-    echo -e "${GRAY}USAGE: $0 <vlan_name> <node_number> <vlan_network> <eth_dev> <vlan_id>${NC}"
+    echo -e "${NC}USAGE: $0 <vlan_name> <node_number> <vlan_network> <eth_dev> <vlan_id>${NC}"
     echo
     return 1
   elif [ -z $4 ]
   then
     echo
     echo -e "${LTRED}ERROR: The VLAN ethernet device must be the name of an existing network interface.${NC}"
-    echo -e "${GRAY}       Example: eth1${NC}"
+    echo -e "${NC}       Example: eth1${NC}"
     echo
-    echo -e "${GRAY}USAGE: $0 <vlan_name> <node_number> <vlan_network> <eth_dev> <vlan_id>${NC}"
+    echo -e "${NC}USAGE: $0 <vlan_name> <node_number> <vlan_network> <eth_dev> <vlan_id>${NC}"
     echo
     return 1
   elif [ -z $5 ]
   then
     echo
     echo -e "${LTRED}ERROR: The VLAN ID must be an integer number between 1-2000.${NC}"
-    echo -e "${GRAY}       Example: 124${NC}"
+    echo -e "${NC}       Example: 124${NC}"
     echo
-    echo -e "${GRAY}USAGE: $0 <vlan_name> <node_number> <vlan_network> <eth_dev> <vlan_id>${NC}"
+    echo -e "${NC}USAGE: $0 <vlan_name> <node_number> <vlan_network> <eth_dev> <vlan_id>${NC}"
     echo
     return 1
   else
@@ -468,7 +468,7 @@ configure_new_vlan() {
   if [ -e ${IFCFG_FILE} ]
   then
     echo
-    echo -e "${LTRED}ERROR: An ifcfg- file with that name already exists:${GRAY} $(basename ${IFCFG_FILE})${NC}"
+    echo -e "${LTRED}ERROR: An ifcfg- file with that name already exists:${NC} $(basename ${IFCFG_FILE})${NC}"
     echo
     return 1
   elif ! echo ${NET_DEV_LIST} | grep -q ${VLAN_ETHERDEV}
@@ -479,11 +479,11 @@ configure_new_vlan() {
     return 1
   else
     echo
-    echo -e "${LTPURPLE}VLAN name:${GRAY}       ${VLAN_NAME}${NC}"
-    echo -e "${LTPURPLE}VLAN ID:${GRAY}         ${VLAN_ID}${NC}"
-    echo -e "${LTPURPLE}Ethernet Device:${GRAY} ${VLAN_ETHERDEV}${NC}"
-    echo -e "${LTPURPLE}IP address:${GRAY}      ${CIDR_IP_ADDR}${NC}"
-    echo -e "${LTPURPLE}Writing out:${GRAY}     ${IFCFG_FILE}${NC}"
+    echo -e "${LTPURPLE}VLAN name:${NC}       ${VLAN_NAME}${NC}"
+    echo -e "${LTPURPLE}VLAN ID:${NC}         ${VLAN_ID}${NC}"
+    echo -e "${LTPURPLE}Ethernet Device:${NC} ${VLAN_ETHERDEV}${NC}"
+    echo -e "${LTPURPLE}IP address:${NC}      ${CIDR_IP_ADDR}${NC}"
+    echo -e "${LTPURPLE}Writing out:${NC}     ${IFCFG_FILE}${NC}"
     echo
 
     echo "#created by install_lab_env" >> ${TMP_FILE}
@@ -513,7 +513,7 @@ configure_new_bridge() {
     echo
     echo -e "${LTRED}ERROR: Missing bridge name.${NC}"
     echo
-    echo -e "${GRAY}USAGE: $0 <bridge_name> <node_number> <bridge_network> <ethernet_device>${NC}"
+    echo -e "${NC}USAGE: $0 <bridge_name> <node_number> <bridge_network> <ethernet_device>${NC}"
     echo
     return 1
   elif [ -z $2 ]
@@ -522,7 +522,7 @@ configure_new_bridge() {
     echo -e "${LTRED}ERROR: Missing node number.${NC}"
     echo -e "${LTRED}       The node number must be a number between 1 and 9.${NC}"
     echo
-    echo -e "${GRAY}USAGE: $0 <bridge_name> <node_number> <bridge_network> <ethernet_device>${GRAY}"
+    echo -e "${NC}USAGE: $0 <bridge_name> <node_number> <bridge_network> <ethernet_device>${NC}"
     echo
     return 1
   elif ! echo $2 | grep -q [1-9]
@@ -535,9 +535,9 @@ configure_new_bridge() {
   then
     echo
     echo -e "${LTRED}ERROR: The Bridge network must be the network ID of the bridge with CIDR mask.${NC}"
-    echo -e "${GRAY}       Example: 192.168.124.0/24${NC}"
+    echo -e "${NC}       Example: 192.168.124.0/24${NC}"
     echo
-    echo -e "${GRAY}USAGE: $0 <bridge_name> <node_number> <bridge_network> <ethernet_device>${NC}"
+    echo -e "${NC}USAGE: $0 <bridge_name> <node_number> <bridge_network> <ethernet_device>${NC}"
     echo
     return 1
   else
@@ -572,7 +572,7 @@ configure_new_bridge() {
   if [ -e ${IFCFG_FILE} ]
   then
     echo
-    echo -e "${LTRED}ERROR: An ifcfg- file with that name already exists:${GRAY} $(basename ${IFCFG_FILE})${NC}"
+    echo -e "${LTRED}ERROR: An ifcfg- file with that name already exists:${NC} $(basename ${IFCFG_FILE})${NC}"
     echo
     return 1
   elif [ -z ${BRIDGE_ETHERDEV} ]
@@ -583,10 +583,10 @@ configure_new_bridge() {
     return 1
   else
     echo
-    echo -e "${LTPURPLE}Bridge name:${GRAY}  ${BRIDGE_NAME}${NC}"
-    echo -e "${LTPURPLE}Using device:${GRAY} ${BRIDGE_ETHERDEV}${NC}"
-    echo -e "${LTPURPLE}IP address:${GRAY}   ${CIDR_IP_ADDR}${NC}"
-    echo -e "${LTPURPLE}Writing out:${GRAY}  ${IFCFG_FILE}${NC}"
+    echo -e "${LTPURPLE}Bridge name:${NC}  ${BRIDGE_NAME}${NC}"
+    echo -e "${LTPURPLE}Using device:${NC} ${BRIDGE_ETHERDEV}${NC}"
+    echo -e "${LTPURPLE}IP address:${NC}   ${CIDR_IP_ADDR}${NC}"
+    echo -e "${LTPURPLE}Writing out:${NC}  ${IFCFG_FILE}${NC}"
     echo
 
     echo "#created by install_lab_env" >> ${TMP_FILE}
@@ -636,7 +636,7 @@ convert_eth_to_br() {
 
   if [ -e ${IFCFG_FILE} ]
   then
-    echo -e "${LTRED}ERROR: An ifcfg- file with that name already exists:${GRAY} $(basename ${IFCFG_FILE})${NC}"
+    echo -e "${LTRED}ERROR: An ifcfg- file with that name already exists:${NC} $(basename ${IFCFG_FILE})${NC}"
     return 1
   else
     echo -e "${LTBLUE}Converting:${LTGRAY} ${DEV_NAME} -> ${BRIDGE_NAME}${NC}"
@@ -791,7 +791,16 @@ edit_libvirt_domxml() {
       case ${LIBVIRT_SET_CPU_TO_HYPERVISOR_DEFUALT} in
         y|Y|yes|Yes)
           echo -e "  ${LTCYAN}Changing CPU to Hypervisor Default ...${NC}"
-          run sed -i -e '/<cpu/,/cpu>/ d' "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_CONFIG}"
+          #run sed -i -e '/<cpu/,/cpu>/ d' "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_CONFIG}"
+          run sed -i -e "s/\( *\)<cpu.*/\1<cpu mode='host-model' check='partial'>/" "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_CONFIG}"
+          if ! grep -q "^ *<feature policy=*require* name=*cpuid*" "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_CONFIG}"
+          then
+            run sed -i "/^ .*<cpu/a \ \ \ \ <feature policy='require' name='cpuid'\/>" "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_CONFIG}"
+          fi
+          if ! grep -q "^ *<\/cpu>" "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_CONFIG}"
+          then
+            run sed -i "/^ .*<feature policy='require' name='cpuid'/a \ \ <\/cpu>" "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_CONFIG}"
+          fi
           echo
         ;;
         *)
@@ -832,7 +841,7 @@ edit_libvirt_domxml() {
  
       case ${VMPORT} in
         Y)
-          echo -e "  ${LTCYAN}QEMU version ${GRAY}${QEMUKVM_VER}${LTCYAN} supports vmport parameter, not removing it.${NC}"
+          echo -e "  ${LTCYAN}QEMU version ${NC}${QEMUKVM_VER}${LTCYAN} supports vmport parameter, not removing it.${NC}"
           echo
         ;;
         N)
@@ -875,7 +884,7 @@ edit_libvirt_domxml() {
                 run sed -i "s/pc-i440fx-.../pc-i440fx-${HIGHEST_440FX_VER}/"  "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_CONFIG}"
                 echo
               else
-                echo -e "  ${LTCYAN}Machine type is a supported version: ${GRAY}${MACHINE_TYPE_VER} ${NC}"
+                echo -e "  ${LTCYAN}Machine type is a supported version: ${NC}${MACHINE_TYPE_VER} ${NC}"
                 echo
               fi
             ;;
@@ -886,7 +895,7 @@ edit_libvirt_domxml() {
                 run sed -i "s/pc-q35-.../pc-q35-${HIGHEST_Q35_VER}/"  "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_CONFIG}"
                 echo
               else
-                echo -e "  ${LTCYAN}Machine type is a supported version: ${GRAY}${MACHINE_TYPE_VER} ${NC}"
+                echo -e "  ${LTCYAN}Machine type is a supported version: ${NC}${MACHINE_TYPE_VER} ${NC}"
                 echo
               fi
             ;;
@@ -911,6 +920,13 @@ edit_libvirt_domxml() {
 }
 
 move_vm_nvram_file() {
+# Pass in:
+#  - Name of VM that is currently registered with Libvirt
+# and
+#  - The NVRAM file will be moved into the VM's directory
+#  - The OVMF bin file will be copied into the VM's directory
+#  - The VM's on-disk config will be updated to point to these new files
+
   if [ -z "${1}" ]
   then
     echo -e "${RED}ERROR: You must supply a VM name.${NC}"
@@ -920,26 +936,166 @@ move_vm_nvram_file() {
     local VM_NAME=${1}
   fi
 
+  # Check the live config not the on-disk config
   local NVRAM_FILE=$(virsh dumpxml ${VM_NAME} | grep nvram | cut -d \> -f 2 | cut -d \< -f 1)
-  if echo ${NVRAM_FILE} | grep -q "/var/lib/libvirt/qemu/nvram"
+  local OVMF_BIN=$(virsh dumpxml ${VM_NAME} | grep loader | cut -d \> -f 2 | cut -d \< -f 1)
+
+  echo -e "${LTCYAN}Moving NVRAM file to VM Directory ...${NC}"
+
+  if ! [ -z "${NVRAM_FILE}" ]
   then
-    if ! [ -z "${NVRAM_FILE}" ]
+    local NVRAM_FILE_NAME=$(basename ${NVRAM_FILE})
+    local OVMF_BIN_NAME=$(basename ${OVMF_BIN})
+    echo -e "${LTCYAN}(NVRAM: ${NC}${NVRAM_FILE}${LTBLUE})${NC}"
+
+    # Does the live config already point to the VM's directory?
+    if echo ${NVRAM_FILE} | grep -q "${VM_DEST_DIR}/${COURSE_NUM}/${VM_NAME}/nvram"
     then
-      local NVRAM_FILE_NAME=$(basename ${NVRAM_FILE})
-      echo -e "${LTCYAN}(NVRAM: ${GRAY}${NVRAM_FILE}${LTBLUE})${NC}"
+      local DO_CHOWN=Y
+      # Look for NVRAM file
+      if [ -e "${VM_DEST_DIR}/${COURSE_NUM}/${VM_NAME}/nvram/${NVRAM_FILE_NAME}" ]
+      then
+        echo -e "${LTCYAN}(NVRAM file already in VM's directory ... Skipping)${NC}"
+      else
+        run sudo mv ${NVRAM_FILE} ${VM_DEST_DIR}/${COURSE_NUM}/${VM_NAME}/nvram/
+      fi
+    fi
+
+    if echo ${OVMF_BIN} | grep -q "${VM_DEST_DIR}/${COURSE_NUM}/${VM_NAME}/nvram"
+    then
+      local DO_CHOWN=Y
+      # Look for OVMF bin
+      if [ -e "${VM_DEST_DIR}/${COURSE_NUM}/${VM_NAME}/nvram/${OVMF_BIN_NAME}" ]
+      then
+        echo -e "${LTCYAN}(OVMF binary already in VM's directory ... Skipping)${NC}"
+      else
+        run sudo cp ${OVMF_BIN} ${VM_DEST_DIR}/${COURSE_NUM}/${VM_NAME}/nvram/
+      fi
+    fi
+
+    # Does the live config point to the default NVRAM location?
+    if echo ${NVRAM_FILE} | grep -q "/var/lib/libvirt/qemu/nvram"
+    then
+      echo -e "${LTCYAN}(Moving NVRAM file from default location to VM Directory ...)${NC}"
       run mkdir -p ${VM_DEST_DIR}/${COURSE_NUM}/${VM_NAME}/nvram
       run sudo mv ${NVRAM_FILE} ${VM_DEST_DIR}/${COURSE_NUM}/${VM_NAME}/nvram/
+      run sudo cp ${OVMF_BIN} ${VM_DEST_DIR}/${COURSE_NUM}/${VM_NAME}/nvram/
       run sudo chmod -R u+rwx,g+rws,o+r ${VM_DEST_DIR}/${COURSE_NUM}/${VM_NAME}/nvram
+      run sudo chown -R ${USER}.${GROUPS} ${VM_DEST_DIR}/${COURSE_NUM}/${VM_NAME}/nvram
       run sed -i "s+\(^ *\)<nvram>.*+\1<nvram>${VM_DEST_DIR}/${COURSE_NUM}/${VM_NAME}/nvram/${NVRAM_FILE_NAME}</nvram>+" ${VM_DEST_DIR}/${COURSE_NUM}/${VM_NAME}/${VM_NAME}.xml
+      run sed -i "s+\(^ *\)<loader.*+\1<loader readonly=\"yes\" type=\"pflash\">${VM_DEST_DIR}/${COURSE_NUM}/${VM_NAME}/nvram/${OVMF_BIN_NAME}</loader>+" ${VM_DEST_DIR}/${COURSE_NUM}/${VM_NAME}/${VM_NAME}.xml
     fi
-  elif echo ${NVRAM_FILE} | grep -q "${VM_DEST_DIR}/${COURSE_NUM}/${VM_NAME}/nvram/"
+
+    case ${DO_CHOWN}
+    in
+      Y)
+        run sudo chmod -R u+rwx,g+rws,o+r ${VM_DEST_DIR}/${COURSE_NUM}/${VM_NAME}/nvram
+        run sudo chown -R ${USER}.${GROUPS} ${VM_DEST_DIR}/${COURSE_NUM}/${VM_NAME}/nvram
+      ;;
+    esac
+  elif [ -e ${VM_DEST_DIR}/${COURSE_NUM}/${VM_NAME}/nvram ]
   then
-    echo -e "${LTCYAN}(NVRAM file already in VM's directory ... Skipping)${NC}"
+    # In case the nvram dir exist in the VM's dir but not in the live config?
+    echo -e "${LTCYAN}(NVRAM not defined in VM config but file is in VM Directory ...)${NC}"
+    run sudo chmod -R u+rwx,g+rws,o+r ${VM_DEST_DIR}/${COURSE_NUM}/${VM_NAME}/nvram
+    run sudo chown -R ${USER}.${GROUPS} ${VM_DEST_DIR}/${COURSE_NUM}/${VM_NAME}/nvram
+  else
+    echo -e "${LTCYAN}(NVRAM not defined in VM ... Skipping)${NC}"
   fi
   echo
 }
 
+backup_vm_tpm() {
+# Pass in:
+#  - Name of VM that is currently registered with Libvirt
+# and
+#  - The TPM files will be copied into the VM's directory
+
+  if [ -z ${1} ]
+  then
+    echo -e "${RED}ERROR: You must supply a VM name.${NC}"
+    echo 
+    echo "  USAGE: backup_vm_tpm <vm_name>"
+  else
+    local VM_NAME=${1}
+  fi
+
+  #local TPM_DIR="/var/lib/libvirt/swtpm/$(virsh dumpxml ${VM_NAME} | grep uuid | cut -d \> -f 2 | cut -d \< -f 1)"
+  local VM_UUID="$(virsh dumpxml ${VM_NAME} | grep uuid | cut -d \> -f 2 | cut -d \< -f 1)"
+  local TPM_DIR="/var/lib/libvirt/swtpm/${VM_UUID}"
+
+  echo -e "${LTCYAN}Backing up TPM file to VM Directory ...${NC}"
+
+  if [ -e ${TPM_DIR} ]
+  then
+    echo -e "${LTCYAN}(TPM: ${NC}${TPM_DIR}${LTBLUE})${NC}"
+    run mkdir -p ${VM_DEST_DIR}/${COURSE_NUM}/${VM_NAME}/tpm
+    if [ -e ${TPM_DIR}/tpm1.2 ]
+    then
+      echo -e "${LTCYAN}(TPM v1.2 found)${NC}"
+      run sudo cp -R ${TPM_DIR}/tpm1.2 ${VM_DEST_DIR}/${COURSE_NUM}/${VM_NAME}/tpm/
+    fi
+    if [ -e ${TPM_DIR}/tpm2 ]
+    then
+      echo -e "${LTCYAN}(TPM v2 found)${NC}"
+      run sudo cp -R ${TPM_DIR}/tpm2 ${VM_DEST_DIR}/${COURSE_NUM}/${VM_NAME}/tpm/
+    fi
+    run sudo chown -R ${USER}.${GROUPS} ${VM_NAME}/tpm
+  else
+    echo -e "${LTCYAN}(No TPM files for the VM ... Skipping)${NC}"
+  fi
+  echo
+}
+
+restore_vm_tpm() {
+# Pass in:
+#  - Name of VM that is currently registered with Libvirt
+# and
+#  - The TPM files in the VM's directory will be copied to the 
+#    default Libvirt location
+
+  if [ -z ${1} ]
+  then
+    echo -e "${RED}ERROR: You must supply a VM name.${NC}"
+    echo 
+    echo "  USAGE: restore_vm_tpm <vm_name>"
+  else
+    local VM_NAME=${1}
+  fi
+
+  local VM_UUID="$(virsh dumpxml ${VM_NAME} | grep uuid | cut -d \> -f 2 | cut -d \< -f 1)"
+  local TPM_DIR="/var/lib/libvirt/swtpm/${VM_UUID}"
+
+  echo -e "${LTBLUE}Restoring TPM ...${NC}"
+
+  run sudo mkdir -p ${TPM_DIR}
+  run sudo chmod 711 ${TPM_DIR}
+
+  if [ -e ${VM_DEST_DIR}/${COURSE_NUM}/${VM_NAME}/tpm/tpm1.2 ]
+  then
+    echo -e "${LTCYAN}(TPM version 1.2 found${NC}"
+    run sudo cp -R ${VM_DEST_DIR}/${COURSE_NUM}/${VM_NAME}/tpm/tpm1.2 ${TPM_DIR}/
+    run sudo chmod 600 ${TPM_DIR}/tpm1.2/tpm-00.permall
+    run sudo chmod 700 ${TPM_DIR}/tpm1.2
+    run sudo chown -R tss.tss ${TPM_DIR}/tpm1.2
+  fi
+  if [ -e ${VM_DEST_DIR}/${COURSE_ID}/${VM_NAME}/tpm/tpm2 ]
+  then
+    echo -e "${LTCYAN}(TPM version 2 found${NC}"
+    run sudo cp -R ${VM_DEST_DIR}/${COURSE_NUM}/${VM_NAME}/tpm/tpm2 ${TPM_DIR}/
+    run sudo chmod 600 ${TPM_DIR}/tpm2/tpm2-00.permall
+    run sudo chmod 700 ${TPM_DIR}/tpm2
+    run sudo chown -R tss.tss ${TPM_DIR}/tpm2
+  fi
+}
+
 dump_vm_snapshots() {
+# Pass in:
+#  - Name of VM that is currently registered with Libvirt
+# and
+#  - The VM's XML snapshot definitions will be dumped out to files in the 
+#    VM's directory
+
   if [ -z "${1}" ]
   then
     echo -e "${RED}ERROR: You must supply a VM name.${NC}"
@@ -976,6 +1132,11 @@ dump_vm_snapshots() {
 }
 
 copy_vm_snapshot_files() {
+# Pass in:
+#  - Name of VM that is currently registered with Libvirt
+# and
+#  - The VM's snapshot files will be copied to VM's directory
+
   if [ -z "${1}" ]
   then
     echo -e "${RED}ERROR: You must supply a VM name.${NC}"
@@ -997,6 +1158,12 @@ copy_vm_snapshot_files() {
 }
 
 update_vm_snapshot_uuid() {
+# Pass in:
+#  - Name of VM that is currently registered with Libvirt
+# and
+#  - The UUID of the VM will be updated in the XML shapshot definition files 
+#    in the VM's directory
+
   if [ -z "${1}" ]
   then
     echo -e "${RED}ERROR: You must supply a VM name.${NC}"
@@ -1022,6 +1189,12 @@ update_vm_snapshot_uuid() {
 }
 
 update_vm_snapshot_disk_paths() {
+# Pass in:
+#  - Name of VM that is currently registered with Libvirt
+# and
+#  - The disk paths of the VM will be updated in the XML shapshot definition
+#    files in the VM's directory
+
   if [ -z "${1}" ]
   then
     echo -e "${RED}ERROR: You must supply a VM name.${NC}"
@@ -1043,6 +1216,12 @@ update_vm_snapshot_disk_paths() {
 }
 
 restore_vm_snapshots() {
+# Pass in:
+#  - Name of VM that is currently registered with Libvirt
+# and
+#  - Snapshots of a VM will be restored using the the XML shapshot definition
+#    files in the VM's directory
+
   if [ -z "${1}" ]
   then
     echo -e "${RED}ERROR: You must supply a VM name.${NC}"
@@ -1064,6 +1243,11 @@ restore_vm_snapshots() {
 }
 
 create_vm_snapshot() {
+# Pass in:
+#  - Name of VM that is currently registered with Libvirt
+# and
+#  - A snapshot will be ceated for the VM
+
   if [ -z "${1}" ]
   then
     echo -e "${RED}ERROR: You must supply a VM name.${NC}"
@@ -1090,7 +1274,7 @@ create_vm_snapshot() {
   done
 
   echo
-  echo -e "${LTCYAN}Creating snapshot of VM: ${GRAY}$VM_NAME${NC}"
+  echo -e "${LTCYAN}Creating snapshot of VM: ${NC}$VM_NAME${NC}"
   echo
   echo -n "  ";run virsh snapshot-create-as ${VM_NAME} ${SNAP_NAME} "${SNAP_DESC}" ${DISK_SPEC_LIST}
   #virsh snapshot-create-as ${VM_NAME} ${SNAP_NAME} "${SNAP_DESC}" --diskspec vda,snapshot=internal

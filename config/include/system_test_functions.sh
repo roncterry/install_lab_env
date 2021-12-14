@@ -1,6 +1,6 @@
 ##############  System Test Functions #####################################
-# version: 3.8.0
-# date: 2019-06-26
+# version: 3.9.0
+# date: 2021-11-15
 
 #=========  Hardware Test Functions  =============
 
@@ -139,6 +139,15 @@ test_for_openvswitch() {
     OVS_INSTALLED=Y
   else
     OVS_INSTALLED=N
+  fi
+}
+
+test_for_swtpm() {
+  if which swtpm > /dev/null 2>&1
+  then
+    SWTPM_INSTALLED=Y
+  else
+    SWTPM_INSTALLED=N
   fi
 }
 
@@ -698,6 +707,38 @@ run_test_for_openvswitch() {
       echo -e "  ${ORANGE}                      ${BLUE}openvswitch-ovn-central${NC}"
       echo -e "  ${ORANGE}                      ${BLUE}openvswitch-ovn-host${NC}"
       echo -e "  ${ORANGE}                      ${BLUE}openvswitch-ovn-vtep${NC}"
+      echo
+      echo -e "${ORANGE}------------------------------------------------------------------------${NC}"
+      echo
+      TEST_FAIL=y
+      #exit 5
+    ;;
+  esac
+}
+
+run_test_for_swtpm() {
+  echo -e "${LTBLUE}Checking for swtpm ...${NC}"
+  echo -e "${LTBLUE}-------------------------------------------------------------------${NC}"
+  echo
+  test_for_swtpm
+  case ${SWTPM_INSTALLED} in
+    Y)
+      echo -e "  ${LTCYAN}  SWTPM_INSTALLED=${GREEN}Y${NC}"
+      echo
+      echo -e "  ${LTCYAN}    Continuing ...${NC}"
+      echo
+    ;;
+    N)
+      echo -e "  ${LTCYAN}  SWTPM_INSTALLED=${LTRED}N${NC}"
+      echo
+      echo -e "${ORANGE}------------------------------------------------------------------------${NC}"
+      echo -e "${RED}[Problem]${NC}"
+      echo -e "  ${LTRED}The swtpm utility (swtpm command) is not installed.${NC}"
+      echo
+      echo -e "${RED}[Remediation Required]${NC}"
+      echo -e "${RED}        |     |     |${NC}"
+      echo -e "${RED}        V     V     V${NC}"
+      echo -e "  ${ORANGE}Install the package: ${BLUE}swtpm${NC}"
       echo
       echo -e "${ORANGE}------------------------------------------------------------------------${NC}"
       echo
@@ -1452,6 +1493,16 @@ run_tests() {
     ;;
     *)
       run_test_for_openvswitch
+    ;;
+  esac
+
+  #-swtpm
+  case ${REQUIRE_SWTPM} in
+    N|n)
+      SWTPM_INSTALLED=NA
+    ;;
+    *)
+      run_test_for_swtpm
     ;;
   esac
 
