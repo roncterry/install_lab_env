@@ -1,7 +1,11 @@
-# Config File Syntax Version: 2019052001
+# Config File Syntax Version: 2021111501
 ##############################################################################
 #                          Variables
 ##############################################################################
+
+#-----------------------------------------------------------------------------
+#    SECTION: Course Name/ID Configuration
+#-----------------------------------------------------------------------------
 
 # This should be a short but descriptive name of the course lab environment
 #
@@ -12,6 +16,10 @@ COURSE_NAME="My Test Course"
 #
 COURSE_NUM="TEST101"
 
+
+#-----------------------------------------------------------------------------
+#    SECTION: Test Requirements
+#-----------------------------------------------------------------------------
 
 # Which tests do you need to run on the lab machine to ensure it will work?
 #
@@ -121,6 +129,13 @@ COURSE_NUM="TEST101"
 #
 #   When using the standard lab machine image it is safe to leave this set to Y.
 #
+# REQUIRE_SWTPM
+#   This checks to make sure the swtpm package (swtpm command) is 
+#   installed. This is important when your virtual machines require a TPM
+#   device.
+#
+#   When using the standard lab machine image it is safe to leave this set to Y.
+#
 REQUIRE_VT_ENABLED=Y
 REQUIRE_MIN_CPUS=Y
 REQUIRE_MIN_MEMORY=Y
@@ -136,68 +151,29 @@ REQUIRE_LIBVIRT_TCP_LISTEN=Y
 REQUIRE_LIBVIRT_QEMU_VNC_SPICE_LISTEN=Y
 REQUIRE_VIRTUALBMC=N
 REQUIRE_OPENVSWITCH=N
+REQUIRE_SWTPM=N
 
 
-# Will the lab environment be spread accross multiple lab machines?
-#
-# If set to Y then the installation script will know that the VMs for the
-# lab environment are going to be spread accross multiple lab machines. If set 
-# to N then all VMs for the lab environment will be on a single lab machine.
-#
-MULTI_LAB_MACHINE="N"
+#-----------------------------------------------------------------------------
+#    SECTION: Hardware Requirements
+#-----------------------------------------------------------------------------
 
-
-# Name extension added to VM configuration files when the lab environment
-# is spread accross multiple lab machines.
+# The amount of disk space and RAM required to run the lab environment
 #
-# If the VMs in the lab environment are spread accross multiple lab machines
-# (typically due to the lab machines not having enough RAM for them to be on
-# a single  machine) then the pre-installed/configured VMs will need to have
-# an alternate VM config file that defines a different virtual network
-# configuration (i.e. VLANs+bridges instead of Libvirt virtual networks).
-# This alternate VM config file should reside in the VM's directory along
-# side the original VM config file and will need to be named in a specific
-# way. The file name should be: VM_NAME-MULTI_LM_EXT.xml
-#
-# Example: single lab machine file name = admin.xml
-#          multi lab machine file name =  admin-multi_lm.xml
-#
-# This variable is only used when MULTI_LAB_MACHINE=Y
-#
-MULTI_LM_EXT="multi_lm"
-
-
 # These values are in GB. The "GB" will be automatically apended.
 #
 MIN_DISK_FREE=10
 MIN_MEMORY=1
 
 
-# This is the number of CPUs required to run the lab environment.
+# The number of CPUs required to run the lab environment
 #
 MIN_CPUS=1
 
 
-# A space delimited list of ISO Images
-#
-# A space delimited list of ISO image that are either used by the VMs or that
-# you wish to provide to the student as part of the lab environment.
-#
-# These ISO images must reside in /home/iso/${COURSE_NUM}/
-#
-ISO_LIST=
-
-
-# A space delimited list of Cloud Images
-#
-# A space delimited list of disk image files that are either used as 
-# cloud images in the labs or that you wish to provide to the student as part
-# of the lab environment.
-#
-# These cloud images must reside in /home/images/${COURSE_NUM}/
-#
-CLOUD_IMAGE_LIST=
-
+#-----------------------------------------------------------------------------
+#    SECTION: Libvirt VMs Configuration
+#-----------------------------------------------------------------------------
 
 # A space delimited list of Libvirt VMs
 #
@@ -241,9 +217,35 @@ LIBVIRT_INITIAL_SNAPSHOT_NAME=""
 LIBVIRT_START_VM_LIST=""
 
 
+# Change the VM's config file to set the CPU to the hypervisor default.
+#
+# This can be useful if you are not sure which version of Libvirt created the 
+# VMs config file or if the CPU the VM will be run on will supprort the version
+# Specified in the VM's config file.
+# (Most usefull for VMs created on newer OSes but installed/run on older OSes)
+#
+# Setting this to 'y' can potentialy fix problems where the VM won't boot or
+# it is getting a kernel panic.  
+#
+LIBVIRT_SET_CPU_TO_HYPERVISOR_DEFAULT="n"
+
+
+# Change the VM's config file to set the machine type to the highest supported
+# version.
+#
+# This can be useful if you are not sure which version of Libvirt created the 
+# VMs config file or if the machine type specified in the VM's original config 
+# file is supported on the current version of Libvirt/KVM.
+# (Most usefull for VMs created on newer OSes but installed/run on older OSes)
+#
+# Setting this to 'y' can potentialy fix problems where the VM won't boot.
+#
+KVM_SET_MACHINE_TYPE_TO_HIGHEST_SUPPORTED="n"
+
+
 # If you want to have the installation script autobuild any Libvirt VMs, put
 # the name of the configuration file for the create-vms.sh utility in this
-# variable. 
+# variable. (Requres the create-vms.sh script be available and in the PATH)
 #
 # This file should be in the $VM_AUTOBUILD_CONFIG_DIR so that is gets 
 # installed into the $SCRIPTS_DEST_DIR/$VM_AUTOBUILD_SCRIPT_DIR/ during the
@@ -255,13 +257,49 @@ LIBVIRT_START_VM_LIST=""
 LIBVIRT_AUTOBUILD_VM_CONFIG=""
 
 
+#-----------------------------------------------------------------------------
+#    SECTION: Libvirt Virtual Network Configuration
+#-----------------------------------------------------------------------------
+
 # A space delimited list of Libvirt virtual networks. The network configs in 
 # LIBVIRT_VNET_LIST should be the names of the Libvirt virtual networks.
 #
 # The config files that define these networks should be named <vnet_name>.xml
+# and they should reside in the config/libvirt.cfg directory.
 #
 LIBVIRT_VNET_LIST=""
 
+
+#-----------------------------------------------------------------------------
+#    SECTION: Libvirt Storage Pool Definitions
+#-----------------------------------------------------------------------------
+
+# A space delimited list of Libvirt storage pools. The pool configs in 
+# LIBVIRT_POOL_LIST should be the names of the Libvirt storage pools.
+#
+# The config files that define these pools should be named <pool_name>.xml
+# and they should reside in the config/libvirt.cfg directory.
+#
+LIBVIRT_POOL_LIST=""
+
+
+# A space delimited list of Libvirt volumes to be created/defined in the
+# storage pools. The volume configs in LIBVIRT_VOLUME_LIST should be the 
+# names of the Libvirt volumes to be created/defined in the storage pools.
+#
+# The config files that define these networks should be named 
+# <pool_name>+<volume_name>.xml
+# and they should reside in the config/libvirt.cfg directory.
+#
+# Example: 
+#  LIBVIRT_VOLUME_LIST="mypool+vol1.qcow2 mypool+vol2.raw"
+#
+LIBVIRT_VOLUME_LIST=""
+
+
+#-----------------------------------------------------------------------------
+#    SECTION: VirtualBMC Definitions
+#-----------------------------------------------------------------------------
 
 # Network for the virtual BMC devices
 #
@@ -326,49 +364,29 @@ VIRTUAL_BMC_NETWORK=""
 VIRTUAL_BMC_LIST=""
 
 
-# A space delimited list of Libvirt storage pools. The pool configs in 
-# LIBVIRT_POOL_LIST should be the names of the Libvirt storage pools.
+#-----------------------------------------------------------------------------
+#    SECTION: ISOs, Cloud Image, Keys, Additional Files Configuration
+#-----------------------------------------------------------------------------
+
+# A space delimited list of ISO Images
 #
-# The config files that define these pools should be named <pool_name>.xml
+# A space delimited list of ISO image that are either used by the VMs or that
+# you wish to provide to the student as part of the lab environment.
 #
-LIBVIRT_POOL_LIST=""
+# These ISO images must reside in /home/iso/${COURSE_NUM}/
+#
+ISO_LIST=
 
 
-# A space delimited list of Libvirt volumes to be created/defined in the
-# storage pools. The volume configs in LIBVIRT_VOLUME_LIST should be the 
-# names of the Libvirt volumes to be created/defined in the storage pools.
+# A space delimited list of Cloud Images
 #
-# The config files that define these networks should be named 
-# <pool_name>+<volume_name>.xml
+# A space delimited list of disk image files that are either used as 
+# cloud images in the labs or that you wish to provide to the student as part
+# of the lab environment.
 #
-# Example: 
-#  LIBVIRT_VOLUME_LIST="mypool+vol1.qcow2 mypool+vol2.raw"
+# These cloud images must reside in /home/images/${COURSE_NUM}/
 #
-LIBVIRT_VOLUME_LIST=""
-
-
-# Change the VM's config file to set the CPU to the hypervisor default.
-#
-# This can be useful if you are not sure which version of Libvirt created the 
-# VMs config file or if the CPU the VM will be run on will supprort the version
-# Specified in the VM's config file.
-#
-# Setting this to 'y' can potentialy fix problems where the VM won't boot or
-# it is getting a kernel panic.  
-#
-LIBVIRT_SET_CPU_TO_HYPERVISOR_DEFAULT="n"
-
-
-# Change the VM's config file to set the machine type to the highest supported
-# version.
-#
-# This can be useful if you are not sure which version of Libvirt created the 
-# VMs config file or if the machine type specified in the VM's original config 
-# file is supported on the current version of Libvirt/KVM.
-#
-# Setting this to 'y' can potentialy fix problems where the VM won't boot.
-#
-KVM_SET_MACHINE_TYPE_TO_HIGHEST_SUPPORTED="n"
+CLOUD_IMAGE_LIST=
 
 
 # Install SSH keys/authorized_keys/known_hosts files into the user's ~/.ssh
@@ -390,6 +408,44 @@ INSTALL_SSH_KEYS="N"
 # All files must reside in config/ssh
 #
 SSH_FILE_LIST=""
+
+
+#-----------------------------------------------------------------------------
+#    SECTION: Multi-Labmachine Configuration
+#-----------------------------------------------------------------------------
+
+# Will the lab environment be spread accross multiple lab machines?
+#
+# If set to Y then the installation script will know that the VMs for the
+# lab environment are going to be spread accross multiple lab machines. If set 
+# to N then all VMs for the lab environment will be on a single lab machine.
+#
+MULTI_LAB_MACHINE="N"
+
+
+# Name extension added to VM configuration files when the lab environment
+# is spread accross multiple lab machines.
+#
+# If the VMs in the lab environment are spread accross multiple lab machines
+# (typically due to the lab machines not having enough RAM for them to be on
+# a single  machine) then the pre-installed/configured VMs will need to have
+# an alternate VM config file that defines a different virtual network
+# configuration (i.e. VLANs+bridges instead of Libvirt virtual networks).
+# This alternate VM config file should reside in the VM's directory along
+# side the original VM config file and will need to be named in a specific
+# way. The file name should be: VM_NAME-MULTI_LM_EXT.xml
+#
+# Example: single lab machine file name = admin.xml
+#          multi lab machine file name =  admin-multi_lm.xml
+#
+# This variable is only used when MULTI_LAB_MACHINE=Y
+#
+MULTI_LM_EXT="multi_lm"
+
+
+#-----------------------------------------------------------------------------
+#    SECTION: Physical/Advanced Networking Definitions
+#-----------------------------------------------------------------------------
 
 # This is used to create basic VLANs
 #
@@ -501,6 +557,10 @@ VETH_LIST=""
 OVS_BRIDGE_LIST=""
 
 
+#-----------------------------------------------------------------------------
+#    SECTION: VMware VMs and Networking Configuration
+#-----------------------------------------------------------------------------
+
 # List of VMware VM tarballs. 
 #
 # These VMs shoud be tar.gz files of the directory with the extension ".tgz"
@@ -542,6 +602,8 @@ VMWARE_VNET_LIST=""
 UNINSTALL_VMWARE_ON_REMOVE=""
 
 
+#-----------------------------------------------------------------------------
+#    SECTION: Custom Functions/Commands Include File Definitions
 #-----------------------------------------------------------------------------
 
 # File containing custom functions for installation of this specific
