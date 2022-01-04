@@ -1,6 +1,6 @@
 ##############  Helper Functions #############################################
-# version: 3.11.2
-# date: 2021-11-11
+# version: 3.11.3
+# date: 2022-01-04
 #
 
 configure_nic() {
@@ -793,9 +793,9 @@ edit_libvirt_domxml() {
           echo -e "  ${LTCYAN}Changing CPU to Hypervisor Default ...${NC}"
           #run sed -i -e '/<cpu/,/cpu>/ d' "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_CONFIG}"
           run sed -i -e "s/\( *\)<cpu.*/\1<cpu mode='host-model' check='partial'>/" "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_CONFIG}"
-          if ! grep -q "^ *<feature policy=*require* name=*cpuid*" "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_CONFIG}"
+          if ! grep -q "^ *<feature policy=.*require.* name=.*pcid.*" "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_CONFIG}"
           then
-            run sed -i "/^ .*<cpu/a \ \ \ \ <feature policy='require' name='cpuid'\/>" "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_CONFIG}"
+            run sed -i "/^ .*<cpu/a \ \ \ \ <feature policy='require' name='pcid'\/>" "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_CONFIG}"
           fi
           if ! grep -q "^ *<\/cpu>" "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_CONFIG}"
           then
@@ -1079,7 +1079,7 @@ restore_vm_tpm() {
     run sudo chmod 700 ${TPM_DIR}/tpm1.2
     run sudo chown -R tss.tss ${TPM_DIR}/tpm1.2
   fi
-  if [ -e ${VM_DEST_DIR}/${COURSE_ID}/${VM_NAME}/tpm/tpm2 ]
+  if [ -e ${VM_DEST_DIR}/${COURSE_NUM}/${VM_NAME}/tpm/tpm2 ]
   then
     echo -e "${LTCYAN}(TPM version 2 found${NC}"
     run sudo cp -R ${VM_DEST_DIR}/${COURSE_NUM}/${VM_NAME}/tpm/tpm2 ${TPM_DIR}/
