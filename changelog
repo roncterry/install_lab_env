@@ -1,0 +1,15 @@
+2021-11-02
+-Added ability to backup and restore virtual TPM when backing up and installing VMs.
+-Added backup_vm.sh script to backup individual VMs in the same manner as the backup_lab_env.sh script.
+-Added functionality to backup_lab_env.sh to export a VM's XML config before it is backed up if doesn't exist in the VM's directory. Also added automatic updateing of the newly exported VM's config to make the changes to the <cpu> section (feature pcid) and lsilogic-->virtio-scsi if they aren't already done.
+-Updated the install_lab_env.sh fuctions to make sure that the <cpu> section feature pcid line isn't lost if LIBVIRT_SET_CPU_TO_HYPERVISOR_DEFAULT=Y
+-Rearranged the lab_env.cfg file into sections of similar config to make it easier to work with.
+2021-11-09
+-Fixed bug in backup_lab_env.sh and backup_vm.sh to make sure nvram can get backed up
+2021-11-11
+-Reworked the nvram backup functions to copy the OVMF binary into the VM's directory and be more reliable (backup_lab_env.sh backup_vm.sh helper_functions.sh)
+2021-11-15
+-Added test for swtpm
+2022-01-04
+-added restore_vm.sh script to restore individual VMs in the smae manner as the install_lab_env.sh script (i.e. restore snapshots, restore TPM, update VM's xml config, etc).
+-fixed bug in helper_functions.sh:edit_libvirt_domxml where the <cpu> tag was being editied with the wrong feature policy (cpuid-->(pcid)
