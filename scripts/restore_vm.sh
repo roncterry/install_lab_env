@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# version: 1.0.0
-# date: 2022-01-04
+# version: 1.0.1
+# date: 2022-01-11
 
 ### Colors ###
 RED='\e[0;31m'
@@ -505,16 +505,23 @@ edit_libvirt_domxml() {
       case ${LIBVIRT_SET_CPU_TO_HYPERVISOR_DEFUALT} in
         y|Y|yes|Yes)
           echo -e "  ${LTCYAN}Changing CPU to Hypervisor Default ...${NC}"
-          #run sed -i -e '/<cpu/,/cpu>/ d' "${VM}"/"${VM_CONFIG}"
-          run sed -i -e "s/\( *\)<cpu.*/\1<cpu mode='host-model' check='partial'>/" "${VM}"/"${VM_CONFIG}"
-          if ! grep -q "^ *<feature policy=.*require.* name=.*pcid.*" "${VM}"/"${VM_CONFIG}"
-          then
-            run sed -i "/^ .*<cpu/a \ \ \ \ <feature policy='require' name='pcid'\/>" "${VM}"/"${VM_CONFIG}"
-          fi
-          if ! grep -q "^ *<\/cpu>" "${VM}"/"${VM_CONFIG}"
-          then
-            run sed -i "/^ .*<feature policy='require' name='pcid'/a \ \ <\/cpu>" "${VM}"/"${VM_CONFIG}"
-          fi
+
+          ### This deletes the <cpu> line
+          run sed -i -e '/<cpu/,/cpu>/ d' "${VM}"/"${VM_CONFIG}"
+
+          ### This changes the CPU to model='host-passthrough'
+          #run sed -i -e "s/\( *\)<cpu.*/\1<cpu mode='host-passthrough' check='none' migratable='on' \/>/" "${VM}"/"${VM_CONFIG}"
+
+          ### This changes the CPU line to model='host-model' and adds the feature name='pcid' [ONLY WORKS ON INTEL CPUS]
+          #run sed -i -e "s/\( *\)<cpu.*/\1<cpu mode='host-model' check='partial'>/" "${VM}"/"${VM_CONFIG}"
+          #if ! grep -q "^ *<feature policy=.*require.* name=.*pcid.*" "${VM}"/"${VM_CONFIG}"
+          #then
+          #  run sed -i "/^ .*<cpu/a \ \ \ \ <feature policy='require' name='pcid'\/>" "${VM}"/"${VM_CONFIG}"
+          #fi
+          #if ! grep -q "^ *<\/cpu>" "${VM}"/"${VM_CONFIG}"
+          #then
+          #  run sed -i "/^ .*<feature policy='require' name='pcid'/a \ \ <\/cpu>" "${VM}"/"${VM_CONFIG}"
+          #fi
           echo
         ;;
         *)

@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# version: 1.0.3
-# date: 2022-01-04
+# version: 1.0.4
+# date: 2022-01-11
 
 ### Colors ###
 RED='\e[0;31m'
@@ -128,16 +128,23 @@ export_vm_config() {
     echo -e "${LTCYAN}Exporting VM XML config to VM Directory ...${NC}"
     echo -e "${LTGREEN}COMMAND: ${NC}virsh dumpxml ${VM_NAME} > ${VM_PATH}/${VM_NAME}.xml"
     virsh dumpxml ${VM_NAME} > ${VM_PATH}/${VM_NAME}.xml
+
     run sed -i '/<uuid.*>/ d' ${VM_PATH}/${VM_NAME}.xml
-    run sed -i -e "s/\( *\)<cpu.*/\1<cpu mode='host-model' check='partial'>/" ${VM_PATH}/${VM_NAME}.xml
-    if ! grep -q "^ *<feature policy=*require* name=*pcid*" ${VM_PATH}/${VM_NAME}.xml
-    then
-      run sed -i "/^ .*<cpu/a \ \ \ \ <feature policy='require' name='pcid'\/>" ${VM_PATH}/${VM_NAME}.xml
-    fi
-    if ! grep -q "^ *<\/cpu>" ${VM_PATH}/${VM_NAME}.xml
-    then
-      run sed -i "/^ .*<feature policy='require' name='pcid'/a \ \ <\/cpu>" ${VM_PATH}/${VM_NAME}.xml
-    fi
+
+    ### This changes the CPU to model='host-passthrough'
+    #run sed -i -e "s/\( *\)<cpu.*/\1<cpu mode='host-passthrough' check='none' migratable='on'\/>/" ${VM_PATH}/${VM_NAME}.xml
+
+    ### This changes the CPU line to model='host-model' and adds the feature name='pcid' [ONLY WORKS ON INTEL CPUS]
+    #run sed -i -e "s/\( *\)<cpu.*/\1<cpu mode='host-model' check='partial'>/" ${VM_PATH}/${VM_NAME}.xml
+    #if ! grep -q "^ *<feature policy=*require* name=*pcid*" ${VM_PATH}/${VM_NAME}.xml
+    #then
+    #  run sed -i "/^ .*<cpu/a \ \ \ \ <feature policy='require' name='pcid'\/>" ${VM_PATH}/${VM_NAME}.xml
+    #fi
+    #if ! grep -q "^ *<\/cpu>" ${VM_PATH}/${VM_NAME}.xml
+    #then
+    #  run sed -i "/^ .*<feature policy='require' name='pcid'/a \ \ <\/cpu>" ${VM_PATH}/${VM_NAME}.xml
+    #fi
+
     run sed -i "s/lsilogic/virtio-scsi/" ${VM_PATH}/${VM_NAME}.xml
   fi
   echo
