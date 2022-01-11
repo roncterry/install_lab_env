@@ -1,6 +1,6 @@
 ##############  Helper Functions #############################################
-# version: 3.11.3
-# date: 2022-01-04
+# version: 3.11.4
+# date: 2022-01-11
 #
 
 configure_nic() {
@@ -791,21 +791,46 @@ edit_libvirt_domxml() {
       case ${LIBVIRT_SET_CPU_TO_HYPERVISOR_DEFUALT} in
         y|Y|yes|Yes)
           echo -e "  ${LTCYAN}Changing CPU to Hypervisor Default ...${NC}"
-          #run sed -i -e '/<cpu/,/cpu>/ d' "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_CONFIG}"
-          run sed -i -e "s/\( *\)<cpu.*/\1<cpu mode='host-model' check='partial'>/" "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_CONFIG}"
-          if ! grep -q "^ *<feature policy=.*require.* name=.*pcid.*" "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_CONFIG}"
-          then
-            run sed -i "/^ .*<cpu/a \ \ \ \ <feature policy='require' name='pcid'\/>" "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_CONFIG}"
-          fi
-          if ! grep -q "^ *<\/cpu>" "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_CONFIG}"
-          then
-            run sed -i "/^ .*<feature policy='require' name='cpuid'/a \ \ <\/cpu>" "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_CONFIG}"
-          fi
+
+          run sed -i -e '/<cpu/,/cpu>/ d' "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_CONFIG}"
+
+          ### This changes the CPU to model='host-passthrough'
+          #run sed -i -e "s/\( *\)<cpu.*/\1<cpu mode='host-passthrough' check='none' migratable='on'\/>/" "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_CONFIG}"
+
+          ### This changes the CPU line to model='host-model' and adds the feature name='pcid' [ONLY WORKS ON INTEL CPUS]
+          #run sed -i -e "s/\( *\)<cpu.*/\1<cpu mode='host-model' check='partial'>/" "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_CONFIG}"
+          #if ! grep -q "^ *<feature policy=.*require.* name=.*pcid.*" "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_CONFIG}"
+          #then
+          #  run sed -i "/^ .*<cpu/a \ \ \ \ <feature policy='require' name='pcid'\/>" "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_CONFIG}"
+          #fi
+          #if ! grep -q "^ *<\/cpu>" "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_CONFIG}"
+          #then
+          #  run sed -i "/^ .*<feature policy='require' name='cpuid'/a \ \ <\/cpu>" "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_CONFIG}"
+          #fi
+
+          local CHANGE_CPU_LINE=Y
           echo
         ;;
         *)
-          echo -e "  ${LTCYAN}Keeping existing CPU type.${NC}"
+          local CHANGE_CPU_LINE=N
+        ;;
+      esac
+
+      case ${LIBVIRT_SET_CPU_TO_PASSTHROUGH} in
+        y|Y|yes|Yes)
+          echo -e "  ${LTCYAN}Changing CPU to Host-Passthrough ...${NC}"
+          run sed -i -e "s/\( *\)<cpu.*/\1<cpu mode='host-passthrough' check='none' migratable='on'\/>/" "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_CONFIG}"
           echo
+          local CHANGE_CPU_LINE=Y
+        ;;
+        *)
+          local CHANGE_CPU_LINE=N
+        ;;
+      esac
+
+      case ${CHANGE_CPU_LINE} in
+        n|N|no|No)
+          echo -e "  ${LTCYAN}Keeping existing CPU type.${NC}"
         ;;
       esac
  
@@ -1645,6 +1670,7 @@ list_archive() {
       fi
     ;;
     7ZIP)
+      ### FIXME: Is there a bug ${ARCHIVE_FILE} contians .tar.gz/.7z/.7z.XXX?
       if echo "${ARCHIVE_FILE}" | grep -q ".tar.7z$"
       then
         7z l "${ARCHIVE_FILE}".tar.7z | awk '/--------/{f=0} f; /--------/{f=1}' | grep -o "$(basename "${ARCHIVE_FILE}" | sed 's/.tar.7z//g')/.*" | sort
