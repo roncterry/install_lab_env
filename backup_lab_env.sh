@@ -1,6 +1,6 @@
 #!/bin/bash
-# version: 1.2.1
-# date: 2020-08-03
+# version: 1.4.3
+# date: 2022-01-11
 
 ### Colors ###
 RED='\e[0;31m'
@@ -29,22 +29,22 @@ ISO_DIR="/home/iso"
 IMAGES_DIR="/home/images"
 
 run () {
-  echo -e "${LTGREEN}COMMAND: ${GRAY}$*${NC}"
+  echo -e "${LTGREEN}COMMAND: ${NC}$*${NC}"
   "$@"
 }
 
 usage() {
   echo
-  echo -e "${LTGREEN}USAGE:${GRAY} $0 [<course_id>] [<archive_format>]${NC}"
+  echo -e "${LTGREEN}USAGE:${NC} $0 [<course_id>] [<archive_format>]${NC}"
   echo
   echo -e "${LTPURPLE}  Archive Formats:${NC}"
-  echo -e "${GRAY}    7z        ${LTPURPLE}-7zip with LZMA compression split into 2G files${NC}"
-  echo -e "${GRAY}    7zma2     ${LTPURPLE}-7zip with LZMA2 compression split into 2G files (this is default)${NC}"
-  echo -e "${GRAY}    7zcopy    ${LTPURPLE}-7zip with no compression split into 2G files${NC}"
-  echo -e "${GRAY}    tar       ${LTPURPLE}-tar archive with no compression${NC}"
-  echo -e "${GRAY}    tgz       ${LTPURPLE}-gzip  compressed tar archive${NC}"
-  echo -e "${GRAY}    tbz       ${LTPURPLE}-bzip2 compressed tar archive${NC}"
-  echo -e "${GRAY}    txz       ${LTPURPLE}-xz compressed tar archive${NC}"
+  echo -e "${NC}    7z        ${LTPURPLE}-7zip with LZMA compression split into 2G files${NC}"
+  echo -e "${NC}    7zma2     ${LTPURPLE}-7zip with LZMA2 compression split into 2G files (this is default)${NC}"
+  echo -e "${NC}    7zcopy    ${LTPURPLE}-7zip with no compression split into 2G files${NC}"
+  echo -e "${NC}    tar       ${LTPURPLE}-tar archive with no compression${NC}"
+  echo -e "${NC}    tgz       ${LTPURPLE}-gzip  compressed tar archive${NC}"
+  echo -e "${NC}    tbz       ${LTPURPLE}-bzip2 compressed tar archive${NC}"
+  echo -e "${NC}    txz       ${LTPURPLE}-xz compressed tar archive${NC}"
   echo
 }
 
@@ -267,6 +267,37 @@ back_up_images() {
   fi
 }
 
+export_vm_config() {
+  local VM_PATH=${1}
+  local VM_PARENT_DIR=$(pwd ${VM_PATH})
+  local VM_NAME=$(basename ${VM_PATH})
+
+  if ! [ -e ${VM_PATH}/${VM_NAME}.xml ]
+  then
+    echo -e "${LTCYAN}Exporting VM XML config to VM Directory ...${NC}"
+    echo -e "${LTGREEN}COMMAND: ${NC}virsh dumpxml ${VM_NAME} > ${VM_PATH}/${VM_NAME}.xml"
+    virsh dumpxml ${VM_NAME} > ${VM_PATH}/${VM_NAME}.xml
+    run sed -i '/<uuid.*>/ d' ${VM_PATH}/${VM_NAME}.xml
+
+    ### This changes the CPU to model='host-passthrough'
+    #run sed -i -e "s/\( *\)<cpu.*/\1<cpu mode='host-passthrough' check='none' migratable='on'\/>/" ${VM_PATH}/${VM_NAME}.xml
+
+    ### This changes the CPU line to model='host-model' and adds the feature name='pcid' [ONLY WORKS ON INTEL CPUS]
+    #run sed -i -e "s/\( *\)<cpu.*/\1<cpu mode='host-model' check='partial'>/" ${VM_PATH}/${VM_NAME}.xml
+    #if ! grep -q "^ *<feature policy=*require* name=*pcid*" ${VM_PATH}/${VM_NAME}.xml
+    #then
+    #  run sed -i "/^ .*<cpu/a \ \ \ \ <feature policy='require' name='pcid'\/>" ${VM_PATH}/${VM_NAME}.xml
+    #fi
+    #if ! grep -q "^ *<\/cpu>" ${VM_PATH}/${VM_NAME}.xml
+    #then
+    #  run sed -i "/^ .*<feature policy='require' name='pcid'/a \ \ <\/cpu>" ${VM_PATH}/${VM_NAME}.xml
+    #fi
+
+    run sed -i "s/lsilogic/virtio-scsi/" ${VM_PATH}/${VM_NAME}.xml
+  fi
+  echo
+}
+
 mv_vm_nvram_file() {
   if [ -z ${1} ]
   then
@@ -277,21 +308,109 @@ mv_vm_nvram_file() {
     local VM_NAME=${1}
   fi
 
+  # Check the live config not the on-disk config
   local NVRAM_FILE=$(virsh dumpxml ${VM_NAME} | grep nvram | cut -d \> -f 2 | cut -d \< -f 1)
-  if echo ${NVRAM_FILE} | grep -q "/var/lib/libvirt/qemu/nvram"
+  local OVMF_BIN=$(virsh dumpxml ${VM_NAME} | grep loader | cut -d \> -f 2 | cut -d \< -f 1)
+
+  echo -e "${LTCYAN}Moving NVRAM file to VM Directory ...${NC}"
+
+  if ! [ -z "${NVRAM_FILE}" ]
   then
-    if ! [ -z ${NVRAM_FILE} ]
+    local NVRAM_FILE_NAME=$(basename ${NVRAM_FILE})
+    local OVMF_BIN_NAME=$(basename ${OVMF_BIN})
+    echo -e "${LTCYAN}(NVRAM: ${NC}${NVRAM_FILE}${LTBLUE})${NC}"
+
+    # Does the live config already point to the VM's directory?
+    if echo ${NVRAM_FILE} | grep -q "${VM_DIR}/${COURSE_ID}/${VM_NAME}/nvram"
     then
-      local NVRAM_FILE_NAME=$(basename ${NVRAM_FILE})
-      echo -e "${LTCYAN}(NVRAM: ${GRAY}${NVRAM_FILE}${LTBLUE})${NC}"
+      local DO_CHOWN=Y
+      # Look for NVRAM file
+      if [ -e "${VM_DIR}/${COURSE_ID}/${VM_NAME}/nvram/${NVRAM_FILE_NAME}" ]
+      then
+        echo -e "${LTCYAN}(NVRAM file already in VM's directory ... Skipping)${NC}"
+      else
+        run sudo mv ${NVRAM_FILE} ${VM_DIR}/${COURSE_ID}/${VM_NAME}/nvram/
+      fi
+    fi
+
+    if echo ${OVMF_BIN} | grep -q "${VM_DIR}/${COURSE_ID}/${VM_NAME}/nvram"
+    then
+      local DO_CHOWN=Y
+      # Look for OVMF bin
+      if [ -e "${VM_DIR}/${COURSE_ID}/${VM_NAME}/nvram/${OVMF_BIN_NAME}" ]
+      then
+        echo -e "${LTCYAN}(OVMF binary already in VM's directory ... Skipping)${NC}"
+      else
+        run sudo cp ${OVMF_BIN} ${VM_DIR}/${COURSE_ID}/${VM_NAME}/nvram/
+      fi
+    fi
+
+    # Does the live config point to the default NVRAM location?
+    if echo ${NVRAM_FILE} | grep -q "/var/lib/libvirt/qemu/nvram"
+    then
+      echo -e "${LTCYAN}(Moving NVRAM file from default location to VM Directory ...)${NC}"
       run mkdir -p ${VM_DIR}/${COURSE_ID}/${VM_NAME}/nvram
       run sudo mv ${NVRAM_FILE} ${VM_DIR}/${COURSE_ID}/${VM_NAME}/nvram/
+      run sudo cp ${OVMF_BIN} ${VM_DIR}/${COURSE_ID}/${VM_NAME}/nvram/
       run sudo chmod -R u+rwx,g+rws,o+r ${VM_DIR}/${COURSE_ID}/${VM_NAME}/nvram
+      run sudo chown -R ${USER}.${GROUPS} ${VM_DIR}/${COURSE_ID}/${VM_NAME}/nvram
       run sed -i "s+\(^ *\)<nvram>.*+\1<nvram>${VM_DIR}/${COURSE_ID}/${VM_NAME}/nvram/${NVRAM_FILE_NAME}</nvram>+" ${VM_DIR}/${COURSE_ID}/${VM_NAME}/${VM_NAME}.xml
+      run sed -i "s+\(^ *\)<loader.*+\1<loader readonly=\"yes\" type=\"pflash\">${VM_DIR}/${COURSE_ID}/${VM_NAME}/nvram/${OVMF_BIN_NAME}</loader>+" ${VM_DIR}/${COURSE_ID}/${VM_NAME}/${VM_NAME}.xml
     fi
-  elif echo ${NVRAM_FILE} | grep -q "${VM_DIR}/${COURSE_ID}/${VM_NAME}/nvram/"
+
+    case ${DO_CHOWN}
+    in
+      Y)
+        run sudo chmod -R u+rwx,g+rws,o+r ${VM_DIR}/${COURSE_ID}/${VM_NAME}/nvram
+        run sudo chown -R ${USER}.${GROUPS} ${VM_DIR}/${COURSE_ID}/${VM_NAME}/nvram
+      ;;
+    esac
+  elif [ -e ${VM_DIR}/${COURSE_ID}/${VM_NAME}/nvram ]
   then
-    echo -e "${LTCYAN}(NVRAM file already in VM's directory ... Skipping)${NC}"
+    # In case the nvram dir exist in the VM's dir but not in the live config?
+    echo -e "${LTCYAN}(NVRAM not defined in VM config but file is in VM Directory ...)${NC}"
+    run sudo chmod -R u+rwx,g+rws,o+r ${VM_DIR}/${COURSE_ID}/${VM_NAME}/nvram
+    run sudo chown -R ${USER}.${GROUPS} ${VM_DIR}/${COURSE_ID}/${VM_NAME}/nvram
+  else
+    echo -e "${LTCYAN}(NVRAM not defined in VM ... Skipping)${NC}"
+  fi
+  echo
+}
+
+backup_vm_tpm() {
+  if [ -z ${1} ]
+  then
+    echo -e "${RED}ERROR: You must supply a VM name.${NC}"
+    echo 
+    echo "  USAGE: backup_vm_tpm <vm_name>"
+  else
+    local VM_NAME=${1}
+  fi
+
+  #local TPM_DIR="/var/lib/libvirt/swtpm/$(virsh dumpxml ${VM_NAME} | grep uuid | cut -d \> -f 2 | cut -d \< -f 1)"
+  local VM_UUID="$(virsh dumpxml ${VM_NAME} | grep uuid | cut -d \> -f 2 | cut -d \< -f 1)"
+  local TPM_DIR="/var/lib/libvirt/swtpm/${VM_UUID}"
+
+  echo -e "${LTCYAN}Backing up TPM file to VM Directory ...${NC}"
+
+
+  if [ -e ${TPM_DIR} ]
+  then
+    echo -e "${LTCYAN}(TPM: ${NC}${TPM_DIR}${LTBLUE})${NC}"
+    run mkdir -p ${VM_DIR}/${COURSE_ID}/${VM_NAME}/tpm
+    if [ -e ${TPM_DIR}/tpm1.2 ]
+    then
+      echo -e "${LTCYAN}(TPM v1.2 found)${NC}"
+      run sudo cp -R ${TPM_DIR}/tpm1.2 ${VM_DIR}/${COURSE_ID}/${VM_NAME}/tpm/
+    fi
+    if [ -e ${TPM_DIR}/tpm2 ]
+    then
+      echo -e "${LTCYAN}(TPM v2 found)${NC}"
+      run sudo cp -R ${TPM_DIR}/tpm2 ${VM_DIR}/${COURSE_ID}/${VM_NAME}/tpm/
+    fi
+    run sudo chown -R ${USER}.${GROUPS} ${VM_NAME}/tpm
+  else
+    echo -e "${LTCYAN}(No TPM files for the VM ... Skipping)${NC}"
   fi
   echo
 }
@@ -321,7 +440,7 @@ dump_vm_snapshots() {
  
     for SNAPSHOT in ${SNAPSHOT_LIST}
     do
-      echo -e "${LTGREEN}COMMAND:${GRAY} virsh snapshot-dumpxml ${VM_NAME} ${SNAPSHOT} > ${VM_DIR}/${COURSE_ID}/${VM_NAME}/snapshots/${SNAPSHOT}.xml${NC}"
+      echo -e "${LTGREEN}COMMAND:${NC} virsh snapshot-dumpxml ${VM_NAME} ${SNAPSHOT} > ${VM_DIR}/${COURSE_ID}/${VM_NAME}/snapshots/${SNAPSHOT}.xml${NC}"
       virsh snapshot-dumpxml ${VM_NAME} ${SNAPSHOT} > ${VM_DIR}/${COURSE_ID}/${VM_NAME}/snapshots/${SNAPSHOT}.xml
  
       local VM_UUID=$(virsh dumpxml ${VM_NAME} | grep uuid | head -1 | cut -d ">" -f 2 | cut -d "<" -f 1)
@@ -333,12 +452,13 @@ dump_vm_snapshots() {
       unset SNAPSHOT_CREATION_TIME
     done
   else
-    echo -e "${LTCYAN}Removing stale snapshots for VM ${LTPURPLE}${VM} ${LTCYAN}...${NC}"
     if [ -e "${VM_DIR}/${COURSE_ID}/${VM_NAME}"/snapshots ]
     then
+      echo -e "${LTCYAN}Removing stale snapshots from VM ${LTPURPLE}${VM} ${LTCYAN}...${NC}"
       run rm -rf ${VM_DIR}/${COURSE_ID}/${VM_NAME}/snapshots
     fi
   fi
+  echo
 }
 
 back_up_vms() {
@@ -349,17 +469,22 @@ back_up_vms() {
 
   for VM in $(ls)
   do
-    echo
+    echo -e "${LTCYAN}--------------------------------------------------${NC}"
+    echo -e "${LTCYAN}Gathering files for VM: ${LTPURPLE}${VM}${NC}"
+    export_vm_config ${VM}
     mv_vm_nvram_file ${VM}
-    echo
+    backup_vm_tpm ${VM}
     dump_vm_snapshots ${VM}
-    echo
+
     echo -e "${LTCYAN}Backing up VM: ${LTPURPLE}${VM}${NC}"
     run ${ARCHIVE_CMD} ${VM}.${ARCHIVE_EXT} ${VM}
     echo
-    echo -e "${LTCYAN}Creating MD5 sums for VM ${LTPURPLE}${VM} ${LTCYAN}...${NC}"
-    echo -e "${LTGREEN}COMMAND: ${GRAY}md5sum ${VM}.${ARCHIVE_EXT}* > ${VM}.${ARCHIVE_EXT}.md5sums${NC}"
-    md5sum ${VM}.${ARCHIVE_EXT}* > ${VM}.${ARCHIVE_EXT}.md5sums
+    if ls ${VM_DIR_NAME}.${ARCHIVE_EXT}* 2> /dev/null | grep -q "001"
+    then
+      echo -e "${LTCYAN}Creating MD5 sums for VM ${LTPURPLE}${VM} ${LTCYAN}...${NC}"
+      echo -e "${LTGREEN}COMMAND: ${NC}md5sum ${VM}.${ARCHIVE_EXT}* > ${VM}.${ARCHIVE_EXT}.md5sums${NC}"
+      md5sum ${VM}.${ARCHIVE_EXT}* > ${VM}.${ARCHIVE_EXT}.md5sums
+    fi
     echo
     echo -e "${LTCYAN}Copying VM archives for VM ${LTPURPLE}${VM} ${LTCYAN}...${NC}"
     run mv *${ARCHIVE_EXT}* ${COURSE_BACKUP_DIR}/VMs/
