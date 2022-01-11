@@ -13,3 +13,5 @@
 2022-01-04
 -added restore_vm.sh script to restore individual VMs in the smae manner as the install_lab_env.sh script (i.e. restore snapshots, restore TPM, update VM's xml config, etc).
 -fixed bug in helper_functions.sh:edit_libvirt_domxml where the <cpu> tag was being editied with the wrong feature policy (cpuid-->(pcid)
+2022-01011
+-removed the code that changed the <cpu> tag stuff in the Libvirt VM's XML config reverting it back to the original behavior when LIBVIRT_SET_CPU_TO_HYPERVISOR_DEFAULT=Y (cpu feature named pcid needs to be set to optional not required so I dont' want to do that in a scripted manner)
