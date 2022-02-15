@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# version: 1.0.1
-# date: 2022-01-11
+# version: 1.0.2
+# date: 2022-02-15
 
 ### Colors ###
 RED='\e[0;31m'
@@ -701,7 +701,7 @@ update_vm_snapshot_uuid() {
   if [ -e ${VM_NAME}/snapshots/ ]
   then
     echo -e "${LTBLUE}Updating VM UUID in snapshot XML files ...${NC}"
-    for SNAPSHOT_FILE in $(ls ${VM_DEST_DIR}/${COURSE_NUM}/${VM_NAME}/snapshots/) 
+    for SNAPSHOT_FILE in $(ls ${VM_NAME}/snapshots/) 
     do 
       VM_UUID=$(virsh dumpxml ${VM_NAME} | grep uuid | head -1 | cut -d ">" -f 2 | cut -d "<" -f 1)
       run sed -i "s+\( .\)<uuid>.*+\1<uuid>${VM_UUID}</uuid>+g" ${VM_NAME}/snapshots/${SNAPSHOT_FILE}
