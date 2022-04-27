@@ -1,6 +1,6 @@
 ##############  System Test Functions #####################################
-# version: 3.9.0
-# date: 2021-11-15
+# version: 3.9.1
+# date: 2022-04-27
 
 #=========  Hardware Test Functions  =============
 
@@ -190,6 +190,9 @@ test_for_kvm_virt() {
 
 test_for_qemu_installed() {
   if which qemu-kvm > /dev/null
+  then
+    QEMU_INSTALLED=Y
+  elif which qemu-system-x86 > /dev/null
   then
     QEMU_INSTALLED=Y
   else
@@ -795,7 +798,7 @@ run_test_for_kvm_virt() {
       test_for_qemu_installed
       case ${QEMU_INSTALLED} in
         Y)
-          echo -e "${LTBLUE}Checking for qemu-kvm ...${NC}"
+          echo -e "${LTBLUE}Checking for qemu-system-x86 ...${NC}"
           echo -e "${LTBLUE}-------------------------------------------------------------------${NC}"
           echo
           echo -e "  ${LTCYAN}  QEMU_INSTALLED=${GREEN}Y${NC}"
@@ -808,15 +811,15 @@ run_test_for_kvm_virt() {
           echo
           echo -e "${ORANGE}------------------------------------------------------------------------${NC}"
           echo -e "${RED}[Problem]${NC}"
-          echo -e "  ${LTRED}The qemu-kvm application is not installed.${NC}"
+          echo -e "  ${LTRED}The qemu-system-x86 application is not installed.${NC}"
           echo
           echo -e "${RED}[Remediation Required]${NC}"
           echo -e "${RED}        |     |     |${NC}"
           echo -e "${RED}        V     V     V${NC}"
-          echo -e "  ${ORANGE}As the root user, install the qemu-kvm package${NC}"
+          echo -e "  ${ORANGE}As the root user, install the qemu-system-x86 package${NC}"
           echo
           echo -e "  ${ORANGE}Example: ${NC}"
-          echo -e "  ${ORANGE}  zypper in -y qemu-kvm${NC}"
+          echo -e "  ${ORANGE}  zypper in -y qemu-system-x86${NC}"
           echo
           echo -e "  ${ORANGE}Then rerun this script.${NC}"
           echo
