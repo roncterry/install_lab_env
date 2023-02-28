@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# version: 1.0.4
-# date: 2022-01-11
+# version: 1.0.5
+# date: 2023-02-28
 
 ### Colors ###
 RED='\e[0;31m'
@@ -216,16 +216,16 @@ mv_vm_nvram_file() {
     case ${DO_CHOWN}
     in
       Y)
-        run sudo chmod -R u+rwx,g+rws,o+r ${VM_DEST_DIR}/${COURSE_NUM}/${VM_NAME}/nvram
-        run sudo chown -R ${USER}.${GROUPS} ${VM_DEST_DIR}/${COURSE_NUM}/${VM_NAME}/nvram
+        run sudo chmod -R u+rwx,g+rws,o+r ${VM_PARENT_DIR}/${VM_NAME}/nvram
+        run sudo chown -R ${USER}.${GROUPS} ${VM_PARENT_DIR}/${VM_NAME}/nvram
       ;;
     esac
-  elif [ -e ${VM_DEST_DIR}/${COURSE_NUM}/${VM_NAME}/nvram ]
+  elif [ -e ${VM_PARENT_DIR}/${VM_NAME}/nvram ]
   then
     echo -e "${LTCYAN}(NVRAM not defined in VM config but file is in VM Directory ...)${NC}"
     # In case the nvram dir exist in the VM's dir but not in the live config?
-    run sudo chmod -R u+rwx,g+rws,o+r ${VM_DEST_DIR}/${COURSE_NUM}/${VM_NAME}/nvram
-    run sudo chown -R ${USER}.${GROUPS} ${VM_DEST_DIR}/${COURSE_NUM}/${VM_NAME}/nvram
+    run sudo chmod -R u+rwx,g+rws,o+r ${VM_PARENT_DIR}/${VM_NAME}/nvram
+    run sudo chown -R ${USER}.${GROUPS} ${VM_PARENT_DIR}/${VM_NAME}/nvram
   else
     echo -e "${LTCYAN}(NVRAM not defined in VM ... Skipping)${NC}"
   fi
