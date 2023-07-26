@@ -1,6 +1,6 @@
 ##############  System Test Functions #####################################
-# version: 3.9.2
-# date: 2022-05-17
+# version: 3.9.3
+# date: 2023-07-26
 
 #=========  Hardware Test Functions  =============
 
@@ -359,7 +359,7 @@ test_for_libvirt_group() {
 }
 
 test_for_libvirt_running() {
-  if systemctl is-active libvirtd | grep -qo "active"
+  if systemctl is-enabled libvirtd | grep -qo "enabled"
   then
     LIBVIRT_RUNNING=Y
   else
