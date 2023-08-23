@@ -1,5 +1,5 @@
 ##############  System Test Functions #####################################
-# version: 3.9.4
+# version: 3.9.5
 # date: 2023-08-26
 
 #=========  Hardware Test Functions  =============
@@ -798,7 +798,7 @@ run_test_for_kvm_virt() {
       test_for_qemu_installed
       case ${QEMU_INSTALLED} in
         Y)
-          echo -e "${LTBLUE}Checking for qemu-system-x86 ...${NC}"
+          echo -e "${LTBLUE}Checking for qemu-system-x86_64 ...${NC}"
           echo -e "${LTBLUE}-------------------------------------------------------------------${NC}"
           echo
           echo -e "  ${LTCYAN}  QEMU_INSTALLED=${GREEN}Y${NC}"
@@ -811,15 +811,15 @@ run_test_for_kvm_virt() {
           echo
           echo -e "${ORANGE}------------------------------------------------------------------------${NC}"
           echo -e "${RED}[Problem]${NC}"
-          echo -e "  ${LTRED}The qemu-system-x86 application is not installed.${NC}"
+          echo -e "  ${LTRED}The qemu-system-x86_64 application is not installed.${NC}"
           echo
           echo -e "${RED}[Remediation Required]${NC}"
           echo -e "${RED}        |     |     |${NC}"
           echo -e "${RED}        V     V     V${NC}"
-          echo -e "  ${ORANGE}As the root user, install the qemu-system-x86 package${NC}"
+          echo -e "  ${ORANGE}As the root user, install the qemu-x86 package${NC}"
           echo
           echo -e "  ${ORANGE}Example: ${NC}"
-          echo -e "  ${ORANGE}  zypper in -y qemu-system-x86${NC}"
+          echo -e "  ${ORANGE}  zypper in -y qemu-x86${NC}"
           echo
           echo -e "  ${ORANGE}Then rerun this script.${NC}"
           echo
