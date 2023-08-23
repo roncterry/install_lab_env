@@ -1,6 +1,6 @@
 ##############  System Test Functions #####################################
-# version: 3.9.3
-# date: 2023-07-26
+# version: 3.9.4
+# date: 2023-08-26
 
 #=========  Hardware Test Functions  =============
 
@@ -192,7 +192,7 @@ test_for_qemu_installed() {
   if which qemu-kvm > /dev/null
   then
     QEMU_INSTALLED=Y
-  elif which qemu-system-x86 > /dev/null
+  elif which qemu-system-x86_64 > /dev/null
   then
     QEMU_INSTALLED=Y
   else
