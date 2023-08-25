@@ -1,4 +1,4 @@
-# Config File Syntax Version: 2021111501
+# Config File Syntax Version: 2023082501
 ##############################################################################
 #                          Variables
 ##############################################################################
@@ -217,25 +217,69 @@ LIBVIRT_INITIAL_SNAPSHOT_NAME=""
 LIBVIRT_START_VM_LIST=""
 
 
-# Change the VM's config file to set the CPU to the hypervisor default.
+# Change the VM's config file to set the CPU to one of the following:
+#  -the hypervisor default 
+#  -host-passthrough
+#  -host-model (with the pcid=optional feature)
 #
 # This can be useful if you are not sure which version of Libvirt created the 
-# VMs config file or if the CPU the VM will be run on will supprort the version
-# Specified in the VM's config file.
-# (Most usefull for VMs created on newer OSes but installed/run on older OSes)
+# VMs config file or if the CPU the VM will be run on will support the version
+# specified in the VM's config file.
+# (Most usefull for VMs created with default values on host machines with newer
+# CPUs but installed/run on host machines with older CPUs)
+#
+# LIBVIRT_SET_CPU_TO_HYPERVISOR_DEFAULT removed the <cpu> tag from the VM's
+# xml config file effectivly setting it to whatever is defined as the default
+# for the intance of Libvirt where the VM is running. Libvirt will automatically
+# add its default <cpu> tag to the VM's config when it is defined.
 #
 # Setting this to 'y' can potentialy fix problems where the VM won't boot or
-# it is getting a kernel panic.  
+# it is getting a kernel panic. It will however do the wrong thiing if the <cpu>
+# tag is already set correctly. 
+#
+# LIBVIRT_SET_CPU_TO_HOST_PASSTHROUGH changes the existing <cpu> tag to use
+# host-passthrough. This means that the virtual CPU(s) presented to the VM
+# will exactly match the host CPUs. The downside to this mode is that the
+# VM may be unmigrtabe to other hosts even if the target host has the same
+# CPU. The mode is less desirable than host-model.
+#
+# LIBVIRT_SET_CPU_TO_HOST_MODEL changes the existing <cpu> tag to use
+# host-model. This will also add the feature pcid=optional to VM's config XML.
+# The host-model CPU mode is essentially a shortcut to copying the host CPU 
+# capabilities to the VM at runtime rather than hard coding them in the VM's 
+# XML config. This allows the VM to migratable to a vhost with the same or 
+# newer CPU. It also means the VM will get the optimized <cpu> block added for
+# any vhost it runs on without having to manually update the <cpu> block.
+#
+# Enabling this will ensure that the VM will run optimally in situations where 
+# nested virtualization is required (i.e. cloud platforms that run the lab 
+# environments). FYI, the best practice is for the <cpu> section in the VM's 
+# config XML to already be set to what this does.
+#
+# What should I use?
+#  Safest: all set to "n" (use what is already defined in the VM's config XML)
+#  Next safest: LIBVIRT_SET_CPU_TO_HOST_MODEL="y" (others set to "n")
+#
+# -----------------------IMPORTANT-----------------------------
+# Only one of these can be set to "y" at any given time!
+#
+# It is ok if all are set to "n". 
+#
+# If in doubt, set all to "n".
+# ------------------------------------------------------------
 #
 LIBVIRT_SET_CPU_TO_HYPERVISOR_DEFAULT="n"
+LIBVIRT_SET_CPU_TO_HOST_PASSTHROUGH="n"
+LIBVIRT_SET_CPU_TO_HOST_MODEL="n"
 
 
 # Change the VM's config file to set the machine type to the highest supported
-# version.
+# version for the vhost the VM is installed on.
 #
-# This can be useful if you are not sure which version of Libvirt created the 
-# VMs config file or if the machine type specified in the VM's original config 
-# file is supported on the current version of Libvirt/KVM.
+# This can be useful if you are not sure:
+# a) which version of Libvirt created the VM's config file 
+# b) if the machine type specified in the VM's original config file is supported 
+#    on the current version of Libvirt/KVM.
 # (Most usefull for VMs created on newer OSes but installed/run on older OSes)
 #
 # Setting this to 'y' can potentialy fix problems where the VM won't boot.
