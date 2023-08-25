@@ -1,6 +1,6 @@
 ##############  Helper Functions #############################################
-# version: 3.11.4
-# date: 2022-01-11
+# version: 3.12.0
+# date: 2023-08-25
 #
 
 configure_nic() {
@@ -756,15 +756,43 @@ install_vmware() {
 
 get_libvirt_capabilities() {
   AVAILABLE_440FX_VERS=$(virsh capabilities | grep -Eo "pc-i440fx-[0-9]+\.[0-9]+" | cut -d - -f 3 | sort | uniq)
-  HIGHEST_440FX_VER=$(echo ${AVAILABLE_440FX_VERS} | cut -d " " -f $(echo ${AVAILABLE_440FX_VERS} | wc -w))
+  if [ -z "${AVAILABLE_440FX_VERS}" ]
+  then
+    HIGHEST_440FX_VER=0
+  else
+    HIGHEST_440FX_VER=$(echo ${AVAILABLE_440FX_VERS} | cut -d " " -f $(echo ${AVAILABLE_440FX_VERS} | wc -w))
+  fi
+
   AVAILABLE_Q35_VERS=$(virsh capabilities | grep -Eo "pc-q35-[0-9]+\.[0-9]+" | cut -d - -f 3 | sort | uniq)
-  HIGHEST_Q35_VER=$(echo ${AVAILABLE_Q35_VERS} | cut -d " " -f $(echo ${AVAILABLE_Q35_VERS} | wc -w))
+  if [ -z "${AVAILABLE_Q35_VERS}" ]
+  then
+    HIGHEST_Q35_VER=0
+  else
+    HIGHEST_Q35_VER=$(echo ${AVAILABLE_Q35_VERS} | cut -d " " -f $(echo ${AVAILABLE_Q35_VERS} | wc -w))
+  fi
+
+  AVAILABLE_XENFV_VERS=$(virsh capabilities | grep -Eo "xenfv-[0-9]+\.[0-9]+" | cut -d - -f 2 | sort | uniq)
+  if [ -z "${AVAILABLE_XENFV_VERS}" ]
+  then
+    HIGHEST_XENFV_VER=0
+  else
+    HIGHEST_XENFV_VER=$(echo ${AVAILABLE_XENFV_VERS} | cut -d " " -f $(echo ${AVAILABLE_XENFV_VERS} | wc -w))
+  fi
+
   AVAILABLE_PC_VERS=$(virsh capabilities | grep -Eo "pc-[0-9]+\.[0-9]+" | cut -d - -f 2 | sort | uniq)
-  HIGHEST_PC_VER=$(echo ${AVAILABLE_PC_VERS} | cut -d " " -f $(echo ${AVAILABLE_PC_VERS} | wc -w))
+  if [ -z "${AVAILABLE_PC_VERS}" ]
+  then
+    HIGHEST_PC_VER=0
+  else
+    HIGHEST_PC_VER=$(echo ${AVAILABLE_PC_VERS} | cut -d " " -f $(echo ${AVAILABLE_PC_VERS} | wc -w))
+  fi
+
   ##echo "AVAILABLE_440FX_VERS=${AVAILABLE_440FX_VERS}"
   #echo "HIGHEST_440FX_VER=${HIGHEST_440FX_VER}"
   ##echo "AVAILABLE_Q35_VERS=${AVAILABLE_Q35_VERS}"
   #echo "HIGHEST_Q35_VER=${HIGHEST_Q35_VER}"
+  ##echo "AVAILABLE_XENFV_VERS=${AVAILABLE_XENFV_VERS}"
+  #echo "HIGHEST_XENFV_VER=${HIGHEST_XENFV_VER}"
   ##echo "AVAILABLE_PC_VERS=${AVAILABLE_PC_VERS}"
   #echo "HIGHEST_PC_VER=${HIGHEST_PC_VER}"
   #read
@@ -790,35 +818,24 @@ edit_libvirt_domxml() {
       #--- cpu ---
       case ${LIBVIRT_SET_CPU_TO_HYPERVISOR_DEFUALT} in
         y|Y|yes|Yes)
+          ### This removes the <cpu> tag effectivly setting it to the default'
           echo -e "  ${LTCYAN}Changing CPU to Hypervisor Default ...${NC}"
 
           run sed -i -e '/<cpu/,/cpu>/ d' "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_CONFIG}"
 
-          ### This changes the CPU to model='host-passthrough'
-          #run sed -i -e "s/\( *\)<cpu.*/\1<cpu mode='host-passthrough' check='none' migratable='on'\/>/" "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_CONFIG}"
-
-          ### This changes the CPU line to model='host-model' and adds the feature name='pcid' [ONLY WORKS ON INTEL CPUS]
-          #run sed -i -e "s/\( *\)<cpu.*/\1<cpu mode='host-model' check='partial'>/" "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_CONFIG}"
-          #if ! grep -q "^ *<feature policy=.*require.* name=.*pcid.*" "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_CONFIG}"
-          #then
-          #  run sed -i "/^ .*<cpu/a \ \ \ \ <feature policy='require' name='pcid'\/>" "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_CONFIG}"
-          #fi
-          #if ! grep -q "^ *<\/cpu>" "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_CONFIG}"
-          #then
-          #  run sed -i "/^ .*<feature policy='require' name='cpuid'/a \ \ <\/cpu>" "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_CONFIG}"
-          #fi
-
           local CHANGE_CPU_LINE=Y
           echo
+
         ;;
         *)
           local CHANGE_CPU_LINE=N
         ;;
       esac
 
-      case ${LIBVIRT_SET_CPU_TO_PASSTHROUGH} in
+      case ${LIBVIRT_SET_CPU_TO_HOST_PASSTHROUGH} in
         y|Y|yes|Yes)
-          echo -e "  ${LTCYAN}Changing CPU to Host-Passthrough ...${NC}"
+          ### This changes the CPU to model='host-passthrough'
+          echo -e "  ${LTCYAN}Changing CPU to host-passthrough ...${NC}"
           run sed -i -e "s/\( *\)<cpu.*/\1<cpu mode='host-passthrough' check='none' migratable='on'\/>/" "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_CONFIG}"
           echo
           local CHANGE_CPU_LINE=Y
@@ -828,9 +845,30 @@ edit_libvirt_domxml() {
         ;;
       esac
 
+      case ${LIBVIRT_SET_CPU_TO_HOST_MODEL} in
+        y|Y|yes|Yes)
+          ### This changes the CPU line to model='host-model' and adds the feature pcid=optional [ONLY WORKS ON INTEL CPUS]
+          echo -e "  ${LTCYAN}Changing CPU to host-model ...${NC}"
+          run sed -i -e "s/\( *\)<cpu.*/\1<cpu mode='host-model' check='partial'>/" "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_CONFIG}"
+          if ! grep -q "^ *<feature policy=.*optional.* name=.*pcid.*" "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_CONFIG}"
+          then
+            echo -e "  ${LTCYAN} -adding feature pcid=optional${NC}"
+            run sed -i "/^ .*<cpu/a \ \ \ \ <feature policy='optional' name='pcid'\/>" "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_CONFIG}"
+          fi
+          if ! grep -q "^ *<\/cpu>" "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_CONFIG}"
+          then
+            echo -e "  ${LTCYAN} -adding closing </cpu> tag${NC}"
+            run sed -i "/^ .*<feature policy='optional' name='pcid'/a \ \ <\/cpu>" "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_CONFIG}"
+          fi
+        ;;
+        *)
+          local CHANGE_CPU_LINE=N
+        ;;
+      esac
+
       case ${CHANGE_CPU_LINE} in
         n|N|no|No)
-          echo -e "  ${LTCYAN}Keeping existing CPU type.${NC}"
+          echo -e "  ${LTCYAN}Keeping existing CPU model.${NC}"
         ;;
       esac
  
