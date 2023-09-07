@@ -1,6 +1,6 @@
 #!/bin/bash
-# version: 1.4.3
-# date: 2022-01-11
+# version: 1.4.4
+# date: 2023-09-07
 
 ### Colors ###
 RED='\e[0;31m'
@@ -318,9 +318,9 @@ mv_vm_nvram_file() {
   then
     local NVRAM_FILE_NAME=$(basename ${NVRAM_FILE})
     local OVMF_BIN_NAME=$(basename ${OVMF_BIN})
-    echo -e "${LTCYAN}(NVRAM: ${NC}${NVRAM_FILE}${LTBLUE})${NC}"
 
-    # Does the live config already point to the VM's directory?
+    echo -e "${LTCYAN}(NVRAM: ${NC}${NVRAM_FILE}${LTBLUE})${NC}"
+    # Does nvram in the live config already point to the VM's directory?
     if echo ${NVRAM_FILE} | grep -q "${VM_DIR}/${COURSE_ID}/${VM_NAME}/nvram"
     then
       local DO_CHOWN=Y
@@ -331,8 +331,12 @@ mv_vm_nvram_file() {
       else
         run sudo mv ${NVRAM_FILE} ${VM_DIR}/${COURSE_ID}/${VM_NAME}/nvram/
       fi
+    else
+      echo -e "${LTCYAN}(Will need to copy the NVRAM file and update the config ...)${NC}"
     fi
 
+    echo -e "${LTCYAN}(OVMF: ${NC}${OVMF_BIN}${LTBLUE})${NC}"
+    # Does ovmf in the live config already point to the VM's directory?
     if echo ${OVMF_BIN} | grep -q "${VM_DIR}/${COURSE_ID}/${VM_NAME}/nvram"
     then
       local DO_CHOWN=Y
@@ -343,19 +347,30 @@ mv_vm_nvram_file() {
       else
         run sudo cp ${OVMF_BIN} ${VM_DIR}/${COURSE_ID}/${VM_NAME}/nvram/
       fi
+    else
+      echo -e "${LTCYAN}(Will need to copy the OVMF binary and update the config ...)${NC}"
     fi
 
-    # Does the live config point to the default NVRAM location?
+    # Does nvram in the live config point to the default NVRAM location?
     if echo ${NVRAM_FILE} | grep -q "/var/lib/libvirt/qemu/nvram"
     then
       echo -e "${LTCYAN}(Moving NVRAM file from default location to VM Directory ...)${NC}"
       run mkdir -p ${VM_DIR}/${COURSE_ID}/${VM_NAME}/nvram
       run sudo mv ${NVRAM_FILE} ${VM_DIR}/${COURSE_ID}/${VM_NAME}/nvram/
-      run sudo cp ${OVMF_BIN} ${VM_DIR}/${COURSE_ID}/${VM_NAME}/nvram/
       run sudo chmod -R u+rwx,g+rws,o+r ${VM_DIR}/${COURSE_ID}/${VM_NAME}/nvram
       run sudo chown -R ${USER}.${GROUPS} ${VM_DIR}/${COURSE_ID}/${VM_NAME}/nvram
       run sed -i "s+\(^ *\)<nvram>.*+\1<nvram>${VM_DIR}/${COURSE_ID}/${VM_NAME}/nvram/${NVRAM_FILE_NAME}</nvram>+" ${VM_DIR}/${COURSE_ID}/${VM_NAME}/${VM_NAME}.xml
-      run sed -i "s+\(^ *\)<loader.*+\1<loader readonly=\"yes\" type=\"pflash\">${VM_DIR}/${COURSE_ID}/${VM_NAME}/nvram/${OVMF_BIN_NAME}</loader>+" ${VM_DIR}/${COURSE_ID}/${VM_NAME}/${VM_NAME}.xml
+    fi
+
+    # Does ovmf in the live config point to the default ovmf location?
+    if echo ${OVMF_BIN} | grep -q "/usr/share/qemu"
+    then
+      echo -e "${LTCYAN}(Copying the OVMF binary from default location into VM Directory ...)${NC}"
+      run mkdir -p ${VM_PATH}/nvram
+      run sudo cp ${OVMF_BIN} ${VM_PATH}/nvram/
+      run sudo chmod -R u+rwx,g+rws,o+r ${VM_PATH}/nvram
+      run sudo chown -R ${USER}.${GROUPS} ${VM_PATH}/nvram
+      run sed -i "s+\(^ *\)<loader.*+\1<loader readonly=\"yes\" type=\"pflash\">${VM_ABSOLUTE_PATH}/nvram/${OVMF_BIN_NAME}</loader>+" ${VM_PATH}/${VM_NAME}.xml
     fi
 
     case ${DO_CHOWN}
