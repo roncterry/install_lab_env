@@ -1,3 +1,14 @@
+2023-10-06
+-Updatad README.md file
+-Added additional README markdown files for lab environment standards and libvirt requirements/best practices.
+2023-09-07
+-fixed bug in the backup_lab_env.sh and backup_vm.sh scripts with OVMF binary copying
+2023-08-25
+-updated the cpu model change function
+2023-08-23
+-fixed the test that looks for qemu-system-x86_64
+2023-07026
+-fixed the libvirt test to look for the service to be enabled vs active 
 2021-11-02
 -Added ability to backup and restore virtual TPM when backing up and installing VMs.
 -Added backup_vm.sh script to backup individual VMs in the same manner as the backup_lab_env.sh script.
