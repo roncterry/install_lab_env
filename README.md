@@ -102,28 +102,39 @@ The directory structure is as follows:
 <COURSE_DIRECTORY>/
     |-config/
     |        |-include/
+    |        |        |-<script_libraries_are_in_here>
     |        |
     |        |-libvirt.cfg/
-    |       |
+    |        |            |-<global_libvirt_configs_go_here>
+    |        |
     |        |-ssh/
+    |        |    |-<ssh_keys_to_be_installed_into_host_go_here>
     |        |
     |        |-lab_env.cfg
     |
     |-course_files/
+    |             |-<any_additional_files_needed_go_here>
     |
     |-images/
     |
     |-iso/
+    |    |-<iso_images_used_by_more_than_one_vm_go_here>
     |
     |-pdf/
     |
     |-scripts/
+    |        |-backup_vm.sh
     |        |-create_installed_course_from_existing.sh
     |        |-create_skeleton_installed_course.sh
+    |        |-move_nvram_file_to_vm_dir.sh
+    |        |-move_vm_snapshots_to_vm_dir.sh
     |        |-restore-virtual-bmc-devices.sh
     |        |-restore-virtualization-environment.sh
+    |        |-restore_vm.sh
+    |        |-sync_vm_snapshots_with_vm_dir.sh
     |
     |-VMs/
+    |    |-<lab_vm_archive_files_go_here>
     |
     |-install_lab_env.sh
     |-remove_lab_env.sh
@@ -150,7 +161,7 @@ This subdirectory of the `config/` directory contains the function libraries tha
 
 **config/libvirt.cfg/**
 
-This subdirectory of the `config/` directory contains the Libvirt configuration files used by the lab environment such as the network definition XML files. These files are related to the lab environment and are not part of the Installer Framework.
+This subdirectory of the `config/` directory contains the Libvirt configuration files used by the lab environment such as the network definition XML files or non-vm specific storage pools XML definition files. These files are related to the lab environment and are not part of the Installer Framework.
 
 **config/ssh/**
 
@@ -176,7 +187,7 @@ This directory contains any ISO images that are used in the lab environment. The
 
 **pdf/**
 
-This directory contains the PDF manuals and any other PDF files related to the lab environment or the course, for example the lecture and lab manuals. These get copied to the `~/pdf/<COURSE_ID>/` directory when the lab environment is installed.
+This directory contains the PDF manuals and any other PDF files related to the lab environment or the course, for example the lecture and lab manuals. These get copied to the `~/pdf/<COURSE_ID>/` directory when the lab environment is installed. (Note: As per SUSE Technical Training team standards, course PDFs are NOT distributed in the lab environment installer and should be placed in the appropriate designated location. This directory is used for lab environments used at events such as SUSECON.)
 
 **scripts/**
 
@@ -194,7 +205,9 @@ This directory contains the VMs that comprise the lab environment. These files s
 7z a -t7z -m0=LZMA2 -mmt=on -v2g <VM_NAME>.7z <VM_DIRECTORY>
 ```
 
-(This creates an archive in 7z format, compressed with LZMA2 and split into files no larger than 2GB. The file names will be VM_NAME.7z.00# - where # is the number of the file that is part of the archive. This is good for creating a smaller student media package but takes slightly longer to unpack when installing the lab environment.)
+(This creates an archive in 7z format, compressed with LZMA2 and split into files no larger than 2GB. The file names will be `VM_NAME.7z.00#` - where # is the number of the file that is part of the archive. This is good for creating a smaller student media package but takes slightly longer to unpack when installing the lab environment.)
+
+**NOTE**: There are scripts that automate this process (`backup_lab_env.sh`, `backup_vm.sh`). The preference is that they be used becuase they do some other operations that preserve additional parts of the VM such as snapshots, EFI variables and TPM configuraion.
 
 ```bash
 7z a -t7z -mx=0 -v2g <VM_NAME>.7z <VM_DIRECTORY>
@@ -202,7 +215,7 @@ This directory contains the VMs that comprise the lab environment. These files s
 
 (This creates an archive in 7z format, uncompressed and split into files no larger than 2GB. The file names will be `<VM_NAME>.7z.00#` - where # is the number of the file that is part of the archive. This unpacks quicker and is good for situations where you need to install the lab environment quicker but it creates a larger student media package.)
 
-NOTE: There is a script that makes creating 7z archives easier named `create-archive.sh`. This script can be downloaded from the [lab_env_tools](https://github.com/roncterry/lab_env_tools) github project. 
+**NOTE**: There is a script that makes creating 7z archives easier named `create-archive.sh`. This script can be downloaded from the [lab_env_tools](https://github.com/roncterry/lab_env_tools) github project. 
 
 The syntax for this script to perform the previous two examples are:
 
@@ -223,17 +236,17 @@ When the lab environment is installed these archives are extracted into `/home/V
 **install_lab_env.sh**
 
 This is the script that is run to install the lab environment. To execute this script you must have as your current working directory the `<COURSE_DIRECTORY>/` as it looks file files relative to its current working directory. 
-(NOTE- DO NOT EDIT THIS FILE)
+(**IMPORTANT**: DO NOT EDIT THIS FILE)
 
 **remove_lab_env.sh**  
 
 This is the script that is run to remove an installed lab environment. It is copied to the `~/scripts/<COURSE_ID>/` directory when the lab environment is installed so that the original student media is not required to remove an installed lab environment. (
-NOTE- DO NOT EDIT THIS FILE)
+**IMPORTANT**: DO NOT EDIT THIS FILE)
 
 **backup_lab_env.sh**
 
 This script can be used to back up the current state of an installed lab environment creating a new installer package from the backed up files. The installer package that is created will be located in `/install/courses/` and will be named "`<COURSE_ID>-backup.<TIMESTAMP>`". 
-(NOTE: DO NOT EDIT THIS FILE)
+(**IMPORTANT**: DO NOT EDIT THIS FILE)
 
 # The lab_env.cfg Configuration File
 
@@ -276,6 +289,8 @@ This variable contains the course number (i.e. Course ID) or Session ID of the c
 **REQUIRE_VIRTUALBMC**
 
 **REQUIRE_OPENVSWITCH**
+
+**REQUIRE_SWTPM**
 
 These variables specify which tests to run on the lab machine before attempting to install the lab environment onto the lab machine. The default behavior is to run all tests unless specifically told not to. This behavior allows additional tests to be added to the installation script yet still have older configuration files still work. If you are not sure which tests you need for your lab environment, just allow all tests to run.
 
@@ -473,6 +488,8 @@ Because this script creates, as its backup, an installer package using the Lab E
  |                   |-install_lab_env.sh
  |                   |-remove_lab_env.sh
  |                   |-backup_lab_env.sh
+ |                   |-backup_vm.sh
+ |                   |-restore_vm.sh
  |                   |-restore-virtual-bmc-devices.sh
  |                   |-restore-virtualization-environment.sh
  |                   |-config/
@@ -484,7 +501,7 @@ Because this script creates, as its backup, an installer package using the Lab E
  |                                        |-(your libvirt network/pool/volume XML definition files)
  |
  |-pdf/<COURSE_ID>/
- |                |-(your course manuals - lecture/lab/etc.)
+ |                |-(course manuals - lecture/lab/etc. - NOT FOR REGULAR COURSES, ONLY EVENTS SUCH AS SUSECON!)
  |
  |-course_files/<COURSE_ID>/
                            |-(your additional course files)
@@ -501,6 +518,88 @@ Once this directory structure is created, simply running the command:
 will create a usable installer package in the `/install/courses/` directory.
 
 One thing to watch for when using this script is to ensure that the permission on all files being backed up (i.e. ISO images, virtual machine disk images, etc.) have permissions that allow them to be read and copied by the user running the backup script. If they don't then the files will be missing in the backup.
+
+# Additioinal Useful Scripts
+
+## backup_vm.sh
+
+**Location**: `scripts` directory
+
+**Intro**:
+
+This script is part of the Lab Environment Installer Framework but is also provided as part of the standard lab machine scripts because it is usable and useful outside of the Framework as well.
+
+This script can be used to backup the current state of a currently installed individual virtual machine.
+
+The VM you are backing up must be in your current working directory.
+
+**Usage**:
+
+```
+backup_vm.sh <NAME_OF_VM> [<archive_format>] 
+```
+
+**Detailed Description**:
+
+Before the backup archive is created the following will be done:
+
+- If the VM has snapshots, the snapshot definition files will be moved into a `snapshots` subdirectory of the VM's directory and the VMs definition file in the VM's directory will be updated to point to the snapshot definition files in their new location.
+
+- If the VM uses UEFI booting, the EFI variables file will be moved into an `nvram` subdirectory of the VM's directory and the VM's definition file in the VM's directory will be updated to point to the new location of this file.
+  
+  (IMPORTANT: The current registered version of the VM will NOT be updated to point to these files (snapshots and EFI variables) an must either be manually updated using `virsh edit` or the VM must be unregistered (`virsh delete`) and reregistered (`virsh define <path_to_vm_definition_file>`) for those files to be used.)
+
+- If the VM has a TPM device, the TMP file will be copied into a `tpm/<tpm_version>/` subdirectory of the VM's directory. As TMP uses an external application (`swtpm`) to provide the TPM device and this location is not specified in the VM's definition file this cannot be updated in the VM's definition file. When restoring the VM this file must be coped back into the location where the `swtpm` application can access it (i.e. `/var/lib/libvirt/swtpm/<VM_UUID>/`). (Note: If you use the `restore_vm.sh` or `install_lab_env.sh` script to restore/install the VM they will ensure the TPM file gets copied there for you.()
+
+The backup archive of the VM will then contain these snapshot definition, EFI variable and TMP files along with the other VM config files and disk images.
+
+By default, VM archives are created using p7zip with the compression format of LZMA2. This can be overridden at the command line supplying the `<archive_format>` as the last argument.
+
+The supported archive formats are:
+
+| Archive Format | Description                                                |
+| -------------- | ---------------------------------------------------------- |
+| **7zma2**      | p7zip with LZMA2 compression split into 2G files (default) |
+| **7z**         | p7zip with LZMA compression split into 2G files            |
+| **7zcopy**     | p7zip with no compression split into 2G files              |
+| **tar**        | tar archive with no compression and not split              |
+| **tgz**        | gzip compressed tar archive and not split                  |
+| **tbz**        | bzip2 compressed tar archive and not split                 |
+| **txz**        | xz compressed tar archive and not split                    |
+
+The p7zip formats are **strongly recommended** because they split the archive into smaller chunks that can reside on a FAT filesystem that is used by default when creating student media flash drives.
+
+The output of the script will be an archive set and an md5sums file for all the files in the set.
+
+## restore_vm.sh
+
+**Location**: `scripts` directory
+
+**Intro**:
+
+This script is part of the Lab Environment Installer Framework but is also provided as part of the standard lab machine scripts because it is usable and useful outside of the Framework as well.
+
+This script can be used to restore a backup of a virtual machine created with the `backup_vm.sh` script.
+
+You must be in the course directory (i.e. `/home/VMs/<COURSE_ID>/`) of the course that the VM belongs to when restoring the VM.
+
+**Usage**:
+
+```
+restore_vm.sh <VM_ARCHIVE> [extract_only] 
+```
+
+**Detailed Description**:
+
+When the restoring the VM the script extracts the backup archive of the VM in the current working directory (which should be the course directory that the VM belongs to (i.e. `/home/VMs/<COURSE_ID>/`) and then does the following:
+
+- Registers the VM with Libvirt (`virsh define <VM_DEFINITION_FILE>`).
+
+- Updates the snapshot definition(s) with the VM's new UUID and defines the snapshots (`virsh snapshot-create <SNAPSHOT_DEFINITION_FILE> --recreate`).
+
+- Copies the TMP file into the location that `swtmp` expects it to be (`/var/lib/libvirt/swtpm/<VM_UUID>/`)
+
+If you run the script with the `extract_only` argument the backup archive will be extracted and only the configuration updates that don't require the VM to be registered with Libvirt will be applied (Note: Operations that are NOT performed include snapshot defining and TPM restore). You will then need to run the following command for the skipped operations to be performed: `restore_vm.sh <VM_DIRECTORY>`
 
 # Video Guides
 
