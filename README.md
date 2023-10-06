@@ -9,32 +9,37 @@ The Installer Framework comprises the following:
 
 The Installer Framework used the lab environment standards defined in the `README-lab_environment_standards.md` file (also defined in the **https://github.com/roncterry/lab_env_tools** git repository).
 
+Additional Libvirt requirements and best practices are defined in the `README-libvirt_requirements_and_best_practices.md` file.
+
 # Usage - TL;DR
 
 (See the Video Guides at the end in addition to these quick steps)
- 
+
 ## Install a Lab Environment
 
 Open a command prompt in the installer directory and run the following command:
-```
+
+```bash
 bash ./install_lab_env.sh [--nocolor] [--testonly] [--force]
 ```
 
-Option | Description
------------- | -------------
-**--nocolor** |		turns off colorization of output
-**--testonly** |		only runs tests then exits
-**--force** |	forces install to run even if tests fail
+| Option         | Description                              |
+| -------------- | ---------------------------------------- |
+| **--nocolor**  | turns off colorization of output         |
+| **--testonly** | only runs tests then exits               |
+| **--force**    | forces install to run even if tests fail |
 
 ## Remove a Lab Environment
 
 Open a command prompt in the `~/scripts/<COURSE_ID>/` directory (or the installer directory) and run the following command:
-```
+
+```bash
 bash ./remove_lab_env.sh [--nocolor]
 ```
-Option | Description
------------- | -------------
-**--nocolor** |		turns off colorization of output
+
+| Option        | Description                      |
+| ------------- | -------------------------------- |
+| **--nocolor** | turns off colorization of output |
 
 ## Create a New Lab Environment Installer Package from Scratch
 
@@ -52,35 +57,38 @@ Option | Description
 ## Create a New Lab Environment Installer Package from Existing VMs/Virtual Networks
 
 1. Create your virtual networks and install your VMs using the default Libvirt tools in the default locations
+
 2. Download the Installer Framework files from github
+
 3. Run: `install_lab_env/scripts/create_installed_course_from_existing.sh <COURSE_ID> vms=<comma_delimited_list_of_VM_names> networks=<comma_delimited_list_of_networks>`
-
+   
     This will create directories as if the VMs/networks had been installed via a lab environment installer. (`~/home/VMs/COURSE_ID/`, `/home/iso/COURSE_ID/`, `~/scripts/COURSE_ID/`, `~/course_file/COURSE_ID/`, etc.)
-
+   
     It will:
-
+   
     Move the VM disk image files into the VMs' directories (`/home/VMs/COURSE_ID/VM_NAME/`) and change the disk paths to match their new location in the filesystem.
-
+   
     Export the VM's XML config to the VMs' directories (`/home/VMs/COURSE_ID/VM_NAME/VM_NAME.xml`)
-
+   
     Export the network XML config to `~/scripts/COURSE_ID/config/libvirt.cfg/NETWORK_NAME.xml`
-
+   
     **Note**: You can manually edit the VM and virtual network configuration of VMs/networks registered with Libvirt using the `virsh edit` and `virsh net-edit` commands if needed. (Make sure you syc any changed you make with those command with the XML files that were exported by the command.)
-    
+   
     You must then continue doing the following:
 
 4. Put any other files in their corresponding directories (`~/course_files/COURSE_ID/`, `~/pdf/COURSE_ID/`, etc.)
+
 5. Edit the `~/scripts/COURSE_ID/config/lab_env.cfg` as described later in this document
-
+   
     Verify your VMs follow the lab environment standards as described in the `README-lab_environment_standards.md` file (also described in the **https://github.com/roncterry/lab_env_tools** git repository) ensuring they are in the `/home/VMs/<COURSE_ID>` directory with config files edited appropriately.
-
+   
     Verify your network configuration follows the lab environment standards as described in the `README-lab_environment_standards.md` file. (You will most likely need to edit the `bridge name=` tag in the XML file to be the network's name not "virbr*").
-
+   
     Verify any other Libvirt configuration you manually copied in follows the lab environment standards as described in the `README-lab_environment_standards.md` file.
 
 6. Create a course installer by running: `backup_lab_env.sh <COURSE_ID>`
-7. Test installing and removing your lab environment on another machine
 
+7. Test installing and removing your lab environment on another machine
 
 # Directory Structure
 
@@ -93,13 +101,13 @@ The directory structure is as follows:
 ```
 <COURSE_DIRECTORY>/
     |-config/
-    |	    |-include/
-    |	    |
-    |	    |-libvirt.cfg/
+    |        |-include/
+    |        |
+    |        |-libvirt.cfg/
     |       |
-    |	    |-ssh/
-    |	    |
-    |	    |-lab_env.cfg
+    |        |-ssh/
+    |        |
+    |        |-lab_env.cfg
     |
     |-course_files/
     |
@@ -121,8 +129,8 @@ The directory structure is as follows:
     |-remove_lab_env.sh
     |-backup_lab_env.sh
 ```
-## File and Directory Descriptions
 
+## File and Directory Descriptions
 
 **<COURSE_DIRECTORY>** 
 
@@ -185,6 +193,7 @@ Example archive creation commands:
 ```bash
 7z a -t7z -m0=LZMA2 -mmt=on -v2g <VM_NAME>.7z <VM_DIRECTORY>
 ```
+
 (This creates an archive in 7z format, compressed with LZMA2 and split into files no larger than 2GB. The file names will be VM_NAME.7z.00# - where # is the number of the file that is part of the archive. This is good for creating a smaller student media package but takes slightly longer to unpack when installing the lab environment.)
 
 ```bash
@@ -209,7 +218,6 @@ create-archive.sh <VM_DIRECTORY> 7zcopy
 
 (To create uncompressed >2GB split archives)
 
-
 When the lab environment is installed these archives are extracted into `/home/VMs/<COURSE_ID>/` and each VM is registered with Libvirt.
 
 **install_lab_env.sh**
@@ -222,14 +230,10 @@ This is the script that is run to install the lab environment. To execute this s
 This is the script that is run to remove an installed lab environment. It is copied to the `~/scripts/<COURSE_ID>/` directory when the lab environment is installed so that the original student media is not required to remove an installed lab environment. (
 NOTE- DO NOT EDIT THIS FILE)
 
-
-
 **backup_lab_env.sh**
 
 This script can be used to back up the current state of an installed lab environment creating a new installer package from the backed up files. The installer package that is created will be located in `/install/courses/` and will be named "`<COURSE_ID>-backup.<TIMESTAMP>`". 
 (NOTE- DO NOT EDIT THIS FILE)
-
-
 
 # The lab_env.cfg Configuration File
 
@@ -436,6 +440,7 @@ This script can be used to backup the current state of a currently installed lab
 ```
 
 ## Usage:
+
 ```
 backup_lab_env.sh <COURSE_ID> [<ARCHIVE_FORMAT>] 
 ```
@@ -444,15 +449,15 @@ backup_lab_env.sh <COURSE_ID> [<ARCHIVE_FORMAT>]
 
 By default VM archives are created using **p7zip** with the compression format of **LZMA2**. This can be overridden at the command line using the `<ARCHIVE_FORMAT>` shown in the example above. The supported archive formats are:
 
-Archive Format | Description
------------- | -------------
-**7zma2** |		p7zip with LZMA2 compression split into 2G files (default)
-**7z** |		p7zip with LZMA compression split into 2G files
-**7zcopy** |	p7zip with no compression split into 2G files
-**tar** |		tar archive with no compression and not split
-**tgz** |		gzip compressed tar archive and not split
-**tbz** |		bzip2 compressed tar archive and not split
-**txz** |		xz compressed tar archive and not split
+| Archive Format | Description                                                |
+| -------------- | ---------------------------------------------------------- |
+| **7zma2**      | p7zip with LZMA2 compression split into 2G files (default) |
+| **7z**         | p7zip with LZMA compression split into 2G files            |
+| **7zcopy**     | p7zip with no compression split into 2G files              |
+| **tar**        | tar archive with no compression and not split              |
+| **tgz**        | gzip compressed tar archive and not split                  |
+| **tbz**        | bzip2 compressed tar archive and not split                 |
+| **txz**        | xz compressed tar archive and not split                    |
 
 The p7zip formats are **strongly recommended** because they split the archive into smaller chunks that can reside on a FAT filesystem that is used by default when creating student media flash drives. For quicker backup operations where the size of the backup (installer package) is not as important, using the **7zcopy** archive format is recommended.
 
@@ -461,6 +466,7 @@ One thing to watch for when using this script is to ensure that the permission o
 ## Creating the Initial Installer Package:
 
 Because this script creates, as its backup, an installer package using the Lab Environment Installer Framework you can also use the script to create the initial installer package for a lab environment. As long as the VMs and ISO image (and cloud images) are in the appropriate directory structure as described earlier all you need to do is create a directory `~/scripts/COURSE_ID/` that contains the following files from the Installer Framework in the following directory structure (this matches the installed directory structure created when installing a course):
+
 ```
 ~/
  |-scripts/<COURSE_ID>/
@@ -483,12 +489,15 @@ Because this script creates, as its backup, an installer package using the Lab E
  |-course_files/<COURSE_ID>/
                            |-(your additional course files)
 ```
+
 **Hint:** This basic directory structure can be created using the `install_lab_env/scripts/create_skeleton_installed_course.sh` script. 
 
 Once this directory structure is created, simply running the command:
-```
+
+```bash
  backup_lab_env.sh <COURSE_ID> 
 ```
+
 will create a usable installer package in the `/install/courses/` directory.
 
 One thing to watch for when using this script is to ensure that the permission on all files being backed up (i.e. ISO images, virtual machine disk images, etc.) have permissions that allow them to be read and copied by the user running the backup script. If they don't then the files will be missing in the backup.
@@ -509,9 +518,7 @@ One thing to watch for when using this script is to ensure that the permission o
 
 [6) Create an Installer Package](https://s3-us-west-2.amazonaws.com/training-howtos/create_an_installer_package.mp4)
 
-
 [(long version of 1-5 from above) Create a Lab Environment Installer Package from Existing VMs](https://s3-us-west-2.amazonaws.com/training-howtos/create_a_lab_environment_installer_package_from_existing_vms.mp4)
-
 
 **OPTION 2: Create an Installer Package (from exiting VMs - scripted):**
 
@@ -521,9 +528,7 @@ One thing to watch for when using this script is to ensure that the permission o
 
 [3) Create an Installer Package](https://s3-us-west-2.amazonaws.com/training-howtos/create_an_installer_package.mp4)
 
-
 **Work with Installer Packages:**
-
 
 [1) Install a Lab Environment](https://s3-us-west-2.amazonaws.com/training-howtos/install_a_lab_environment.mp4)
 
