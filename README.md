@@ -601,40 +601,4 @@ When the restoring the VM the script extracts the backup archive of the VM in th
 
 If you run the script with the `extract_only` argument the backup archive will be extracted and only the configuration updates that don't require the VM to be registered with Libvirt will be applied (Note: Operations that are NOT performed include snapshot defining and TPM restore). You will then need to run the following command for the skipped operations to be performed: `restore_vm.sh <VM_DIRECTORY>`
 
-# Video Guides
-
-**OPTION 1: Create an Installer Package (from exiting VMs - manually):**
-
-[1) Install the Installer Framework](https://s3-us-west-2.amazonaws.com/training-howtos/install_the_installer_framework.mp4)
-
-[2) Create a Skeleton Installed Course Lab Environment](https://s3-us-west-2.amazonaws.com/training-howtos/create_a_skeleton_installed_course_lab_environment.mp4)
-
-[3) Move Existing VMs into the Installer Framework](https://s3-us-west-2.amazonaws.com/training-howtos/move_existing_vms_into_the_installer_framework.mp4)
-
-[4) Move Virtual Networks into the Installer Framework](https://s3-us-west-2.amazonaws.com/training-howtos/move_virtual_networks_into_the_installer_framework.mp4)
-
-[5) Edit the Lab Installer Config File](https://s3-us-west-2.amazonaws.com/training-howtos/edit_the_lab_installer_config_file.mp4)
-
-[6) Create an Installer Package](https://s3-us-west-2.amazonaws.com/training-howtos/create_an_installer_package.mp4)
-
-[(long version of 1-5 from above) Create a Lab Environment Installer Package from Existing VMs](https://s3-us-west-2.amazonaws.com/training-howtos/create_a_lab_environment_installer_package_from_existing_vms.mp4)
-
-**OPTION 2: Create an Installer Package (from exiting VMs - scripted):**
-
-[1) Install the Installer Framework](https://s3-us-west-2.amazonaws.com/training-howtos/install_the_installer_framework.mp4)
-
-[2) Create an Installed Course Lab Environment from Existing VMs](https://s3-us-west-2.amazonaws.com/training-howtos/create_an_installed_course_lab_environment_from_existing_vms.mp4)
-
-[3) Create an Installer Package](https://s3-us-west-2.amazonaws.com/training-howtos/create_an_installer_package.mp4)
-
-**Work with Installer Packages:**
-
-[1) Install a Lab Environment](https://s3-us-west-2.amazonaws.com/training-howtos/install_a_lab_environment.mp4)
-
-[2) Back Up a Lab Environment](https://s3-us-west-2.amazonaws.com/training-howtos/backup_a_lab_environment.mp4)
-
-[3) Remove a Lab Environment](https://s3-us-west-2.amazonaws.com/training-howtos/remove_a_lab_environment.mp4)
-
-**Lab Environment Standards:**
-
-[Lab Environment Standards](https://s3-us-west-2.amazonaws.com/training-howtos/lab_environment_standards.mp4)
+# 
