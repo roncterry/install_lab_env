@@ -1,3 +1,7 @@
+2024-04-23
+-Updated and fixed error messages in install_functions.sh script
+-Fixed error in helper_functions.sh with qemu (qemu-kvm) version checking
+-Fixed errors in display output in helper_functions.sh for machine type checking
 2023-10-06
 -Updatad README.md file
 -Added additional README markdown files for lab environment standards and libvirt requirements/best practices.
