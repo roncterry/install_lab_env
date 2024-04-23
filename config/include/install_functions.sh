@@ -1,6 +1,6 @@
 ##############  Lab Env Install and Configure Functions ######################
-# version: 5.9.1
-# date: 2021-11-02
+# version: 5.10.0
+# date: 2024-04-23
 #
 
 create_directories() {
@@ -17,6 +17,8 @@ create_directories() {
   then
     IS_ERROR=Y
     FAILED_TASKS="${FAILED_TASKS},install_functions.create_directories:${ISO_DEST_DIR}"
+    echo -e "${RED}ERROR: There was an error creating the directory for ISO images: ${ISO_DEST_DIR}${NC}"
+    echo
   fi
   #--------------------------------------------------------
 
@@ -33,6 +35,8 @@ create_directories() {
   then
     IS_ERROR=Y
     FAILED_TASKS="${FAILED_TASKS},install_functions.create_directories:${IMAGE_DEST_DIR}"
+    echo -e "${RED}ERROR: There was an error creating the directory for Cloud images: ${IMAGE_DEST_DIR}${NC}"
+    echo
   fi 
   #--------------------------------------------------------
 
@@ -49,6 +53,8 @@ create_directories() {
   then
     IS_ERROR=Y
     FAILED_TASKS="${FAILED_TASKS},install_functions.create_directories:${VM_DEST_DIR}/${COURSE_NUM}"
+    echo -e "${RED}ERROR: There was an error creating the directory for virtual machines: ${VM_DEST_DIR}/${COURSE_NUM}${NC}"
+    echo
   fi
   #--------------------------------------------------------
 
@@ -65,6 +71,8 @@ create_directories() {
   then
     IS_ERROR=Y
     FAILED_TASKS="${FAILED_TASKS},install_functions.create_directories:${SCRIPTS_DEST_DIR}"
+    echo -e "${RED}ERROR: There was an error creating the directory for lab automation scripts: ${SCRIPTS_DEST_DIR}${NC}"
+    echo
   fi
   #--------------------------------------------------------
 
@@ -81,6 +89,8 @@ create_directories() {
   then
     IS_ERROR=Y
     FAILED_TASKS="${FAILED_TASKS},install_functions.create_directories:${PDF_DEST_DIR}"
+    echo -e "${RED}ERROR: There was an error creating the directory for PDF manuals and docs: ${PDF_DEST_DIR}${NC}"
+    echo
   fi
   #--------------------------------------------------------
 }
@@ -113,6 +123,8 @@ create_libvirt_virtual_networks() {
     then
       IS_ERROR=Y
       FAILED_TASKS="${FAILED_TASKS},install_functions.create_libvirt_virtual_networks:${VNET}"
+      echo -e "${RED}ERROR: There was an error creating the Libvirt virtual network: ${VNET}.${NC}"
+      echo
     fi
     #--------------------------------------------------------
   done
@@ -140,7 +152,9 @@ create_new_veth_interfaces() {
     if ! ip addr show | grep -q ${VETH_NAME_A}
     then
       IS_ERROR=Y
-      FAILED_TASKS="${FAILED_TASKS},install_functions.create_new_ovs_bridges:${VETH_NAME}"
+      FAILED_TASKS="${FAILED_TASKS},install_functions.create_new_veth_interfaces:${VETH_NAME}"
+      echo -e "${RED}ERROR: There was an error creating the new veth interface: ${VETH_NAME}.${NC}"
+      echo
     fi
     #--------------------------------------------------------
 
@@ -171,6 +185,8 @@ create_new_ovs_bridges() {
     then
       IS_ERROR=Y
       FAILED_TASKS="${FAILED_TASKS},install_functions.create_new_ovs_bridges:${OVS_BRIDGE_NAME}"
+      echo -e "${RED}ERROR: There was an error creating the new OVS bridge: ${OVS_BRIDGE_NAME}.${NC}"
+      echo
     fi
     #--------------------------------------------------------
 
@@ -200,6 +216,8 @@ create_new_vlans() {
     then
       IS_ERROR=Y
       FAILED_TASKS="${FAILED_TASKS},install_functions.create_new_vlans:${VLAN_NAME}"
+      echo -e "${RED}ERROR: There was an error creating the new VLAN: ${VLAN_NAME}.${NC}"
+      echo
     fi
     #--------------------------------------------------------
 
@@ -228,6 +246,8 @@ create_new_bridges() {
     then
       IS_ERROR=Y
       FAILED_TASKS="${FAILED_TASKS},install_functions.create_new_bridges:${BRIDGE_NAME}"
+      echo -e "${RED}ERROR: There was an error creating the new bridge: ${BRIDGE_NAME}.${NC}"
+      echo
     fi
     #--------------------------------------------------------
 
@@ -319,6 +339,8 @@ copy_libvirt_configs() {
   then
     IS_ERROR=Y
     FAILED_TASKS="${FAILED_TASKS},install_functions.copy_libvirt_configs.create_dir:${LOCAL_LIBVIRT_CONFIG_DIR}"
+    echo -e "${RED}ERROR: There was an error creating the directory for Libvirt configs: ${LOCAL_LIBVIRT_CONFIG_DIR}${NC}"
+    echo
   fi
   local SRC_LIBVIRT_CONFIGS=$(cd ${LIBVIRT_CONFIG_DIR};ls *.xml)
   local DST_LIBVIRT_CONFIGS=$(cd ${LOCAL_LIBVIRT_CONFIG_DIR};ls *.xml)
@@ -328,6 +350,8 @@ copy_libvirt_configs() {
     then
       IS_ERROR=Y
       FAILED_TASKS="${FAILED_TASKS},install_functions.copy_libvirt_configs.copy_config:${SRC_CONFIG}"
+      echo -e "${RED}ERROR: There was an error copying the Libvirt config: ${SRC_CONFIG}${NC}"
+      echo
     fi 
   done
   #--------------------------------------------------------
@@ -364,6 +388,8 @@ create_libvirt_storage_pools() {
     then
       IS_ERROR=Y
       FAILED_TASKS="${FAILED_TASKS},install_functions.create_libvirt_storage_pools:${POOL}"
+      echo -e "${RED}ERROR: There was an error creating the Libvirt storage pool: ${POOL}${NC}"
+      echo
     fi
     #--------------------------------------------------------
   done
@@ -394,6 +420,8 @@ create_libvirt_storage_volumes() {
     then
       IS_ERROR=Y
       FAILED_TASKS="${FAILED_TASKS},install_functions.create_libvirt_storage_volumes:${VOLUME_NAME}"
+      echo -e "${RED}ERROR: There was an error creating the Libvirt storage volume: ${VOLUME_NAME}${NC}"
+      echo
     fi
     #--------------------------------------------------------
   done
@@ -471,6 +499,8 @@ create_virtual_bmcs() {
     #then
     #  IS_ERROR=Y
     #  FAILED_TASKS="${FAILED_TASKS},install_functions.create_virtual_bmcs:${VM_NAME}"
+    #  echo -e "${RED}ERROR: There was an error creating the virtual BMC device: ${VM_NAME}${NC}"
+    #  echo
     #fi
     ##--------------------------------------------------------
 
@@ -482,6 +512,8 @@ create_virtual_bmcs() {
     then
       IS_ERROR=Y
       FAILED_TASKS="${FAILED_TASKS},install_functions.create_virtual_bmcs:${VM_NAME}"
+      echo -e "${RED}ERROR: There was an error creating the virtual BMC device: ${VM_NAME}${NC}"
+      echo
     fi
     #--------------------------------------------------------
 
@@ -493,6 +525,8 @@ create_virtual_bmcs() {
     #then
     #  IS_ERROR=Y
     #  FAILED_TASKS="${FAILED_TASKS},install_functions.create_virtual_bmcs:${VM_NAME}"
+    #  echo -e "${RED}ERROR: There was an error creating the virtual BMC device: ${VM_NAME}${NC}"
+    #  echo
     #fi
     ##--------------------------------------------------------
   done
@@ -524,6 +558,8 @@ copy_iso_images() {
       then
         IS_ERROR=Y
         FAILED_TASKS="${FAILED_TASKS},install_functions.copy_iso_images.create_dir:${ISO_DEST_DIR}/${COURSE_NUM}"
+        echo -e "${RED}ERROR: There was an error creating the ISO Images directory: ${ISO_DEST_DIR}/${COURSE_NUM}${NC}"
+        echo
       fi
       #--------------------------------------------------------
     done
@@ -545,6 +581,8 @@ copy_iso_images() {
         then
           IS_ERROR=Y
           FAILED_TASKS="${FAILED_TASKS},install_functions.copy_iso_images.copy_iso:${SRC_ISO}"
+          echo -e "${RED}ERROR: There was an error copying the ISO Image: ${SRC_ISO}${NC}"
+          echo
         fi 
       done
     fi
@@ -586,6 +624,8 @@ copy_cloud_images() {
       then
         IS_ERROR=Y
         FAILED_TASKS="${FAILED_TASKS},install_functions.copy_cloud_images.create_dir:${IMAGE_DEST_DIR}/${COURSE_NUM}"
+        echo -e "${RED}ERROR: There was an error creating the Cloud images directory: ${IMAGE_DEST_DIR}/${COURSE_NUM}${NC}"
+        echo
       fi
       #--------------------------------------------------------
     done
@@ -609,6 +649,8 @@ copy_cloud_images() {
           then
             IS_ERROR=Y
             FAILED_TASKS="${FAILED_TASKS},install_functions.copy_cloud_images.copy_image:${SRC_IMAGE}"
+            echo -e "${RED}ERROR: There was an error copying the Cloud image: ${SRC_IMAGE}${NC}"
+            echo
           fi 
         fi
       done
@@ -679,7 +721,9 @@ copy_lab_environment_restore_scripts() {
         if ! [ -e ${SCRIPTS_DEST_DIR}/${COURSE_NUM}/${LAB_ENV_REST_SCRIPT} ]
         then
           IS_ERROR=Y
-          FAILED_TASKS="${FAILED_TASKS},install_functions.copy_lab_scripts:${LAB_ENV_REST_SCRIPT}"
+          FAILED_TASKS="${FAILED_TASKS},install_functions.copy_lab_environment_restore_scripts:${LAB_ENV_REST_SCRIPT}"
+          echo -e "${RED}ERROR: There was an error installing the lab environment restore scripts into: ${LAB_ENV_REST_SCRIPT}${NC}"
+          echo
         fi
         #--------------------------------------------------------
  
@@ -717,7 +761,9 @@ copy_autobuild_scripts() {
       if ! [ -d ${SCRIPTS_DEST_DIR}/${COURSE_NUM}/${VM_AUTOBUILD_SCRIPT_DIR} ]
       then
         IS_ERROR=Y
-        FAILED_TASKS="${FAILED_TASKS},install_functions.copy_lab_scripts.create_dir:${SCRIPTS_DEST_DIR}/${COURSE_NUM}/${VM_AUTOBUILD_SCRIPT_DIR}"
+        FAILED_TASKS="${FAILED_TASKS},install_functions.copy_autobuild_scripts.create_dir:${SCRIPTS_DEST_DIR}/${COURSE_NUM}/${VM_AUTOBUILD_SCRIPT_DIR}"
+        echo -e "${RED}ERROR: There was an error creating the autobuild scripts directory: ${SCRIPTS_DEST_DIR}/${COURSE_NUM}/${VM_AUTOBUILD_SCRIPT_DIR}${NC}"
+        echo
       fi
       local SRC_VM_AUTOBUILD_SCRIPTS=$(cd ${SCRIPT_SRC_DIR}/${VM_AUTOBUILD_SCRIPT_DIR};ls)
       local DST_VM_AUTOBUILD_SCRIPTS=$(cd ${SCRIPT_DEST_DIR}/${COURSE_NUM}/${VM_AUTOBUILD_SCRIPT_DIR}/;ls)
@@ -726,7 +772,9 @@ copy_autobuild_scripts() {
         if ! echo ${DST_VM_AUTOBUILD_SCRIPTS} | grep -q ${SRC_VM_AUTOBUILD_SCRIPT}
         then
           IS_ERROR=Y
-          FAILED_TASKS="${FAILED_TASKS},install_functions.copy_lab_scripts.copy_vm_autobuild_scripts:${SRC_VM_AUTOBUILD_SCRIPT}"
+          FAILED_TASKS="${FAILED_TASKS},install_functions.copy_autobuild_scripts.copy_autobuild_script:${SRC_VM_AUTOBUILD_SCRIPT}"
+          echo -e "${RED}ERROR: There was an error copying the autobuild script: ${SRC_VM_AUTOBUILD_SCRIPT}${NC}"
+          echo
         fi 
       done
       #--------------------------------------------------------
@@ -763,7 +811,9 @@ copy_lab_automation_scripts() {
       if ! [ -d ${SCRIPTS_DEST_DIR}/${COURSE_NUM}/${LAB_SCRIPT_DIR} ]
       then
         IS_ERROR=Y
-        FAILED_TASKS="${FAILED_TASKS},install_functions.copy_lab_scripts.create_dir:${SCRIPTS_DEST_DIR}/${COURSE_NUM}/${LAB_SCRIPT_DIR}"
+        FAILED_TASKS="${FAILED_TASKS},install_functions.copy_lab_automation_scripts.create_dir:${SCRIPTS_DEST_DIR}/${COURSE_NUM}/${LAB_SCRIPT_DIR}"
+        echo -e "${RED}ERROR: There was an error creating the lab automation scripts directory: ${SCRIPTS_DEST_DIR}/${COURSE_NUM}/${LAB_SCRIPT_DIR}${NC}"
+        echo
       fi
       local SRC_LAB_SCRIPTS=$(cd ${SCRIPT_SRC_DIR}/${LAB_SCRIPT_DIR};ls)
       local DST_LAB_SCRIPTS=$(cd ${SCRIPT_DEST_DIR}/${COURSE_NUM}/${LAB_SCRIPT_DIR}/;ls)
@@ -772,7 +822,9 @@ copy_lab_automation_scripts() {
         if ! echo ${DST_LAB_SCRIPTS} | grep -q ${SRC_LAB_SCRIPT}
         then
           IS_ERROR=Y
-          FAILED_TASKS="${FAILED_TASKS},install_functions.copy_lab_scripts.copy_lab_scripts:${SRC_LAB_SCRIPT}"
+          FAILED_TASKS="${FAILED_TASKS},install_functions.copy_lab_automation_scripts.copy_lab_scripts:${SRC_LAB_SCRIPT}"
+          echo -e "${RED}ERROR: There was an error copying the lab automation script: ${SRC_LAB_SCRIPT}${NC}"
+          echo
         fi 
       done
       #--------------------------------------------------------
@@ -809,7 +861,9 @@ copy_cloud_deploy_scripts() {
       if ! [ -d ${SCRIPTS_DEST_DIR}/${COURSE_NUM}/${DEPLOY_CLOUD_SCRIPT_DIR} ]
       then
         IS_ERROR=Y
-        FAILED_TASKS="${FAILED_TASKS},install_functions.copy_lab_scripts.create_dir:${SCRIPTS_DEST_DIR}/${COURSE_NUM}/${DEPLOY_CLOUD_SCRIPT_DIR}"
+        FAILED_TASKS="${FAILED_TASKS},install_functions.copy_cloud_deploy_scripts.create_dir:${SCRIPTS_DEST_DIR}/${COURSE_NUM}/${DEPLOY_CLOUD_SCRIPT_DIR}"
+        echo -e "${RED}ERROR: There was an error creating the cloud deploy scripts directory: ${SCRIPTS_DEST_DIR}/${COURSE_NUM}/${DEPLOY_CLOUD_SCRIPT_DIR}${NC}"
+        echo
       fi
       local SRC_DEPLOY_CLOUD_SCRIPTS=$(cd ${SCRIPT_SRC_DIR}/${DEPLOY_CLOUD_SCRIPT_DIR};ls)
       local DST_DEPLOY_CLOUD_SCRIPTS=$(cd ${SCRIPT_DEST_DIR}/${COURSE_NUM}/${DEPLOY_CLOUD_SCRIPT_DIR}/;ls)
@@ -818,7 +872,9 @@ copy_cloud_deploy_scripts() {
         if ! echo ${DST_DEPLOY_CLOUD_SCRIPTS} | grep -q ${SRC_DEPLOY_CLOUD_SCRIPT}
         then
           IS_ERROR=Y
-          FAILED_TASKS="${FAILED_TASKS},install_functions.copy_lab_scripts.copy_deploy_cloud_scripts:${SRC_DEPLOY_CLOUD_SCRIPT}"
+          FAILED_TASKS="${FAILED_TASKS},install_functions.copy_cloud_deploy_scripts.copy_deploy_cloud_script:${SRC_DEPLOY_CLOUD_SCRIPT}"
+          echo -e "${RED}ERROR: There was an error copying the cloud deploy script: ${SRC_DEPLOY_CLOUD_SCRIPT}${NC}"
+          echo
         fi 
       done
       #--------------------------------------------------------
@@ -847,6 +903,8 @@ copy_pdfs() {
     then
       IS_ERROR=Y
       FAILED_TASKS="${FAILED_TASKS},install_functions.copy_pdfs.create_dir:${PDF_DEST_DIR}/${COURSE_NUM}"
+      echo -e "${RED}ERROR: There was an error creating the PDFs directory: ${PDF_DEST_DIR}/${COURSE_NUM}${NC}"
+      echo
     fi
     local SRC_PDFS=$(cd ${PDF_SRC_DIR};ls)
     local DST_PDFS=$(cd ${PDF_DEST_DIR}/${COURSE_NUM}/;ls)
@@ -855,7 +913,9 @@ copy_pdfs() {
       if ! echo ${DST_PDFS} | grep -q ${SRC_PDF}
       then
         IS_ERROR=Y
-        FAILED_TASKS="${FAILED_TASKS},install_functions.copy_pdfs:${SRC_PDF}"
+        FAILED_TASKS="${FAILED_TASKS},install_functions.copy_pdfs.copy_pdf:${SRC_PDF}"
+      echo -e "${RED}ERROR: There was an error copying the PDF: ${SRC_PDF}${NC}"
+      echo
       fi 
     done
     #--------------------------------------------------------
@@ -884,7 +944,9 @@ copy_course_files() {
       if ! [ -d ${HOME}/course_files/${COURSE_NUM} ]
       then
         IS_ERROR=Y
-        FAILED_TASKS="${FAILED_TASKS},install_functions.copy_course_files.create_dir:${HOME}/course_files/${COURSE_NUM}"
+        FAILED_TASKS="${FAILED_TASKS},install_functions.copy_course_files.copy_course_files:${HOME}/course_files/${COURSE_NUM}"
+        echo -e "${RED}ERROR: There was an error copying the course files into: ${HOME}/course_files/${COURSE_NUM}${NC}"
+        echo
       fi
       #--------------------------------------------------------
 
@@ -1001,10 +1063,14 @@ extract_register_libvirt_vms() {
     then
       IS_ERROR=Y
       FAILED_TASKS="${FAILED_TASKS},install_functions.extract_register_libvirt_vms.create_dir:${VM_DEST_DIR}/${COURSE_NUM}"
+      echo -e "${RED}ERROR: There was an error creating the course VM directory: ${VM_DEST_DIR}/${COURSE_NUM}${NC}"
+      echo
     fi
 
     local SRC_VMFILES=$(list_archive "${VM_SRC_DIR}/${VM}" ${ARCHIVE_TYPE})
     local DST_VMFILES=$(cd "${VM_DEST_DIR}/${COURSE_NUM}/";ls ${VM})
+    #Also include hidden files
+    #local DST_VMFILES=$(cd "${VM_DEST_DIR}/${COURSE_NUM}/";ls ${VM} | grep -v "\.$")
 
     local COUNT=1
     for SRC_VMFILE in ${SRC_VMFILES}
@@ -1014,6 +1080,8 @@ extract_register_libvirt_vms() {
       then
         IS_ERROR=Y
         FAILED_TASKS="${FAILED_TASKS},install_functions.extract_register_libvirt_vms.extract_vm:${VM}:${SRC_VMFILE}"
+        echo -e "${RED}ERROR: There was an error extracting the VM: ${VM}${NC}"
+        echo
       fi 
     done
     unset COUNT
@@ -1065,6 +1133,8 @@ extract_register_libvirt_vms() {
         then
           IS_ERROR=Y
           FAILED_TASKS="${FAILED_TASKS},install_functions.extract_register_libvirt_vms.register_vm:${VM}"
+          echo -e "${RED}ERROR: There was an error register the VM (${VM}) with Libvirt${NC}"
+          echo
         fi
       fi
       #--------------------------------------------------------
@@ -1110,6 +1180,8 @@ extract_register_libvirt_vms() {
         then
           IS_ERROR=Y
           FAILED_TASKS="${FAILED_TASKS},install_functions.extract_register_libvirt_vms.create_pool_for_vm:${VM}"
+          echo -e "${RED}ERROR: There was an error creating the storage pool for the VM: ${VM}${NC}"
+          echo
         fi
       fi
       #--------------------------------------------------------
@@ -1138,6 +1210,8 @@ extract_register_libvirt_vms() {
           then
             IS_ERROR=Y
             FAILED_TASKS="${FAILED_TASKS},install_functions.extract_register_libvirt_vms.create_vbmc_for_vm:${VM}"
+            echo -e "${RED}ERROR: There was an error creating the virtual BMC device for the VM: ${VM}${NC}"
+            echo
           fi
         fi
         #--------------------------------------------------------

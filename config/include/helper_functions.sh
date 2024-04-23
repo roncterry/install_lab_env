@@ -1,6 +1,6 @@
 ##############  Helper Functions #############################################
-# version: 3.12.0
-# date: 2023-08-25
+# version: 3.13.0
+# date: 2024-04-23
 #
 
 configure_nic() {
@@ -873,23 +873,28 @@ edit_libvirt_domxml() {
       esac
  
       #--- features ---
-      QEMUKVM_VER=$(qemu-kvm -version | cut -d ' ' -f 4 | sed 's/,//g')
-      QEMUKVM_VER_MAJ=$(echo ${QEMUKVM_VER} | cut -d . -f 1)
-      QEMUKVM_VER_MIN=$(echo ${QEMUKVM_VER} | cut -d . -f 2)
-      QEMUKVM_VER_REL=$(echo ${QEMUKVM_VER} | cut -d . -f 3)
+      if which qemu-kvm > /dev/null 2>&1
+      then
+        QEMU_VER=$(qemu-kvm -version | cut -d ' ' -f 4 | sed 's/,//g' | head -1)
+      else
+        QEMU_VER=$(qemu-system-x86_64 -version | cut -d ' ' -f 4 | sed 's/,//g' | head -1)
+      fi
+      QEMU_VER_MAJ=$(echo ${QEMU_VER} | cut -d . -f 1)
+      QEMU_VER_MIN=$(echo ${QEMU_VER} | cut -d . -f 2)
+      QEMU_VER_REL=$(echo ${QEMU_VER} | cut -d . -f 3)
 
       # check for vmport support
-      if [ "${QEMUKVM_VER_MAJ}" -gt 2 ]
+      if [ "${QEMU_VER_MAJ}" -gt 2 ]
       then
         local VMPORT=Y
-      elif [ "${QEMUKVM_VER_MAJ}" -eq 2 ]
+      elif [ "${QEMU_VER_MAJ}" -eq 2 ]
       then
-        if [ "${QEMUKVM_VER_MIN}" -gt 3 ]
+        if [ "${QEMU_VER_MIN}" -gt 3 ]
         then
           local VMPORT=Y
-        elif [ "${QEMUKVM_VER_MIN}" -eq 3 ]
+        elif [ "${QEMU_VER_MIN}" -eq 3 ]
         then
-          if [ "${QEMUKVM_VER_REL}" -ge 0 ]
+          if [ "${QEMU_VER_REL}" -ge 0 ]
           then
             local VMPORT=Y
           else
@@ -904,7 +909,7 @@ edit_libvirt_domxml() {
  
       case ${VMPORT} in
         Y)
-          echo -e "  ${LTCYAN}QEMU version ${NC}${QEMUKVM_VER}${LTCYAN} supports vmport parameter, not removing it.${NC}"
+          echo -e "  ${LTCYAN}QEMU version ${NC}${QEMU_VER}${LTCYAN} supports vmport parameter, not removing it.${NC}"
           echo
         ;;
         N)
@@ -947,7 +952,7 @@ edit_libvirt_domxml() {
                 run sed -i "s/pc-i440fx-.../pc-i440fx-${HIGHEST_440FX_VER}/"  "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_CONFIG}"
                 echo
               else
-                echo -e "  ${LTCYAN}Machine type is a supported version: ${NC}${MACHINE_TYPE_VER} ${NC}"
+                echo -e "  ${LTCYAN}Machine type is a supported version: ${NC}${MACHINE_TYPE}-${MACHINE_TYPE_VER} ${NC}"
                 echo
               fi
             ;;
@@ -958,7 +963,7 @@ edit_libvirt_domxml() {
                 run sed -i "s/pc-q35-.../pc-q35-${HIGHEST_Q35_VER}/"  "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_CONFIG}"
                 echo
               else
-                echo -e "  ${LTCYAN}Machine type is a supported version: ${NC}${MACHINE_TYPE_VER} ${NC}"
+                echo -e "  ${LTCYAN}Machine type is a supported version: ${NC}${MACHINE_TYPE}-${MACHINE_TYPE_VER} ${NC}"
                 echo
               fi
             ;;
@@ -1136,7 +1141,7 @@ restore_vm_tpm() {
 
   if [ -e ${VM_DEST_DIR}/${COURSE_NUM}/${VM_NAME}/tpm/tpm1.2 ]
   then
-    echo -e "${LTCYAN}(TPM version 1.2 found${NC}"
+    echo -e "${LTCYAN}(TPM version 1.2 found)${NC}"
     run sudo cp -R ${VM_DEST_DIR}/${COURSE_NUM}/${VM_NAME}/tpm/tpm1.2 ${TPM_DIR}/
     run sudo chmod 600 ${TPM_DIR}/tpm1.2/tpm-00.permall
     run sudo chmod 700 ${TPM_DIR}/tpm1.2
@@ -1144,7 +1149,7 @@ restore_vm_tpm() {
   fi
   if [ -e ${VM_DEST_DIR}/${COURSE_NUM}/${VM_NAME}/tpm/tpm2 ]
   then
-    echo -e "${LTCYAN}(TPM version 2 found${NC}"
+    echo -e "${LTCYAN}(TPM version 2 found)${NC}"
     run sudo cp -R ${VM_DEST_DIR}/${COURSE_NUM}/${VM_NAME}/tpm/tpm2 ${TPM_DIR}/
     run sudo chmod 600 ${TPM_DIR}/tpm2/tpm2-00.permall
     run sudo chmod 700 ${TPM_DIR}/tpm2
