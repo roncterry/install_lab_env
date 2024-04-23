@@ -584,4 +584,4 @@ The following is an example for a VM named **DEMO101-vm01**:
 
 # Known Issues:
 
-When creating a VM from scratch using Virt-Manager an `<audio>` tag (i.e. `<audio id="1" type="spice"/>`) is being added that causes the VM to not be able to be defined or run on older versions of the standard image. This tag is not requored and must be removed from the VM's config XML file. When removing the tag ensure that this `<audio>` tag is not being references in the `<sound>` section. If it is then also remove the reference from there. The `<sound>` section should only specify the model and a PCI device address.
+When creating a VM from scratch using Virt-Manager an `<audio>` tag (i.e. `<audio id="1" type="spice"/>`) is being added that causes the VM to not be able to be defined or run on older versions of the standard image. This tag is not required and must be removed from the VM's config XML file. When removing the tag ensure that this `<audio>` tag is not being referenced in the `<sound>` section. If it is then also remove the reference from there. The `<sound>` section should only specify the model and a PCI device address.
