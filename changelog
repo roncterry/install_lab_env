@@ -1,3 +1,9 @@
+2025-02-28
+-Updated the system_test_functions.sh file to better handle monolithic vs modulelar Libvirt daemon config ... again. Fixed all of the tests this time. ;-)
+2024-12-04
+-Added NetworkManager VLAN and bridge creation functions to helper_functions.sh and updated install_functions.sh and remove_functions.sh to see if either the wicked.service or NetworkManager.service is enabled and use the appropriate VLAN/bridge creation/removal methods.
+2024-11-05
+-Updated the system_test_functions.sh file to better handle monolithic vs modulelar Libvirt daemon config
 2024-04-23
 -Updated and fixed error messages in install_functions.sh script
 -Fixed error in helper_functions.sh with qemu (qemu-kvm) version checking
