@@ -1,4 +1,4 @@
-# Config File Syntax Version: 2023082501
+# Config File Syntax Version: 2024120401
 ##############################################################################
 #                          Variables
 ##############################################################################
@@ -195,8 +195,10 @@ LIBVIRT_VM_LIST=""
 
 # Create an initial snapshot of Libvirt VMs after they have been installed 
 #
-#  Libvirt snapshot are not portiable so creating an initial snapshot 
-#  imedeatly after they have been installed give you an initial revert point.
+#  Creating an initial snapshot immedeatly after a VM has been installed allows for 
+#  an initial revert point. 
+#  Remember that Libvirt snapshot are now protable when using the installer framework
+#  so the VM may already contain shapshots.
 #
 LIBVIRT_CREATE_INITIAL_SNAPSHOT=""
 
@@ -204,13 +206,13 @@ LIBVIRT_CREATE_INITIAL_SNAPSHOT=""
 # Name to use for the initial VM snapshot if created 
 #
 # Name to use for the initial snapshot of the VMs if the 
-# LIBVIRT_CREATE_INITIAL_SNAPSHOT is set you Y
+# LIBVIRT_CREATE_INITIAL_SNAPSHOT is set to Y
 #
 LIBVIRT_INITIAL_SNAPSHOT_NAME=""
 
 
-# A space delimieted list of Libvirt VM names that should be started by 
-# the installation script.
+# A space delimited list of Libvirt VM names that should be started by 
+# the installation script at the end of the lab environment install.
 #
 # These VMs should only be VMs that are listed in $LIBVIRT_VM_LIST.
 #
@@ -223,7 +225,7 @@ LIBVIRT_START_VM_LIST=""
 #  -host-model (with the pcid=optional feature)
 #
 # This can be useful if you are not sure which version of Libvirt created the 
-# VMs config file or if the CPU the VM will be run on will support the version
+# VM's config file or if the CPU the VM will be run on will support the version
 # specified in the VM's config file.
 # (Most usefull for VMs created with default values on host machines with newer
 # CPUs but installed/run on host machines with older CPUs)
@@ -234,13 +236,13 @@ LIBVIRT_START_VM_LIST=""
 # add its default <cpu> tag to the VM's config when it is defined.
 #
 # Setting this to 'y' can potentialy fix problems where the VM won't boot or
-# it is getting a kernel panic. It will however do the wrong thiing if the <cpu>
+# it is getting a kernel panic. It will however do the wrong thing if the <cpu>
 # tag is already set correctly. 
 #
 # LIBVIRT_SET_CPU_TO_HOST_PASSTHROUGH changes the existing <cpu> tag to use
 # host-passthrough. This means that the virtual CPU(s) presented to the VM
 # will exactly match the host CPUs. The downside to this mode is that the
-# VM may be unmigrtabe to other hosts even if the target host has the same
+# VM may be unmigrtable to other hosts even if the target host has the same
 # CPU. The mode is less desirable than host-model.
 #
 # LIBVIRT_SET_CPU_TO_HOST_MODEL changes the existing <cpu> tag to use
@@ -257,7 +259,7 @@ LIBVIRT_START_VM_LIST=""
 # config XML to already be set to what this does.
 #
 # What should I use?
-#  Safest: all set to "n" (use what is already defined in the VM's config XML)
+#  Safest: All set to "n" (use what is already defined in the VM's config XML)
 #  Next safest: LIBVIRT_SET_CPU_TO_HOST_MODEL="y" (others set to "n")
 #
 # -----------------------IMPORTANT-----------------------------
@@ -287,6 +289,17 @@ LIBVIRT_SET_CPU_TO_HOST_MODEL="n"
 KVM_SET_MACHINE_TYPE_TO_HIGHEST_SUPPORTED="n"
 
 
+# Change the VM's config file to remove any unsupported features
+#
+# This can be useful if you are not sure if your VM config file contains 
+# any features that are not supported on older versions of Libvirt or KVM.
+#
+# Setting this to 'y' can potentialy fix problems where the VM can't be 
+# registered with Libvirt.
+#
+LIBVIRT_REMOVE_UNSUPPORTED_VM_FEATURES="n"
+
+
 # If you want to have the installation script autobuild any Libvirt VMs, put
 # the name of the configuration file for the create-vms.sh utility in this
 # variable. (Requres the create-vms.sh script be available and in the PATH)
@@ -306,10 +319,10 @@ LIBVIRT_AUTOBUILD_VM_CONFIG=""
 #-----------------------------------------------------------------------------
 
 # A space delimited list of Libvirt virtual networks. The network configs in 
-# LIBVIRT_VNET_LIST should be the names of the Libvirt virtual networks.
+# LIBVIRT_VNET_LIST must be the names of the Libvirt virtual networks.
 #
-# The config files that define these networks should be named <vnet_name>.xml
-# and they should reside in the config/libvirt.cfg directory.
+# The config files that define these networks must be named <vnet_name>.xml
+# and they must reside in the config/libvirt.cfg directory.
 #
 LIBVIRT_VNET_LIST=""
 
@@ -319,21 +332,21 @@ LIBVIRT_VNET_LIST=""
 #-----------------------------------------------------------------------------
 
 # A space delimited list of Libvirt storage pools. The pool configs in 
-# LIBVIRT_POOL_LIST should be the names of the Libvirt storage pools.
+# LIBVIRT_POOL_LIST must be the names of the Libvirt storage pools.
 #
-# The config files that define these pools should be named <pool_name>.xml
-# and they should reside in the config/libvirt.cfg directory.
+# The config files that define these pools must be named <pool_name>.xml
+# and they must reside in the config/libvirt.cfg directory.
 #
 LIBVIRT_POOL_LIST=""
 
 
 # A space delimited list of Libvirt volumes to be created/defined in the
-# storage pools. The volume configs in LIBVIRT_VOLUME_LIST should be the 
+# storage pools. The volume configs in LIBVIRT_VOLUME_LIST must be the 
 # names of the Libvirt volumes to be created/defined in the storage pools.
 #
-# The config files that define these networks should be named 
+# The config files that define these networks must be named 
 # <pool_name>+<volume_name>.xml
-# and they should reside in the config/libvirt.cfg directory.
+# and they must reside in the config/libvirt.cfg directory.
 #
 # Example: 
 #  LIBVIRT_VOLUME_LIST="mypool+vol1.qcow2 mypool+vol2.raw"
@@ -353,8 +366,8 @@ LIBVIRT_VOLUME_LIST=""
 #
 # Note: 
 #       You can also define the virtual BMC devices on a per VM basis by
-#       creating a file in the VM's directory named VM.vbmc (where VM
-#       matches the name of the VM). This file should contain this
+#       creating a file in the VM's directory named <VM>.vbmc (where <VM>
+#       matches the name of the VM). This file must contain this
 #       variable (VIRTUAL_BMC_NETWORK) and the following variable
 #       (VIRTUAL_BMC_LIST) with only values matching the prameters for 
 #       the virtual BMC device for that VM. The syntax for the variables 
@@ -370,13 +383,13 @@ LIBVIRT_VOLUME_LIST=""
 VIRTUAL_BMC_NETWORK=""
 
 
-# The BMC entries in VIRTUAL_BMC_LIST should be a space delimited list of
+# The BMC entries in VIRTUAL_BMC_LIST are a space delimited list of
 # comma delimited values in this order: 
-#  VM Name  (name of the VM in Libvirt)
-#  Host BMC IP  (IP address on the host the BMC listens on: Default=127.0.0.1)
-#  BMC Port  (port the BMC will listed on: Default=623)
-#  BMC Username  (username to log in to the BMC as: Default=admin)
-#  BMC Password  (password for the BMC user: Default=password)
+#  VM Name          (name of the VM in Libvirt)
+#  Host BMC IP      (IP address on the host the BMC listens on: Default=127.0.0.1)
+#  BMC Port         (port the BMC will listed on: Default=623)
+#  BMC Username     (username to log in to the BMC as: Default=admin)
+#  BMC Password     (password for the BMC user: Default=password)
 #  BMC Libvirt URI  (URI for the Libvirt server when the VM is running: Default=qemu:///system)
 #
 # Example 1:
@@ -391,7 +404,7 @@ VIRTUAL_BMC_NETWORK=""
 #
 # Note: 
 #       You can also define the virtual BMC devices on a per VM basis by
-#       creating a file in the VM's directory named VM.vbmc (where VM
+#       creating a file in the VM's directory named <VM>.vbmc (where <VM>
 #       matches the name of the VM). This file should contain this
 #       variable (VIRTUAL_BMC_LIST) and the previous variable
 #       (VIRTUAL_BMC_NETWORK) with only values matching the prameters for 
@@ -477,7 +490,7 @@ MULTI_LAB_MACHINE="N"
 # configuration (i.e. VLANs+bridges instead of Libvirt virtual networks).
 # This alternate VM config file should reside in the VM's directory along
 # side the original VM config file and will need to be named in a specific
-# way. The file name should be: VM_NAME-MULTI_LM_EXT.xml
+# way. The file name should be: <VM_NAME>-<MULTI_LM_EXT>.xml
 #
 # Example: single lab machine file name = admin.xml
 #          multi lab machine file name =  admin-multi_lm.xml
@@ -491,44 +504,60 @@ MULTI_LM_EXT="multi_lm"
 #    SECTION: Physical/Advanced Networking Definitions
 #-----------------------------------------------------------------------------
 
-# This is used to create basic VLANs
+# This is used to create basic VLANs using either wicked or nmcli
 #
 # The VLAN names in VLAN_LIST should be a space delimited list of
 # comma delimited values in this order: 
-#   VLAN name    (example: cloud-admin)
-#   node number    (example: 1)
-#   VLAN network (example: 192.168.124.0/24)
-#   ethernet device (example: eth1)
-#   VLAN ID (example: 124)
+#   VLAN name             (example: vlan100)
+#   lab machine number    (example: 4)
+#   VLAN network          (example: 192.168.124.0/24)
+#   parent device         (example: eth1)
+#   VLAN ID               (example: 100)
 #
-#   Note: If the VLAN should not have an IP address assigned to it, 
+#   Note: The lab machine number is used for the last octet of the lab machine's
+#         IP address(es).
+#
+#   IMPORTANT: The numbers 1, 2 and 254 MUST NOT be used for the lab machine number
+#              because those are reserved for router endpoints. The lab machine number
+#              is used to create the IP address(es) of the lab machine on the VLANs that
+#              are being created. It must be unique so that it doesn't conflict with any
+#              other lab machine or VM that will be connected to the VLANs.
+#
+#   Note: If the VLAN will not have an IP address assigned to it, 
 #         enter - into the VLAN network field. 
 #
-# Example 1: "vlan-admin,1,192.168.124.0/24,eth1,124 vlan-storage,1,192.168.125.0/24,eth1,125"
-# Example 2: "vlan-admin,1,-,eth1,124 vlan-storage,1,-,eth1,125"
+# Example 1: "vlan100,4,192.168.100.0/24,eth1,100 vlan101,4,192.168.101.0/24,eth1,101"
+# Example 2: "vlan100,4,-,eth1,100 vlan101,4,-,eth1,101"
 #
 VLAN_LIST=""
 
 
-# This is used to create basic Linux bridges
+# This is used to create basic Linux bridges using either wicked or nmcli
 #
 # The bridge names in BRIDGE_LIST should be a space delimited list of
 # comma delimited values in this order: 
-#   bridge name    (example: cloud-admin)
-#   node number    (example: 1)
-#   bridge network (example: 192.168.124.0/24)
-#   ethernet device (example: eth1)
+#   bridge name           (example: management)
+#   lab machine number    (example: 4)
+#   bridge network        (example: 172.31.9.0/24)
+#   slave device          (example: eth1)
 #
-#   Note: If the bridge should not have an IP address assigned to it, 
+#   Note: The lab machine number is used for the last octet of the lab machine's 
+#         IP address(es).
+#
+#   IMPORTANT: The numbers 1, 2 and 254 MUST NOT be used for the lab machine number
+#              because those are reserved for router endpoints. The lab machine number
+#              is used to create the IP address(es) of the lab machine on the bridges that
+#              are being created. It must be unique so that it doesn't conflict with any
+#              other lab machine or VM that will be connected to the bridges.
+#
+#   Note: If the bridge will not have an IP address assigned to it, 
 #         enter - into the bridge network field. 
-#
-#   Note: The node number is used for the last octet of the nodes IP address
 #
 #   Note: The ethernet device parameter is optional. If not supplied,
 #         the first unconfigured ethernet device will be used.
 #
-# Example 1: "cloud-admin,1,192.168.124.0/24,eth1 cloud-public,1,192.168.126.0/24,eth1"
-# Example 2: "cloud-admin,1,192.168.124.0/24,vlan-admin cloud-storage,1,192.168.125.0/24,vlan-storage"
+# Example 1: "manbr,4,172.31.9.0/24,eth1 trunkbr,4,172.31.10.0/24,eth1"
+# Example 2: "manbr,4,172.31.9.0/24,vlan90 trunkbr,4,172.31.10.0/24,vlan99"
 #
 BRIDGE_LIST=""
 
@@ -542,19 +571,27 @@ BRIDGE_LIST=""
 #
 # The veth names in VETH_LIST should be a space delimited list of
 # comma delimited values in this order: 
-#   veth name    (example: vlan99)
-#   node number  (example: 1)
-#   veth network (example: 192.168.99.1/24)
+#   veth name           (example: vlan99)
+#   lab machine number  (example: 4)
+#   veth network        (example: 192.168.99.1/24)
 #
-#   Note: If the veth should not have an IP address assigned to it, 
+#   Note: If the veth will not have an IP address assigned to it, 
 #         or it will be assigned durring the Open vSwitch bridge creation,
 #         enter - into the veth network field. 
 #
-#   Note: The node number is used for the last octet of the nodes IP address
+#   Note: The lab machine number is used for the last octet of the lab machine's
+#         IP address(es).
 #
-# Example 1: "veth99,1,-"
-# Example 2: "veth99,1,192.168.99.0/24"
-# Example 3: "veth99,1,192.168.99.0/24 veth100,1,192.168.100.1/24"
+#   IMPORTANT: The numbers 1, 2 and 254 MUST NOT be used for the lab machine number
+#              because those are reserved for router endpoints. The lab machine number
+#              is used to create the IP address(es) of the lab machine on the veths that
+#              are being created. It must be unique so that it doesn't conflict with any
+#              other lab machine or VM that will be connected to the bridges.
+#
+#
+# Example 1: "veth99,4,-"
+# Example 2: "veth99,4,192.168.99.0/24"
+# Example 3: "veth99,4,192.168.99.0/24 veth100,4,192.168.100.1/24"
 #
 VETH_LIST=""
 
@@ -564,16 +601,24 @@ VETH_LIST=""
 # The bridge names in OVS_BRIDGE_LIST should be a space delimited list of
 # comma delimited values in this order: 
 #   Open vSwitch bridge name    (example: cloud-admin)
-#   node number                 (example: 1)
+#   lab machine number          (example: 4)
 #   Open vSwitch bridge network (example: 192.168.124.0/24)
 #   physical device             (example: eth1)
 #   parent bridge               (example: ovsbr0)
 #   VLAN tag                    (example: 124)
 #
-#   Note: If the bridge should not have an IP address assigned to it, 
+#   Note: If the bridge will not have an IP address assigned to it, 
 #         enter - into the bridge network field. 
 #
-#   Note: The node number is used for the last octet of the nodes IP address
+#   Note: The lab machine number is used for the last octet of the lab machine's
+#         IP address(es).
+#
+#   IMPORTANT: The numbers 1, 2 and 254 MUST NOT be used for the lab machine number
+#              because those are reserved for router endpoints. The lab machine number
+#              is used to create the IP address(es) of the lab machine on the bridges that
+#              are being created. It must be unique so that it doesn't conflict with any
+#              other lab machine or VM that will be connected to the bridges.
+#
 #
 #   Note: The physical device is the physical network device to attach to the
 #         bridge. Note that a network device of any type (ethernet, wifi, etc)
@@ -593,10 +638,10 @@ VETH_LIST=""
 #         If the bridge is _not_ a VLAN bridge, enter a - into the
 #         parent bridge field. 
 #
-# Example 1: "ovsbr0,1,-,-,-,-"
-# Example 1: "ovsbr0,1,192.168.99.0/24,vlan99,-,-"
-# Example 2: "ovsbr1,1,-,eth1,-,-"
-# Example 3: "ovsbr1,1,-,eth1,-,- cloud-admin,1,192.168.124.0/24,veth124,ovsbr0,124 cloud-public,1,192.168.126.0/24,veth126,ovsbr0,126"
+# Example 1: "ovsbr0,4,-,-,-,-"
+# Example 1: "ovsbr0,4,192.168.99.0/24,vlan99,-,-"
+# Example 2: "ovsbr1,4,-,eth1,-,-"
+# Example 3: "ovsbr1,4,-,eth1,-,- cloud-admin,4,192.168.124.0/24,veth124,ovsbr0,124 cloud-public,4,192.168.126.0/24,veth126,ovsbr0,126"
 #
 OVS_BRIDGE_LIST=""
 
@@ -615,7 +660,7 @@ OVS_BRIDGE_LIST=""
 VMWARE_VM_LIST=""
 
 
-# List of VMware VM names that shoule be started.
+# List of VMware VM names that should be started.
 #
 # The VMs listed in VMWARE_START_VM_LIST should be a the paths to the VMware
 # VM's .vmx files
