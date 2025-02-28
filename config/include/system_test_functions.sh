@@ -1,6 +1,6 @@
 ##############  System Test Functions #####################################
-# version: 3.10.1
-# date: 2024-11-21
+# version: 3.10.2
+# date: 2025-02-28
 
 #=========  Hardware Test Functions  =============
 
@@ -398,7 +398,10 @@ test_for_libvirt_group() {
 }
 
 test_for_libvirt_running() {
-  if systemctl is-enabled libvirtd | grep -qo "enabled"
+  if ( systemctl is-enabled virtqemud | grep -qo enabled ) && ( systemctl is-enabled virtstoraged | grep -qo enabled ) && ( systemctl is-enabled virtnetworkd | grep -qo enabled ) && ( systemctl is-enabled virtinterfaced | grep -qo enabled ) && ( systemctl is-enabled virtnodedevd | grep -qo enabled ) 
+  then
+    LIBVIRT_RUNNING=Y
+  elif systemctl is-enabled libvirtd | grep -qo "enabled"
   then
     LIBVIRT_RUNNING=Y
   else
@@ -1298,13 +1301,27 @@ run_test_libvirt_config() {
       echo -e "${RED}[Problem]${NC}"
       echo -e "  ${LTRED}The Libvirt daemon is not running and may not be enabled.${NC}"
       echo
-      echo -e "${RED}[Remediation Required]${NC}"
-      echo -e "${RED}        |     |     |${NC}"
-      echo -e "${RED}        V     V     V${NC}"
-      echo -e "  ${ORANGE}As the root user, enter the following commands:${NC}"
-      echo
-      echo -e "  ${LTGREEN}  systemctl enable libvirtd${NC}"
-      echo -e "  ${LTGREEN}  systemctl start libvirtd${NC}"
+      if sudo grep -q virtqemud /etc/libvirt/virtqemud.conf
+      then
+        echo -e "${RED}[Remediation Required]${NC}"
+        echo -e "${RED}        |     |     |${NC}"
+        echo -e "${RED}        V     V     V${NC}"
+        echo -e "  ${ORANGE}As the root user, enter the following commands:${NC}"
+        echo
+        echo -e "  ${LTGREEN}  systemctl enable --now virtstoraged${NC}"
+        echo -e "  ${LTGREEN}  systemctl enable --now virtnetworkd${NC}"
+        echo -e "  ${LTGREEN}  systemctl enable --now virtinterfaced${NC}"
+        echo -e "  ${LTGREEN}  systemctl enable --now virtnodedevd${NC}"
+        echo -e "  ${LTGREEN}  systemctl enable --now virtproxyd${NC}"
+        echo -e "  ${LTGREEN}  systemctl enable --now virtqemud${NC}"
+      else
+        echo -e "${RED}[Remediation Required]${NC}"
+        echo -e "${RED}        |     |     |${NC}"
+        echo -e "${RED}        V     V     V${NC}"
+        echo -e "  ${ORANGE}As the root user, enter the following commands:${NC}"
+        echo
+        echo -e "  ${LTGREEN}  systemctl enable --now libvirtd${NC}"
+      fi
       echo
       echo -e "${ORANGE}------------------------------------------------------------------------${NC}"
       echo
