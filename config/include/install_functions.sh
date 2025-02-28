@@ -1,6 +1,6 @@
 ##############  Lab Env Install and Configure Functions ######################
-# version: 5.10.0
-# date: 2024-04-23
+# version: 5.11.0
+# date: 2024-12-04
 #
 
 create_directories() {
@@ -206,10 +206,16 @@ create_new_vlans() {
     local VLAN_NAME=$(echo ${VLAN} | cut -d , -f 1)
     local NODE_NUM=$(echo ${VLAN} | cut -d , -f 2)
     local VLAN_NET=$(echo ${VLAN} | cut -d , -f 3)
-    local VLAN_ETHERDEV=$(echo ${VLAN} | cut -d , -f 4)
+    local VLAN_PARENT_DEV=$(echo ${VLAN} | cut -d , -f 4)
     local VLAN_ID=$(echo ${VLAN} | cut -d , -f 5)
 
-    configure_new_vlan ${VLAN_NAME} ${NODE_NUM} ${VLAN_NET} ${VLAN_ETHERDEV} ${VLAN_ID}
+  if systemctl is-enabled wicked.service > /dev/null 2>&1
+  then
+    configure_new_vlan ${VLAN_NAME} ${NODE_NUM} ${VLAN_NET} ${VLAN_PARENT_DEV} ${VLAN_ID}
+  elif systemctl is-enabled NetworkManager.service > /dev/null 2>&1
+  then
+    configure_new_vlan_nmcli ${VLAN_NAME} ${NODE_NUM} ${VLAN_NET} ${VLAN_PARENT_DEV} ${VLAN_ID}
+  fi
 
     #--test--------------------------------------------------
     if ! [ -e /proc/net/vlan/${VLAN_NAME} ]
@@ -237,9 +243,15 @@ create_new_bridges() {
     local BRIDGE_NAME=$(echo ${BRIDGE} | cut -d , -f 1)
     local NODE_NUM=$(echo ${BRIDGE} | cut -d , -f 2)
     local BRIDGE_NET=$(echo ${BRIDGE} | cut -d , -f 3)
-    local BRIDGE_ETHERDEV=$(echo ${BRIDGE} | cut -d , -f 4)
+    local BRIDGE_SLAVE_DEV=$(echo ${BRIDGE} | cut -d , -f 4)
 
-    configure_new_bridge ${BRIDGE_NAME} ${NODE_NUM} ${BRIDGE_NET} ${BRIDGE_ETHERDEV}
+  if systemctl is-enabled wicked.service > /dev/null 2>&1
+  then
+    configure_new_bridge ${BRIDGE_NAME} ${NODE_NUM} ${BRIDGE_NET} ${BRIDGE_SLAVE_DEV}
+  elif systemctl is-enabled NetworkManager.service > /dev/null 2>&1
+  then
+    configure_new_bridge_nmcli ${BRIDGE_NAME} ${NODE_NUM} ${BRIDGE_NET} ${BRIDGE_SLAVE_DEV}
+  fi
 
     #--test--------------------------------------------------
     if ! sudo /usr/sbin/brctl show | grep -q ${BRIDGE_NAME}
@@ -1054,6 +1066,9 @@ extract_register_libvirt_vms() {
 
     local ARCHIVE_TYPE=$(get_archive_type "${VM_SRC_DIR}/${VM}")
 
+    #-------------------------------------
+    #        Extract VM Archives        
+    #-------------------------------------
     echo -e "${LTBLUE}Extracting VM ...${NC}"
     extract_archive "${VM_SRC_DIR}/${VM}" "${VM_DEST_DIR}/${COURSE_NUM}" ${ARCHIVE_TYPE}
 
@@ -1089,6 +1104,9 @@ extract_register_libvirt_vms() {
 
     echo
 
+    #-------------------------------------
+    #       Edit VM Config Files        
+    #-------------------------------------
     edit_libvirt_domxml
 
     case ${MULTI_LAB_MACHINE}
@@ -1101,6 +1119,9 @@ extract_register_libvirt_vms() {
       ;;
     esac
 
+    #-------------------------------------
+    #     Register VMs with Libvirt        
+    #-------------------------------------
     #case ${MULTI_LAB_MACHINE}
     #in
     #  y|Y|yes|Yes|YES|t|T|true|True|TRUE)
@@ -1133,7 +1154,7 @@ extract_register_libvirt_vms() {
         then
           IS_ERROR=Y
           FAILED_TASKS="${FAILED_TASKS},install_functions.extract_register_libvirt_vms.register_vm:${VM}"
-          echo -e "${RED}ERROR: There was an error register the VM (${VM}) with Libvirt${NC}"
+          echo -e "${RED}ERROR: There was an error registering the VM (${VM}) with Libvirt${NC}"
           echo
         fi
       fi
@@ -1141,6 +1162,9 @@ extract_register_libvirt_vms() {
     fi
     echo
 
+    #-------------------------------------
+    #    Restore VM TMP Device Config        
+    #-------------------------------------
     if [ -e "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/tpm ]
     then
       restore_vm_tpm ${VM}
@@ -1154,6 +1178,9 @@ extract_register_libvirt_vms() {
     fi
     echo
 
+    #-------------------------------------
+    #      Create VM Storage Pools        
+    #-------------------------------------
     local VM_POOL_CONFIG=${VM}.pool.xml
     if [ -e "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_POOL_CONFIG}" ]
     then
@@ -1188,6 +1215,9 @@ extract_register_libvirt_vms() {
     fi
     echo
 
+    #-------------------------------------
+    #   Create VM VirtualBMC Devices        
+    #-------------------------------------
     if which vbmcctl > /dev/null
     then
       local VM_VBMC_CONFIG=${VM}.vbmc

@@ -1,6 +1,6 @@
 ##############  System Test Functions #####################################
-# version: 3.9.5
-# date: 2023-08-26
+# version: 3.10.1
+# date: 2024-11-21
 
 #=========  Hardware Test Functions  =============
 
@@ -265,71 +265,110 @@ test_for_libvirt_default_uri() {
 }
 
 test_libvirt_config() {
-  LIBVIRT_CFG=/etc/libvirt/libvirtd.conf
-  test -e /etc/libvirt && LIBVIRT_INSTALLED=Y
+  local LIBVIRT_CONFIG_DIR=/etc/libvirt
+  test -e ${LIBVIRT_CONFIG_DIR} && LIBVIRT_INSTALLED=Y
 
-  if sudo grep -q "^unix_sock_group = .*" ${LIBVIRT_CFG}
+  # Determine if Libvirt is using a monolithinc or modular daemons and behave accordingly
+  if [ -e ${LIBVIRT_CONFIG_DIR}/virtqemud.conf ]
   then
-    LIBVIRT_SOCK_GROUP_SET=Y
+    if [ -e ${LIBVIRT_CONFIG_DIR}/libvirtd.conf ]
+    then
+      LIBVIRT_CFG_LIST="${LIBVIRT_CONFIG_DIR}/libvirtd.conf ${LIBVIRT_CONFIG_DIR}/virtqemud.conf ${LIBVIRT_CONFIG_DIR}/virtinterfaced.conf ${LIBVIRT_CONFIG_DIR}/virtnetworkd.conf ${LIBVIRT_CONFIG_DIR}/virtnodedevd.conf ${LIBVIRT_CONFIG_DIR}/virtstoraged.conf"
+    else
+      LIBVIRT_CFG_LIST="${LIBVIRT_CONFIG_DIR}/virtqemud.conf ${LIBVIRT_CONFIG_DIR}/virtinterfaced.conf ${LIBVIRT_CONFIG_DIR}/virtnetworkd.conf ${LIBVIRT_CONFIG_DIR}/virtnodedevd.conf ${LIBVIRT_CONFIG_DIR}/virtstoraged.conf"
+    fi
   else
-    EDIT_LIBVIRTD_CONFIG=Y
+    LIBVIRT_CFG_LIST="${LIBVIRT_CONFIG_DIR}/libvirtd.conf"
   fi
 
-  if sudo grep -q "^unix_sock_ro_perms = \"0777\"" ${LIBVIRT_CFG}
-  then
-    LIBVIRT_SOCK_RO_PERMS_SET=Y
-  else
-    EDIT_LIBVIRTD_CONFIG=Y
-  fi
-
-  if sudo grep -q "^unix_sock_rw_perms = \"0770\"" ${LIBVIRT_CFG}
-  then
-    LIBVIRT_SOCK_RW_PERMS_SET=Y
-  else
-    EDIT_LIBVIRTD_CONFIG=Y
-  fi
-
-  if sudo grep -q "^unix_sock_dir = .*" ${LIBVIRT_CFG}
-  then
-    LIBVIRT_SOCK_DIR_SET=Y
-  else
-    EDIT_LIBVIRTD_CONFIG=Y
-  fi
-
-  if sudo grep -q "^auth_unix_ro = \"none\"" ${LIBVIRT_CFG}
-  then
-    AUTH_UNIX_RO_SET=Y
-  else
-    EDIT_LIBVIRTD_CONFIG=Y
-  fi
-
-  if sudo grep -q "^auth_unix_rw = \"none\"" ${LIBVIRT_CFG}
-  then
-    AUTH_UNIX_RW_SET=Y
-  else
-    EDIT_LIBVIRTD_CONFIG=Y
-  fi
+  for LIBVIRT_CFG in ${LIBVIRT_CFG_LIST}
+  do
+    if sudo grep -q "^unix_sock_group = .*" ${LIBVIRT_CFG}
+    then
+      LIBVIRT_SOCK_GROUP_SET=Y
+    else
+      EDIT_LIBVIRTD_CONFIG=Y
+      EDIT_LIBVIRTD_CONFIG_FILE_LIST="${EDIT_LIBVIRTD_CONFIG_FILE_LIST} ${LIBVIRT_CFG}"
+    fi
+ 
+    if sudo grep -q "^unix_sock_ro_perms = \"0777\"" ${LIBVIRT_CFG}
+    then
+      LIBVIRT_SOCK_RO_PERMS_SET=Y
+    else
+      EDIT_LIBVIRTD_CONFIG=Y
+      EDIT_LIBVIRTD_CONFIG_FILE_LIST="${EDIT_LIBVIRTD_CONFIG_FILE_LIST} ${LIBVIRT_CFG}"
+    fi
+ 
+    if sudo grep -q "^unix_sock_rw_perms = \"0770\"" ${LIBVIRT_CFG}
+    then
+      LIBVIRT_SOCK_RW_PERMS_SET=Y
+    else
+      EDIT_LIBVIRTD_CONFIG=Y
+      EDIT_LIBVIRTD_CONFIG_FILE_LIST="${EDIT_LIBVIRTD_CONFIG_FILE_LIST} ${LIBVIRT_CFG}"
+    fi
+ 
+    if sudo grep -q "^unix_sock_dir = .*" ${LIBVIRT_CFG}
+    then
+      LIBVIRT_SOCK_DIR_SET=Y
+    else
+      EDIT_LIBVIRTD_CONFIG=Y
+      EDIT_LIBVIRTD_CONFIG_FILE_LIST="${EDIT_LIBVIRTD_CONFIG_FILE_LIST} ${LIBVIRT_CFG}"
+    fi
+ 
+    if sudo grep -q "^auth_unix_ro = \"none\"" ${LIBVIRT_CFG}
+    then
+      AUTH_UNIX_RO_SET=Y
+    else
+      EDIT_LIBVIRTD_CONFIG=Y
+      EDIT_LIBVIRTD_CONFIG_FILE_LIST="${EDIT_LIBVIRTD_CONFIG_FILE_LIST} ${LIBVIRT_CFG}"
+    fi
+ 
+    if sudo grep -q "^auth_unix_rw = \"none\"" ${LIBVIRT_CFG}
+    then
+      AUTH_UNIX_RW_SET=Y
+    else
+      EDIT_LIBVIRTD_CONFIG=Y
+      EDIT_LIBVIRTD_CONFIG_FILE_LIST="${EDIT_LIBVIRTD_CONFIG_FILE_LIST} ${LIBVIRT_CFG}"
+    fi
+  done
 }
 
 test_for_libvirt_tcp_listen() {
-  LIBVIRT_CFG=/etc/libvirt/libvirtd.conf
-  if sudo grep -q "^listen_tcp = 1" ${LIBVIRT_CFG}
+  local LIBVIRT_CONFIG_DIR=/etc/libvirt
+
+  # Determin if Libvirt is using a monolithinc or modular daemons
+  # and behave accordingly
+  if [ -e ${LIBVIRT_CONFIG_DIR}/virtproxyd.conf ]
   then
-    LISTEN_TCP_SET=Y
+    LIBVIRT_PROXY_CONFIG_LIST="${LIBVIRT_CONFIG_DIR}/virtproxyd.conf"
   else
-    EDIT_LIBVIRTD_CONFIG=Y
+    LIBVIRT_PROXY_CONFIG_LIST="${LIBVIRT_CONFIG_DIR}/libvirtd.conf"
   fi
 
-  if sudo grep -q "^auth_tcp = \"none\"" ${LIBVIRT_CFG}
-  then
-    AUTH_TCP_NONE_SET=Y
-  else
-    EDIT_LIBVIRTD_CONFIG_TCP_LISTEN=Y
-  fi
+  for LIBVIRT_PROXY_CFG in ${LIBVIRT_PROXY_CONFIG_LIST}
+  do
+    if sudo grep -q "^listen_tcp = 1" ${LIBVIRT_PROXY_CFG}
+    then
+      LISTEN_TCP_SET=Y
+    else
+      EDIT_LIBVIRTD_CONFIG=Y
+      EDIT_LIBVIRTD_PROXY_CONFIG_FILE_LIST="${EDIT_LIBVIRTD_PROXY_CONFIG_FILE_LIST} ${LIBVIRT_PROXY_CFG}"
+    fi
+ 
+    if sudo grep -q "^auth_tcp = \"none\"" ${LIBVIRT_PROXY_CFG}
+    then
+      AUTH_TCP_NONE_SET=Y
+    else
+      EDIT_LIBVIRTD_CONFIG_TCP_LISTEN=Y
+      EDIT_LIBVIRTD_PROXY_CONFIG_FILE_LIST="${EDIT_LIBVIRTD_PROXY_CONFIG_FILE_LIST} ${LIBVIRT_PROXY_CFG}"
+    fi
+  done
 }
 
 test_for_vnc_spice_listen() {
-  LIBVIRT_QEMU_CFG=/etc/libvirt/qemu.conf
+  local LIBVIRT_CONFIG_DIR=/etc/libvirt
+  LIBVIRT_QEMU_CFG=${LIBVIRT_CONFIG_DIR}/qemu.conf
+
   if sudo grep -q "^vnc_listen = \"0.0.0.0\"" ${LIBVIRT_QEMU_CFG}
   then
     VNC_LISTEN_ALL_SET=Y
@@ -952,7 +991,11 @@ run_test_libvirt_config() {
       echo -e "${RED}        V     V     V${NC}"
       case ${EDIT_LIBVIRTD_CONFIG} in
         Y)
-          echo -e "  ${ORANGE}As the root user, edit ${BLUE}/etc/libvirt/libvirtd.conf${NC}"
+          echo -e "  ${ORANGE}As the root user, edit the following files:${NC}"
+          for EDIT_LIBVIRTD_CONFIG_FILE in ${EDIT_LIBVIRTD_CONFIG_FILE_LIST}
+          do
+            echo -e "    ${BLUE}${EDIT_LIBVIRTD_CONFIG_FILE}${NC}"
+          done
           echo
         ;;
       esac
@@ -989,7 +1032,11 @@ run_test_libvirt_config() {
       echo -e "${RED}        V     V     V${NC}"
       case ${EDIT_LIBVIRTD_CONFIG} in
         Y)
-          echo -e "  ${ORANGE}As the root user, edit ${BLUE}/etc/libvirt/libvirtd.conf${NC}"
+          echo -e "  ${ORANGE}As the root user, edit the following files:${NC}"
+          for EDIT_LIBVIRTD_CONFIG_FILE in ${EDIT_LIBVIRTD_CONFIG_FILE_LIST}
+          do
+            echo -e "    ${BLUE}${EDIT_LIBVIRTD_CONFIG_FILE}${NC}"
+          done
           echo
         ;;
       esac
@@ -1017,7 +1064,11 @@ run_test_libvirt_config() {
       echo -e "${RED}        V     V     V${NC}"
       case ${EDIT_LIBVIRTD_CONFIG} in
         Y)
-          echo -e "  ${ORANGE}As the root user, edit ${BLUE}/etc/libvirt/libvirtd.conf${NC}"
+          echo -e "  ${ORANGE}As the root user, edit the following files:${NC}"
+          for EDIT_LIBVIRTD_CONFIG_FILE in ${EDIT_LIBVIRTD_CONFIG_FILE_LIST}
+          do
+            echo -e "    ${BLUE}${EDIT_LIBVIRTD_CONFIG_FILE}${NC}"
+          done
           echo
         ;;
       esac
@@ -1045,7 +1096,11 @@ run_test_libvirt_config() {
       echo -e "${RED}        V     V     V${NC}"
       case ${EDIT_LIBVIRTD_CONFIG} in
         Y)
-          echo -e "  ${ORANGE}As the root user, edit ${BLUE}/etc/libvirt/libvirtd.conf${NC}"
+          echo -e "  ${ORANGE}As the root user, edit the following files:${NC}"
+          for EDIT_LIBVIRTD_CONFIG_FILE in ${EDIT_LIBVIRTD_CONFIG_FILE_LIST}
+          do
+            echo -e "    ${BLUE}${EDIT_LIBVIRTD_CONFIG_FILE}${NC}"
+          done
           echo
         ;;
       esac
@@ -1073,7 +1128,11 @@ run_test_libvirt_config() {
       echo -e "${RED}        V     V     V${NC}"
       case ${EDIT_LIBVIRTD_CONFIG} in
         Y)
-          echo -e "  ${ORANGE}As the root user, edit ${BLUE}/etc/libvirt/libvirtd.conf${NC}"
+          echo -e "  ${ORANGE}As the root user, edit the following files:${NC}"
+          for EDIT_LIBVIRTD_CONFIG_FILE in ${EDIT_LIBVIRTD_CONFIG_FILE_LIST}
+          do
+            echo -e "    ${BLUE}${EDIT_LIBVIRTD_CONFIG_FILE}${NC}"
+          done
           echo
         ;;
       esac
@@ -1101,7 +1160,11 @@ run_test_libvirt_config() {
       echo -e "${RED}        V     V     V${NC}"
       case ${EDIT_LIBVIRTD_CONFIG} in
         Y)
-          echo -e "  ${ORANGE}As the root user, edit ${BLUE}/etc/libvirt/libvirtd.conf${NC}"
+          echo -e "  ${ORANGE}As the root user, edit the following files:${NC}"
+          for EDIT_LIBVIRTD_CONFIG_FILE in ${EDIT_LIBVIRTD_CONFIG_FILE_LIST}
+          do
+            echo -e "    ${BLUE}${EDIT_LIBVIRTD_CONFIG_FILE}${NC}"
+          done
           echo
         ;;
       esac
@@ -1129,7 +1192,11 @@ run_test_libvirt_config() {
       echo -e "${RED}        V     V     V${NC}"
       case ${EDIT_LIBVIRTD_CONFIG} in
         Y)
-          echo -e "  ${ORANGE}As the root user, edit ${BLUE}/etc/libvirt/libvirtd.conf${NC}"
+          echo -e "  ${ORANGE}As the root user, edit the following files:${NC}"
+          for EDIT_LIBVIRTD_CONFIG_FILE in ${EDIT_LIBVIRTD_CONFIG_FILE_LIST}
+          do
+            echo -e "    ${BLUE}${EDIT_LIBVIRTD_CONFIG_FILE}${NC}"
+          done
           echo
         ;;
       esac
@@ -1268,9 +1335,13 @@ run_test_libvirt_tcp_listen() {
       echo -e "${RED}[Remediation Required]${NC}"
       echo -e "${RED}        |     |     |${NC}"
       echo -e "${RED}        V     V     V${NC}"
-      case ${EDIT_LIBVIRTD_CONFIG} in
+      case ${EDIT_LIBVIRTD_PROXY_CONFIG} in
         Y)
-          echo -e "  ${ORANGE}As the root user, edit ${BLUE}/etc/libvirt/libvirtd.conf${NC}"
+          echo -e "  ${ORANGE}As the root user, edit the following files:${NC}"
+          for EDIT_LIBVIRTD_PROXY_CONFIG_FILE in ${EDIT_LIBVIRTD_PROXY_CONFIG_FILE_LIST}
+          do
+            echo -e "    ${BLUE}${EDIT_LIBVIRTD_PROXY_CONFIG_FILE}${NC}"
+          done
           echo
         ;;
       esac
@@ -1298,9 +1369,13 @@ run_test_libvirt_tcp_listen() {
       echo -e "${RED}[Remediation Required]${NC}"
       echo -e "${RED}        |     |     |${NC}"
       echo -e "${RED}        V     V     V${NC}"
-      case ${EDIT_LIBVIRTD_CONFIG} in
+      case ${EDIT_LIBVIRTD_PROXY_CONFIG} in
         Y)
-          echo -e "  ${ORANGE}As the root user, edit ${BLUE}/etc/libvirt/libvirtd.conf${NC}"
+          echo -e "  ${ORANGE}As the root user, edit the following files:${NC}"
+          for EDIT_LIBVIRTD_PROXY_CONFIG_FILE in ${EDIT_LIBVIRTD_PROXY_CONFIG_FILE_LIST}
+          do
+            echo -e "    ${BLUE}${EDIT_LIBVIRTD_PROXY_CONFIG_FILE}${NC}"
+          done
           echo
         ;;
       esac

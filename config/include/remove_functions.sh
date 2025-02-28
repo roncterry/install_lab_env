@@ -1,6 +1,6 @@
 ##############  Remove Lab Env Functions ##################################
-# version: 4.7.0
-# date: 2019-10-15
+# version: 4.8.0
+# date: 2024-12-04
 #
 
 remove_libvirt_networks() {
@@ -107,13 +107,23 @@ remove_new_bridges() {
     local BRIDGE_NAME=$(echo ${BRIDGE} | cut -d , -f 1)
     local NODE_NUM=$(echo ${BRIDGE} | cut -d , -f 2)
     local BRIDGE_NET=$(echo ${BRIDGE} | cut -d , -f 3)
+    local BRIDGE_SLAVE_DEV=$(echo ${BRIDGE} | cut -d , -f 4)
     local IFCFG_FILE="/etc/sysconfig/network/ifcfg-${BRIDGE_NAME}"
     echo 
 
-    echo -e "${LTCYAN}Bridge: ${BRIDGE_NAME} ...${NC}"
-    run sudo /sbin/ifdown ${BRIDGE_NAME}
-    run sudo rm -rf ${IFCFG_FILE}
-    echo
+    if systemctl is-enabled wicked.service > /dev/null 2>&1
+    then
+      echo -e "${LTCYAN}Bridge: ${BRIDGE_NAME} ...${NC}"
+      run sudo /sbin/ifdown ${BRIDGE_NAME}
+      run sudo rm -rf ${IFCFG_FILE}
+      echo
+    elif systemctl is-enabled NetworkManager.service > /dev/null 2>&1
+    then
+      echo -e "${LTCYAN}Bridge: ${BRIDGE_NAME} ...${NC}"
+      run sudo nmcli connection delete ${BRIDGE_NAME}
+      run sudo nmcli connection delete ${BRIDGE_NAME}-slave-${BRIDGE_SLAVE_DEV}
+      echo
+    fi
   done
 }
 
@@ -129,13 +139,25 @@ remove_new_vlans() {
     local VLAN_NAME=$(echo ${VLAN} | cut -d , -f 1)
     local NODE_NUM=$(echo ${VLAN} | cut -d , -f 2)
     local VLAN_NET=$(echo ${VLAN} | cut -d , -f 3)
+    local VLAN_PARENT_DEV=$(echo ${VLAN} | cut -d , -f 4)
+    local VLAN_ID=$(echo ${VLAN} | cut -d , -f 5)
     local IFCFG_FILE="/etc/sysconfig/network/ifcfg-${VLAN_NAME}"
     echo 
 
-    echo -e "${LTCYAN}VLAN: ${VLAN_NAME} ...${NC}"
-    run sudo /sbin/ifdown ${VLAN_NAME}
-    run sudo rm -rf ${IFCFG_FILE}
-    echo
+    if systemctl is-enabled wicked.service > /dev/null 2>&1
+    then
+      echo -e "${LTCYAN}VLAN: ${VLAN_NAME} ...${NC}"
+      run sudo /sbin/ifdown ${VLAN_NAME}
+      run sudo rm -rf ${IFCFG_FILE}
+      echo
+    elif systemctl is-enabled NetworkManager.service > /dev/null 2>&1
+    then
+      local VLAN_NM_DEV="$(nmcli connection show | grep ${VLAN_NAME} | awk '{ print $4 }')"
+      echo -e "${LTCYAN}VLAN: ${VLAN_NAME} ...${NC}"
+      run sudo nmcli device delete ${VLAN_NM_DEV}
+      run sudo nmcli connection delete ${VLAN_NAME}
+      echo
+    fi
   done
 }
 

@@ -1,6 +1,6 @@
 ##############  Helper Functions #############################################
-# version: 3.13.0
-# date: 2024-04-23
+# version: 3.15.0
+# date: 2024-12-04
 #
 
 configure_nic() {
@@ -437,7 +437,7 @@ configure_new_vlan() {
         local VLAN_NETWORK=$3
       ;;
     esac
-    local VLAN_ETHERDEV=$4
+    local VLAN_PARENT_DEV=$4
     local VLAN_ID=$5
   fi
 
@@ -459,10 +459,10 @@ configure_new_vlan() {
 
   #-----------------------------------------------------------------------------
 
-  if ! [ -e /etc/sysconfig/network/ifcfg-${VLAN_ETHERDEV} ]
+  if ! [ -e /etc/sysconfig/network/ifcfg-${VLAN_PARENT_DEV} ]
   then
-    echo -e "${LTBLUE}Creating new NIC (${VLAN_ETHERDEV}) for VLAN:${LTGRAY}${NC}"
-    configure_nic ${VLAN_ETHERDEV} 1 - none hotplug
+    echo -e "${LTBLUE}Creating new NIC (${VLAN_PARENT_DEV}) for VLAN:${LTGRAY}${NC}"
+    configure_nic ${VLAN_PARENT_DEV} 1 - none hotplug
   fi
 
   if [ -e ${IFCFG_FILE} ]
@@ -471,17 +471,17 @@ configure_new_vlan() {
     echo -e "${LTRED}ERROR: An ifcfg- file with that name already exists:${NC} $(basename ${IFCFG_FILE})${NC}"
     echo
     return 1
-  elif ! echo ${NET_DEV_LIST} | grep -q ${VLAN_ETHERDEV}
+  elif ! echo ${NET_DEV_LIST} | grep -q ${VLAN_PARENT_DEV}
   then
     echo
-    echo -e "${LTRED}ERROR: The specified ethernet device (${VLAN_ETHERDEV}) is not available.${NC}"
+    echo -e "${LTRED}ERROR: The specified ethernet device (${VLAN_PARENT_DEV}) is not available.${NC}"
     echo
     return 1
   else
     echo
     echo -e "${LTPURPLE}VLAN name:${NC}       ${VLAN_NAME}${NC}"
     echo -e "${LTPURPLE}VLAN ID:${NC}         ${VLAN_ID}${NC}"
-    echo -e "${LTPURPLE}Ethernet Device:${NC} ${VLAN_ETHERDEV}${NC}"
+    echo -e "${LTPURPLE}Ethernet Device:${NC} ${VLAN_PARENT_DEV}${NC}"
     echo -e "${LTPURPLE}IP address:${NC}      ${CIDR_IP_ADDR}${NC}"
     echo -e "${LTPURPLE}Writing out:${NC}     ${IFCFG_FILE}${NC}"
     echo
@@ -489,7 +489,7 @@ configure_new_vlan() {
     echo "#created by install_lab_env" >> ${TMP_FILE}
     echo "BOOTPROTO='${BOOTPROTO}'" >> ${TMP_FILE}
     echo "BROADCAST=''" >> ${TMP_FILE}
-    echo "ETHERDEVICE='${VLAN_ETHERDEV}'" >> ${TMP_FILE}
+    echo "ETHERDEVICE='${VLAN_PARENT_DEV}'" >> ${TMP_FILE}
     echo "ETHTOOL_OPTIONS=''" >> ${TMP_FILE}
     echo "IPADDR='${CIDR_IP_ADDR}'" >> ${TMP_FILE}
     echo "MTU=''" >> ${TMP_FILE}
@@ -544,7 +544,7 @@ configure_new_bridge() {
     local BRIDGE_NAME=$1
     local NODE_NUM=$2
     local BRIDGE_NETWORK=$3
-    local BRIDGE_ETHERDEV=$4
+    local BRIDGE_SLAVE_DEV=$4
   fi
 
   #-----------------------------------------------------------------------------
@@ -560,10 +560,10 @@ configure_new_bridge() {
   else
     local CIDR_IP_ADDR=""
   fi
-  if [ -z ${BRIDGE_ETHERDEV} ]
+  if [ -z ${BRIDGE_SLAVE_DEV} ]
   then
-    local BRIDGE_ETHERDEV=$(sudo yast lan show id=$(sudo yast lan list 2>&1 > /dev/null | grep "^[0-9]" | grep -i "not configured" | grep -i ethernet | awk '{ print $1 }' | head -n 1 ) 2>&1 > /dev/null | grep "Device Name" | awk '{ print $3 }')
-    #local BRIDGE_ETHERDEV=$(sudo yast lan show id=$(sudo yast lan list 2>&1 > /dev/null | grep "^[0-9]" | grep -i ethernet | awk '{ print $1 }' | head -n 2 | tail -n 1) 2>&1 > /dev/null | grep "Device Name" | awk '{ print $3 }')
+    local BRIDGE_SLAVE_DEV=$(sudo yast lan show id=$(sudo yast lan list 2>&1 > /dev/null | grep "^[0-9]" | grep -i "not configured" | grep -i ethernet | awk '{ print $1 }' | head -n 1 ) 2>&1 > /dev/null | grep "Device Name" | awk '{ print $3 }')
+    #local BRIDGE_SLAVE_DEV=$(sudo yast lan show id=$(sudo yast lan list 2>&1 > /dev/null | grep "^[0-9]" | grep -i ethernet | awk '{ print $1 }' | head -n 2 | tail -n 1) 2>&1 > /dev/null | grep "Device Name" | awk '{ print $3 }')
   fi
   local BOOTPROTO="static"
 
@@ -575,7 +575,7 @@ configure_new_bridge() {
     echo -e "${LTRED}ERROR: An ifcfg- file with that name already exists:${NC} $(basename ${IFCFG_FILE})${NC}"
     echo
     return 1
-  elif [ -z ${BRIDGE_ETHERDEV} ]
+  elif [ -z ${BRIDGE_SLAVE_DEV} ]
   then
     echo
     echo -e "${LTRED}ERROR: Supplied or unconfigured ethernet device not available.${NC}"
@@ -584,7 +584,7 @@ configure_new_bridge() {
   else
     echo
     echo -e "${LTPURPLE}Bridge name:${NC}  ${BRIDGE_NAME}${NC}"
-    echo -e "${LTPURPLE}Using device:${NC} ${BRIDGE_ETHERDEV}${NC}"
+    echo -e "${LTPURPLE}Using device:${NC} ${BRIDGE_SLAVE_DEV}${NC}"
     echo -e "${LTPURPLE}IP address:${NC}   ${CIDR_IP_ADDR}${NC}"
     echo -e "${LTPURPLE}Writing out:${NC}  ${IFCFG_FILE}${NC}"
     echo
@@ -593,7 +593,7 @@ configure_new_bridge() {
     echo "BOOTPROTO='${BOOTPROTO}'" >> ${TMP_FILE}
     echo "BRIDGE='yes'" >> ${TMP_FILE}
     echo "BRIDGE_FORWARDDELAY='0'" >> ${TMP_FILE}
-    echo "BRIDGE_PORTS='${BRIDGE_ETHERDEV}'" >> ${TMP_FILE}
+    echo "BRIDGE_PORTS='${BRIDGE_SLAVE_DEV}'" >> ${TMP_FILE}
     echo "BRIDGE_STP='off'" >> ${TMP_FILE}
     echo "BROADCAST=''" >> ${TMP_FILE}
     echo "ETHTOOL_OPTIONS=''" >> ${TMP_FILE}
@@ -607,6 +607,154 @@ configure_new_bridge() {
 
   echo -e "${LTBLUE}Starting:${LTGRAY} ${BRIDGE_NAME}${NC}"
   sudo /sbin/ifup ${BRIDGE_NAME}
+}
+
+configure_new_vlan_nmcli() {
+  if [ -z $1 ]
+  then
+    echo
+    echo -e "${LTRED}ERROR: Missing vlan name.${NC}"
+    echo
+    echo -e "${NC}USAGE: $0 <vlan_name> <node_number> <vlan_network> <eth_dev> <vlan_id>${NC}"
+    echo
+    return 1
+  elif [ -z $2 ]
+  then
+    echo
+    echo -e "${LTRED}ERROR: Missing node number.${NC}"
+    echo -e "${LTRED}       The node number must be a number between 1 and 9.${NC}"
+    echo
+    echo -e "${NC}USAGE: $0 <vlan_name> <node_number> <vlan_network> <eth_dev> <vlan_id>${NC}"
+    echo
+    return 1
+  elif ! echo $2 | grep -q [1-9]
+  then
+    echo
+    echo -e "${LTRED}ERROR: The node number must be a number between 1 and 9.${NC}"
+    echo
+    return 1
+  elif [ -z $3 ]
+  then
+    echo
+    echo -e "${LTRED}ERROR: The VLAN network must be the network ID of the bridge with CIDR mask.${NC}"
+    echo -e "${NC}       Example: 192.168.124.0/24${NC}"
+    echo
+    echo -e "${NC}USAGE: $0 <vlan_name> <node_number> <vlan_network> <eth_dev> <vlan_id>${NC}"
+    echo
+    return 1
+  elif [ -z $4 ]
+  then
+    echo
+    echo -e "${LTRED}ERROR: The VLAN ethernet device must be the name of an existing network interface.${NC}"
+    echo -e "${NC}       Example: eth1${NC}"
+    echo
+    echo -e "${NC}USAGE: $0 <vlan_name> <node_number> <vlan_network> <eth_dev> <vlan_id>${NC}"
+    echo
+    return 1
+  elif [ -z $5 ]
+  then
+    echo
+    echo -e "${LTRED}ERROR: The VLAN ID must be an integer number between 1-2000.${NC}"
+    echo -e "${NC}       Example: 124${NC}"
+    echo
+    echo -e "${NC}USAGE: $0 <vlan_name> <node_number> <vlan_network> <eth_dev> <vlan_id>${NC}"
+    echo
+    return 1
+  else
+    local VLAN_NAME=$1
+    local NODE_NUM=$2
+    case ${3} in
+      -)
+        local VLAN_NETWORK=""
+      ;;
+      *)
+        local VLAN_NETWORK=$3
+      ;;
+    esac
+    local VLAN_PARENT_DEV=$4
+    local VLAN_ID=$5
+  fi
+
+  local IP_NETWORK="$(echo ${VLAN_NETWORK} | cut -d / -f 1 | cut -d . -f 1,2,3)"
+  if ! [ -z ${IP_NETWORK} ]
+  then
+    local IP_ADDR="${IP_NETWORK}.${NODE_NUM}"
+    local CIDRMASK="/$(echo ${VLAN_NETWORK} | cut -d / -f 2)"
+    local CIDR_IP_ADDR="${IP_ADDR}${CIDRMASK}"
+  else
+    local CIDR_IP_ADDR=""
+  fi
+
+  #-----------------------------------------------------------------------------
+
+  if [ -z ${CIDR_IP_ADDR} ]
+  then
+    sudo nmcli connection add con-name ${VLAN_NAME} type vlan dev ${VLAN_PARENT_DEV} id ${VLAN_ID}
+  else
+    sudo nmcli connection add con-name ${VLAN_NAME} type vlan dev ${VLAN_PARENT_DEV} id ${VLAN_ID} ip4 ${CIDR_IP_ADDR}
+  fi
+}
+
+configure_new_bridge_nmcli() {
+  if [ -z $1 ]
+  then
+    echo
+    echo -e "${LTRED}ERROR: Missing bridge name.${NC}"
+    echo
+    echo -e "${NC}USAGE: $0 <bridge_name> <node_number> <bridge_network> <ethernet_device>${NC}"
+    echo
+    return 1
+  elif [ -z $2 ]
+  then
+    echo
+    echo -e "${LTRED}ERROR: Missing node number.${NC}"
+    echo -e "${LTRED}       The node number must be a number between 1 and 9.${NC}"
+    echo
+    echo -e "${NC}USAGE: $0 <bridge_name> <node_number> <bridge_network> <ethernet_device>${NC}"
+    echo
+    return 1
+  elif ! echo $2 | grep -q [1-9]
+  then
+    echo
+    echo -e "${LTRED}ERROR: The node number must be a number between 1 and 9.${NC}"
+    echo
+    return 1
+  elif [ -z $3 ]
+  then
+    echo
+    echo -e "${LTRED}ERROR: The Bridge network must be the network ID of the bridge with CIDR mask.${NC}"
+    echo -e "${NC}       Example: 192.168.124.0/24${NC}"
+    echo
+    echo -e "${NC}USAGE: $0 <bridge_name> <node_number> <bridge_network> <ethernet_device>${NC}"
+    echo
+    return 1
+  else
+    local BRIDGE_NAME=$1
+    local NODE_NUM=$2
+    local BRIDGE_NETWORK=$3
+    local BRIDGE_SLAVE_DEV=$4
+  fi
+
+  local IP_NETWORK="$(echo ${BRIDGE_NETWORK} | cut -d / -f 1 | cut -d . -f 1,2,3)"
+  if ! [ -z ${IP_NETWORK} ]
+  then
+    local IP_ADDR="${IP_NETWORK}.${NODE_NUM}"
+    local CIDRMASK="/$(echo ${BRIDGE_NETWORK} | cut -d / -f 2)"
+    local CIDR_IP_ADDR="${IP_ADDR}${CIDRMASK}"
+  else
+    local CIDR_IP_ADDR=""
+  fi
+
+  #-----------------------------------------------------------------------------
+
+  if [ -z ${CIDR_IP_ADDR} ]
+  then
+    sudo nmcli connection add con-name ${BRIDGE_NAME} type bridge ifname ${BRIDGE_NAME}
+    sudo nmcli connection add con-name ${BRIDGE_NAME}-slave-${BRIDGE_SLAVE_DEV} type bridge-slave ifname ${BRIDGE_SLAVE_DEV} master ${BRIDGE_NAME}
+  else
+    sudo nmcli connection add con-name ${BRIDGE_NAME} type bridge ifname ${BRIDGE_NAME} ip4 ${CIDR_IP_ADDR}
+    sudo nmcli connection add con-name ${BRIDGE_NAME}-slave-${BRIDGE_SLAVE_DEV} type bridge-slave ifname ${BRIDGE_SLAVE_DEV} master ${BRIDGE_NAME}
+  fi
 }
 
 convert_eth_to_br() {
@@ -799,6 +947,8 @@ get_libvirt_capabilities() {
 }
 
 edit_libvirt_domxml() {
+# This function edits Libvirt VM config files before they are registered with Libvirt
+
     get_libvirt_capabilities
 
     case ${MULTI_LAB_MACHINE}
@@ -814,6 +964,24 @@ edit_libvirt_domxml() {
     if [ -e "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_CONFIG}" ]
     then
       echo -e "${LTBLUE}Updating VM configuration file ...${NC}"
+
+      #--- remove unsupported features ---
+      case ${LIBVIRT_REMOVE_UNSUPPORTED_VM_FEATURES} in
+        y|Y|yes|Yes)
+          ### This removes the <audio> tag that is not supported before Leap 15.4'
+          echo -e "  ${LTCYAN}Removing <audio .../> tag ...${NC}"
+          run sed -i -e '/^.*<audio/d' "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_CONFIG}"
+          local REMOVE_UNSUPPORTED_VM_FEATURES=Y
+
+          ### add additional unsupported features to remove here in the future
+
+          echo
+
+        ;;
+        *)
+          local REMOVE_UNSUPPORTED_VM_FEATURES=N
+        ;;
+      esac
 
       #--- cpu ---
       case ${LIBVIRT_SET_CPU_TO_HYPERVISOR_DEFUALT} in
