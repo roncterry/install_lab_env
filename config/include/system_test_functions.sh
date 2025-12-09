@@ -987,7 +987,7 @@ run_test_libvirt_config() {
       echo
       echo -e "${ORANGE}------------------------------------------------------------------------${NC}"
       echo -e "${RED}[Problem]${NC}"
-      echo -e "  ${LTRED}Libvirt is not installed.${NC}"
+      echo -e "  ${LTRED}Libvirt is not installed or configured as required.${NC}"
       echo
       echo -e "${RED}[Remediation Required]${NC}"
       echo -e "${RED}        |     |     |${NC}"
