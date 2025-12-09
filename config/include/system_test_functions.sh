@@ -1,6 +1,6 @@
 ##############  System Test Functions #####################################
-# version: 3.10.2
-# date: 2025-02-28
+# version: 3.10.3
+# date: 2025-12-09
 
 #=========  Hardware Test Functions  =============
 
@@ -663,7 +663,7 @@ run_test_for_sudo() {
 }
 
 run_test_for_p7zip() {
-  echo -e "${LTBLUE}Checking for p7zip ...${NC}"
+  echo -e "${LTBLUE}Checking for the 7z command ...${NC}"
   echo -e "${LTBLUE}-------------------------------------------------------------------${NC}"
   echo
   test_for_p7zip
@@ -679,12 +679,12 @@ run_test_for_p7zip() {
       echo
       echo -e "${ORANGE}------------------------------------------------------------------------${NC}"
       echo -e "${RED}[Problem]${NC}"
-      echo -e "  ${LTRED}The p7zip utility (7z command) is not installed.${NC}"
+      echo -e "  ${LTRED}The 7z command is not installed.${NC}"
       echo
       echo -e "${RED}[Remediation Required]${NC}"
       echo -e "${RED}        |     |     |${NC}"
       echo -e "${RED}        V     V     V${NC}"
-      echo -e "  ${ORANGE}Install the package: ${BLUE}p7zip${NC}"
+      echo -e "  ${ORANGE}Install the package: ${BLUE}7zip (or on older distros p7zip)${NC}"
       echo
       echo -e "${ORANGE}------------------------------------------------------------------------${NC}"
       echo
@@ -1561,7 +1561,7 @@ run_tests() {
     ;;
   esac
 
-  #-p7zip
+  #-7zip
   case ${REQUIRE_P7ZIP} in
     N|n)
       P7ZIP_INSTALLED=NA
