@@ -1,6 +1,6 @@
 ##############  System Test Functions #####################################
-# version: 3.10.3
-# date: 2025-12-09
+# version: 3.10.4
+# date: 2025-12-10
 
 #=========  Hardware Test Functions  =============
 
@@ -269,14 +269,15 @@ test_libvirt_config() {
   test -e ${LIBVIRT_CONFIG_DIR} && LIBVIRT_INSTALLED=Y
 
   # Determine if Libvirt is using a monolithinc or modular daemons and behave accordingly
-  if [ -e ${LIBVIRT_CONFIG_DIR}/virtqemud.conf ]
+  if sudo test -e "${LIBVIRT_CONFIG_DIR}/virtqemud.conf"
   then
-    if [ -e ${LIBVIRT_CONFIG_DIR}/libvirtd.conf ]
-    then
-      LIBVIRT_CFG_LIST="${LIBVIRT_CONFIG_DIR}/libvirtd.conf ${LIBVIRT_CONFIG_DIR}/virtqemud.conf ${LIBVIRT_CONFIG_DIR}/virtinterfaced.conf ${LIBVIRT_CONFIG_DIR}/virtnetworkd.conf ${LIBVIRT_CONFIG_DIR}/virtnodedevd.conf ${LIBVIRT_CONFIG_DIR}/virtstoraged.conf"
-    else
-      LIBVIRT_CFG_LIST="${LIBVIRT_CONFIG_DIR}/virtqemud.conf ${LIBVIRT_CONFIG_DIR}/virtinterfaced.conf ${LIBVIRT_CONFIG_DIR}/virtnetworkd.conf ${LIBVIRT_CONFIG_DIR}/virtnodedevd.conf ${LIBVIRT_CONFIG_DIR}/virtstoraged.conf"
-    fi
+    LIBVIRT_CFG_LIST="${LIBVIRT_CONFIG_DIR}/virtqemud.conf ${LIBVIRT_CONFIG_DIR}/virtinterfaced.conf ${LIBVIRT_CONFIG_DIR}/virtnetworkd.conf ${LIBVIRT_CONFIG_DIR}/virtnodedevd.conf ${LIBVIRT_CONFIG_DIR}/virtstoraged.conf"
+    #if sudo test -e "${LIBVIRT_CONFIG_DIR}/libvirtd.conf"
+    #then
+    #  LIBVIRT_CFG_LIST="${LIBVIRT_CONFIG_DIR}/libvirtd.conf ${LIBVIRT_CONFIG_DIR}/virtqemud.conf ${LIBVIRT_CONFIG_DIR}/virtinterfaced.conf ${LIBVIRT_CONFIG_DIR}/virtnetworkd.conf ${LIBVIRT_CONFIG_DIR}/virtnodedevd.conf ${LIBVIRT_CONFIG_DIR}/virtstoraged.conf"
+    #else
+    #  LIBVIRT_CFG_LIST="${LIBVIRT_CONFIG_DIR}/virtqemud.conf ${LIBVIRT_CONFIG_DIR}/virtinterfaced.conf ${LIBVIRT_CONFIG_DIR}/virtnetworkd.conf ${LIBVIRT_CONFIG_DIR}/virtnodedevd.conf ${LIBVIRT_CONFIG_DIR}/virtstoraged.conf"
+    #fi
   else
     LIBVIRT_CFG_LIST="${LIBVIRT_CONFIG_DIR}/libvirtd.conf"
   fi
@@ -338,7 +339,7 @@ test_for_libvirt_tcp_listen() {
 
   # Determin if Libvirt is using a monolithinc or modular daemons
   # and behave accordingly
-  if [ -e ${LIBVIRT_CONFIG_DIR}/virtproxyd.conf ]
+  if sudo test -e "${LIBVIRT_CONFIG_DIR}/virtproxyd.conf"
   then
     LIBVIRT_PROXY_CONFIG_LIST="${LIBVIRT_CONFIG_DIR}/virtproxyd.conf"
   else
@@ -385,10 +386,17 @@ test_for_vnc_spice_listen() {
 }
 
 test_for_libvirt_group() {
-  LIBVIRT_CFG=/etc/libvirt/libvirtd.conf
-  #LIBVIRT_GROUP=$(sudo grep "^unix_sock_group" ${LIBVIRT_CFG} | cut -d \" -f 2)
-  #LIBVIRT_GROUP=$(sudo grep ".*unix_sock_group" ${LIBVIRT_CFG} | cut -d \" -f 2)
+  local LIBVIRT_CONFIG_DIR=/etc/libvirt
+
+  if sudo test -e "${LIBVIRT_CONFIG_DIR}/virtqemud.conf"
+  then
+    LIBVIRT_CFG=/etc/libvirt/virtqemud.conf
+  else
+    LIBVIRT_CFG=/etc/libvirt/libvirtd.conf
+  fi
+
   LIBVIRT_GROUP=$(sudo grep '^[^#]*unix_sock_group' ${LIBVIRT_CFG} | cut -d \" -f 2)
+
   if groups | grep -q ${LIBVIRT_GROUP}
   then
     MEMBER_OF_LIBVIRT_GROUP=Y
