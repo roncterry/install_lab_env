@@ -1,6 +1,6 @@
 #!/bin/bash
-# version: 1.4.4
-# date: 2023-09-07
+# version: 1.4.5
+# date: 2026-01-13
 
 ### Colors ###
 RED='\e[0;31m'
@@ -312,7 +312,7 @@ mv_vm_nvram_file() {
   local NVRAM_FILE=$(virsh dumpxml ${VM_NAME} | grep nvram | cut -d \> -f 2 | cut -d \< -f 1)
   local OVMF_BIN=$(virsh dumpxml ${VM_NAME} | grep loader | cut -d \> -f 2 | cut -d \< -f 1)
 
-  echo -e "${LTCYAN}Moving NVRAM file to VM Directory ...${NC}"
+  echo -e "${LTCYAN}Moving NVRAM/OVMF files to VM Directory ...${NC}"
 
   if ! [ -z "${NVRAM_FILE}" ]
   then
@@ -358,7 +358,7 @@ mv_vm_nvram_file() {
       run mkdir -p ${VM_DIR}/${COURSE_ID}/${VM_NAME}/nvram
       run sudo mv ${NVRAM_FILE} ${VM_DIR}/${COURSE_ID}/${VM_NAME}/nvram/
       run sudo chmod -R u+rwx,g+rws,o+r ${VM_DIR}/${COURSE_ID}/${VM_NAME}/nvram
-      run sudo chown -R ${USER}.${GROUPS} ${VM_DIR}/${COURSE_ID}/${VM_NAME}/nvram
+      run sudo chown -R ${USER}:${GROUPS} ${VM_DIR}/${COURSE_ID}/${VM_NAME}/nvram
       run sed -i "s+\(^ *\)<nvram>.*+\1<nvram>${VM_DIR}/${COURSE_ID}/${VM_NAME}/nvram/${NVRAM_FILE_NAME}</nvram>+" ${VM_DIR}/${COURSE_ID}/${VM_NAME}/${VM_NAME}.xml
     fi
 
@@ -366,18 +366,18 @@ mv_vm_nvram_file() {
     if echo ${OVMF_BIN} | grep -q "/usr/share/qemu"
     then
       echo -e "${LTCYAN}(Copying the OVMF binary from default location into VM Directory ...)${NC}"
-      run mkdir -p ${VM_PATH}/nvram
-      run sudo cp ${OVMF_BIN} ${VM_PATH}/nvram/
-      run sudo chmod -R u+rwx,g+rws,o+r ${VM_PATH}/nvram
-      run sudo chown -R ${USER}.${GROUPS} ${VM_PATH}/nvram
-      run sed -i "s+\(^ *\)<loader.*+\1<loader readonly=\"yes\" type=\"pflash\">${VM_ABSOLUTE_PATH}/nvram/${OVMF_BIN_NAME}</loader>+" ${VM_PATH}/${VM_NAME}.xml
+      run mkdir -p ${VM_DIR}/${COURSE_ID}/${VM_NAME}/nvram
+      run sudo cp ${OVMF_BIN} ${VM_DIR}/${COURSE_ID}/${VM_NAME}/nvram/
+      run sudo chmod -R u+rwx,g+rws,o+r ${VM_DIR}/${COURSE_ID}/${VM_NAME}/nvram
+      run sudo chown -R ${USER}:${GROUPS} ${VM_DIR}/${COURSE_ID}/${VM_NAME}/nvram
+      #run sed -i "s+\(^ *\)<loader.*+\1<loader readonly=\"yes\" type=\"pflash\">${VM_DIR}/${COURSE_ID}/${VM_NAME}/nvram/${OVMF_BIN_NAME}</loader>+" ${VM_DIR}/${COURSE_ID}/${VM_NAME}/${VM_NAME}.xml
     fi
 
     case ${DO_CHOWN}
     in
       Y)
         run sudo chmod -R u+rwx,g+rws,o+r ${VM_DIR}/${COURSE_ID}/${VM_NAME}/nvram
-        run sudo chown -R ${USER}.${GROUPS} ${VM_DIR}/${COURSE_ID}/${VM_NAME}/nvram
+        run sudo chown -R ${USER}:${GROUPS} ${VM_DIR}/${COURSE_ID}/${VM_NAME}/nvram
       ;;
     esac
   elif [ -e ${VM_DIR}/${COURSE_ID}/${VM_NAME}/nvram ]
@@ -385,7 +385,7 @@ mv_vm_nvram_file() {
     # In case the nvram dir exist in the VM's dir but not in the live config?
     echo -e "${LTCYAN}(NVRAM not defined in VM config but file is in VM Directory ...)${NC}"
     run sudo chmod -R u+rwx,g+rws,o+r ${VM_DIR}/${COURSE_ID}/${VM_NAME}/nvram
-    run sudo chown -R ${USER}.${GROUPS} ${VM_DIR}/${COURSE_ID}/${VM_NAME}/nvram
+    run sudo chown -R ${USER}:${GROUPS} ${VM_DIR}/${COURSE_ID}/${VM_NAME}/nvram
   else
     echo -e "${LTCYAN}(NVRAM not defined in VM ... Skipping)${NC}"
   fi
@@ -423,7 +423,7 @@ backup_vm_tpm() {
       echo -e "${LTCYAN}(TPM v2 found)${NC}"
       run sudo cp -R ${TPM_DIR}/tpm2 ${VM_DIR}/${COURSE_ID}/${VM_NAME}/tpm/
     fi
-    run sudo chown -R ${USER}.${GROUPS} ${VM_NAME}/tpm
+    run sudo chown -R ${USER}:${GROUPS} ${VM_NAME}/tpm
   else
     echo -e "${LTCYAN}(No TPM files for the VM ... Skipping)${NC}"
   fi
