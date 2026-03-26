@@ -1,4 +1,4 @@
-# Config File Syntax Version: 2024120401
+# Config File Syntax Version: 2026032601
 ##############################################################################
 #                          Variables
 ##############################################################################
@@ -211,12 +211,42 @@ LIBVIRT_CREATE_INITIAL_SNAPSHOT=""
 LIBVIRT_INITIAL_SNAPSHOT_NAME=""
 
 
+# Name of the snapshot to revert to by default
+#
+# This can be the same as the value in LIBVIRT_INITIAL_SNAPSHOT_NAME or it
+# can be a different snapshot that was created. It is used by the revert-vms.sh
+# script to automate reverting all VMs to a specific point.
+#
+LIBVIRT_REVERT_SNAPSHOT_NAME=
+
+
 # A space delimited list of Libvirt VM names that should be started by 
 # the installation script at the end of the lab environment install.
 #
 # These VMs should only be VMs that are listed in $LIBVIRT_VM_LIST.
 #
 LIBVIRT_START_VM_LIST=""
+
+
+# IP|FQDN and potentially port to access the check service
+#
+# This is the IP|FQDN plus port of the service you want to check using the 
+# wait_for_service() function in the start-vms.sh script.
+#
+# If the service is listenting on port 80 you don't need to specify the port.
+#
+LIBVIRT_SERVICE_CHECK_IP=
+
+
+# String to look for when checkinf if a service is responding
+#
+# This is the string that the wait_for_service() function will look for to see
+# if the service specified in LIBVIRT_SERVICE_CHECK_IP variable is responding.
+#
+# The wait_for_service() function just does a curl against the IP/FQDN set in
+# LIBVIRT_SERVICE_CHECK_IP and looks for this string.
+#
+LIBVIRT_SERVICE_CHECK_STRING=
 
 
 # Change the VM's config file to set the CPU to one of the following:
