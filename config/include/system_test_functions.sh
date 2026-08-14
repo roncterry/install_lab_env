@@ -1,6 +1,6 @@
 ##############  System Test Functions #####################################
-# version: 3.10.4
-# date: 2025-12-10
+# version: 3.10.5
+# date: 2026-08-14
 
 #=========  Hardware Test Functions  =============
 
@@ -93,7 +93,7 @@ test_for_regular_user() {
 #=========  Software/Utility Test Functions  =============
 
 test_for_sudo() {
-  if which sudo > /dev/null
+  if command -v sudo > /dev/null
   then
     SUDO_INSTALLED=Y
   else
@@ -104,10 +104,10 @@ test_for_sudo() {
   in
     Y)
       SUDO_TEST=$(sudo -n id 2>&1)
-      if echo ${SUDO_TEST} | grep -q "a password is required"
+      if echo "${SUDO_TEST}" | grep -q "a password is required"
       then
         SUDO_NOPASSWD=N
-      elif echo ${SUDO_TEST} | grep -q "uid=0(root)"
+      elif echo "${SUDO_TEST}" | grep -q "uid=0(root)"
       then
         SUDO_NOPASSWD=Y
       fi
@@ -116,7 +116,7 @@ test_for_sudo() {
 }
 
 test_for_p7zip() {
-  if which 7z > /dev/null 2>&1
+  if command -v 7z > /dev/null 2>&1
   then
     P7ZIP_INSTALLED=Y
   else
@@ -125,7 +125,7 @@ test_for_p7zip() {
 }
 
 test_for_virtualbmc() {
-  if which vbmc > /dev/null 2>&1
+  if command -v vbmc > /dev/null 2>&1
   then
     VBMC_INSTALLED=Y
   else
@@ -134,7 +134,7 @@ test_for_virtualbmc() {
 }
 
 test_for_openvswitch() {
-  if which ovs-vsctl > /dev/null 2>&1
+  if command -v ovs-vsctl > /dev/null 2>&1
   then
     OVS_INSTALLED=Y
   else
@@ -143,7 +143,7 @@ test_for_openvswitch() {
 }
 
 test_for_swtpm() {
-  if which swtpm > /dev/null 2>&1
+  if command -v swtpm > /dev/null 2>&1
   then
     SWTPM_INSTALLED=Y
   else
@@ -189,10 +189,10 @@ test_for_kvm_virt() {
 }
 
 test_for_qemu_installed() {
-  if which qemu-kvm > /dev/null
+  if command -v qemu-kvm > /dev/null
   then
     QEMU_INSTALLED=Y
-  elif which qemu-system-x86_64 > /dev/null
+  elif command -v qemu-system-x86_64 > /dev/null
   then
     QEMU_INSTALLED=Y
   else
@@ -284,6 +284,11 @@ test_libvirt_config() {
 
   for LIBVIRT_CFG in ${LIBVIRT_CFG_LIST}
   do
+    if ! [ -e ${LIBVIRT_CFG} ]
+    then
+      return
+    fi
+
     if sudo grep -q "^unix_sock_group = .*" ${LIBVIRT_CFG}
     then
       LIBVIRT_SOCK_GROUP_SET=Y
@@ -406,12 +411,21 @@ test_for_libvirt_group() {
 }
 
 test_for_libvirt_running() {
-  if ( systemctl is-enabled virtqemud | grep -qo enabled ) && ( systemctl is-enabled virtstoraged | grep -qo enabled ) && ( systemctl is-enabled virtnetworkd | grep -qo enabled ) && ( systemctl is-enabled virtinterfaced | grep -qo enabled ) && ( systemctl is-enabled virtnodedevd | grep -qo enabled ) 
+  if ( systemctl is-enabled virtqemud.socket | grep -qo enabled ) 
   then
     LIBVIRT_RUNNING=Y
-  elif systemctl is-enabled libvirtd | grep -qo "enabled"
+    LIBVIRT_DAEMON=modular
+    LIBVIRT_DAEMON_UNIT=socket
+  elif ( systemctl is-enabled virtqemud.service | grep -qo enabled ) 
   then
     LIBVIRT_RUNNING=Y
+    LIBVIRT_DAEMON=modular
+    LIBVIRT_DAEMON_UNIT=service
+  elif systemctl is-enabled libvirtd.service | grep -qo "enabled"
+  then
+    LIBVIRT_RUNNING=Y
+    LIBVIRT_DAEMON=monolithic
+    LIBVIRT_DAEMON_UNIT=service
   else
     LIBVIRT_RUNNING=N
   fi
@@ -420,7 +434,7 @@ test_for_libvirt_running() {
 ##############  Run Test Functions #####################################
 
 run_test_for_vt_enabled() {
-  echo -e "${LTBLUE}Checking if VT is enalbed in the BIOS ...${NC}"
+  echo -e "${LTBLUE}Checking if VT is enabled in the BIOS ...${NC}"
   echo -e "${LTBLUE}-------------------------------------------------------------------${NC}"
   echo
   test_for_vt_enabled
