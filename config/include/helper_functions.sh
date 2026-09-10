@@ -1,6 +1,6 @@
 ##############  Helper Functions #############################################
-# version: 3.15.0
-# date: 2024-12-04
+# version: 3.16.1
+# date: 2026-09-10
 #
 
 configure_nic() {
@@ -1103,11 +1103,11 @@ edit_libvirt_domxml() {
           case ${MACHINE_TYPE} in
             i440fx)
               echo -e "  ${LTCYAN}Changing machine type to highest supported version ...${NC}"
-              run sed -i "s/pc-i440fx-.../pc-i440fx-${HIGHEST_440FX_VER}/"  "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_CONFIG}"
+              run sed -i "s/${MACHINE_TYPE_STRING}/pc-i440fx-${HIGHEST_440FX_VER}/"  "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_CONFIG}"
             ;;
             q35)
               echo -e "  ${LTCYAN}Changing machine type to highest supported version ...${NC}"
-              run sed -i "s/pc-q35-.../pc-q35-${HIGHEST_Q35_VER}/"  "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_CONFIG}"
+              run sed -i "s/${MACHINE_TYPE_STRING}/pc-q35-${HIGHEST_Q35_VER}/"  "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_CONFIG}"
             ;;
           esac
         ;;
@@ -1117,7 +1117,7 @@ edit_libvirt_domxml() {
               if ! echo ${AVAILABLE_440FX_VERS} | grep -q ${MACHINE_TYPE_VER}
               then
                 echo -e "  ${LTCYAN}Changing machine type to highest supported version ...${NC}"
-                run sed -i "s/pc-i440fx-.../pc-i440fx-${HIGHEST_440FX_VER}/"  "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_CONFIG}"
+                run sed -i "s/${MACHINE_TYPE_STRING}/pc-i440fx-${HIGHEST_440FX_VER}/"  "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_CONFIG}"
                 echo
               else
                 echo -e "  ${LTCYAN}Machine type is a supported version: ${NC}${MACHINE_TYPE}-${MACHINE_TYPE_VER} ${NC}"
@@ -1128,7 +1128,7 @@ edit_libvirt_domxml() {
               if ! echo ${AVAILABLE_Q35_VERS} | grep -q ${MACHINE_TYPE_VER}
               then
                 echo -e "  ${LTCYAN}Changing machine type to highest supported version ...${NC}"
-                run sed -i "s/pc-q35-.../pc-q35-${HIGHEST_Q35_VER}/"  "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_CONFIG}"
+                run sed -i "s/${MACHINE_TYPE_STRING}/pc-q35-${HIGHEST_Q35_VER}/"  "${VM_DEST_DIR}"/"${COURSE_NUM}"/"${VM}"/"${VM_CONFIG}"
                 echo
               else
                 echo -e "  ${LTCYAN}Machine type is a supported version: ${NC}${MACHINE_TYPE}-${MACHINE_TYPE_VER} ${NC}"
@@ -2083,5 +2083,154 @@ virtualbmc_control() {
       return $?
     ;;
   esac
+}
+
+get_required_hugepages() {
+  MAX_TOTAL_HUGEPAGES=0
+  local SET_INDEX=1
+
+  # Calculate the maximum HugePages needed by any single mutually-exclusive set
+  for SET in ${LIBVIRT_VM_SET_LIST}; do
+    echo   
+    echo -e "${LTCYAN}SET ${SET_INDEX} VMs: ${SET}${NC}"
+    local SET_PAGES_NEEDED=0
+
+    for VM in $(echo ${SET} | tr ',' ' '); do
+      echo -e "${LTCYAN}  VM: ${VM}${NC}"
+      # Determine if the VM uses hugepages
+      if virsh dumpxml ${VM} | grep -q "hugepages"
+      then
+        if ! virsh dominfo "${VM}" >/dev/null 2>&1; then continue; fi
+        local VM_MEM_KIB=$(virsh dumpxml "${VM}" | xmlstarlet sel -t -v "string(/domain/memory)")
+        echo -e "${LTCYAN}    VM Memory: ${VM_MEM_KIB}${NC}"
+        
+        # Calculate: (KiB / 2048) = Number of 2MB pages + 512 buffer
+        local VM_PAGES=$(( (VM_MEM_KIB / 2048) + 512 ))
+        echo -e "${LTCYAN}    (Add 512K buffer)${NC}"
+        echo -e "${LTCYAN}    VM Pages Needed: ${VM_PAGES}${NC}"
+        local SET_PAGES_NEEDED=$(( SET_PAGES_NEEDED + VM_PAGES ))
+      else
+        echo -e "${LTCYAN}    (no hugepages needed)${NC}"
+      fi
+    done
+    
+    echo -e "${LTPURPLE}[ Set ${NC}${SET_INDEX}${LTPURPLE} requires ${NC}${SET_PAGES_NEEDED}${LTPURPLE} HugePages. ]${NC}"
+    if [ "${SET_PAGES_NEEDED}" -gt "${MAX_TOTAL_HUGEPAGES}" ]; then
+      MAX_TOTAL_HUGEPAGES=${SET_PAGES_NEEDED}
+    fi
+    ((SET_INDEX++))
+  done
+
+  echo
+  echo -e "${LTPURPLE}[ Maximum HugePages required across all sets:${NC} ${MAX_TOTAL_HUGEPAGES} ]${NC}"
+  echo
+}
+
+set_required_hugepages() {
+  case ${MAX_TOTAL_HUGEPAGES} in
+    0)
+      unset MAX_TOTAL_HUGEPAGES
+    ;;
+  esac
+
+  if ! [ -z ${MAX_TOTAL_HUGEPAGES} ]
+  then
+    echo -e "${LTCYAN}Creating hugepages config file ...${NC}"
+    echo -e "${LTGREEN}COMMAND: echo \"vm.nr_hugepages = ${MAX_TOTAL_HUGEPAGES}\" \> /tmp/99-hugepages.conf${NC}"
+    echo "vm.nr_hugepages = ${MAX_TOTAL_HUGEPAGES}" > /tmp/99-hugepages.conf
+    echo
+ 
+    if [ -e /etc/sysctl.d/99-hugepages.conf ]
+    then
+      echo -e "${LTCYAN}Backing up existing hugepages config file ...NC}"
+      echo -e "${LTGREEN}COMMAND: sudo mv /etc/sysctl.d/99-hugepages.conf /etc/sysctl.d/99-hugepages.conf.orig${NC}"
+      sudo mv /etc/sysctl.d/99-hugepages.conf /etc/sysctl.d/99-hugepages.conf.orig
+    else
+      echo -e "${LTCYAN}Backing up existing hugepages setting to a config file ...NC}"
+      echo -e "${LTGREEN}COMMAND: sudo sysctl vm.nr_huegpages > \"/tmp/99-hugepages.conf.pre\"${NC}"
+      sudo sysctl vm.nr_huegpages > "/tmp/99-hugepages.conf.pre"
+ 
+      echo -e "${LTGREEN}COMMAND: sudo cp /tmp/99-hugepages.conf.pre /etc/sysctl.d/${NC}"
+      sudo cp /tmp/99-hugepages.conf.pre /etc/sysctl.d/
+    fi
+    echo
+ 
+    echo -e "${LTCYAN}Copying in the new hugepages config file ...NC}"
+    echo -e "${LTGREEN}COMMAND: sudo cp /tmp/99-hugepages.conf /etc/sysctl.d/${NC}"
+    sudo cp /tmp/99-hugepages.conf /etc/sysctl.d/
+    echo
+ 
+    echo -e "${LTCYAN}Applying hugepages setting to the live system ...NC}"
+    echo -e "${LTGREEN}COMMAND: sudo sysctl -p /etc/sysctl.d/99-hugepages.conf${NC}"
+    sudo sysctl -p /etc/sysctl.d/99-hugepages.conf
+    echo
+ 
+    echo -e "${LTGREEN}COMMAND: sudo sysctl vm.nr_hugepages${NC}"
+    sudo sysctl vm.nr_hugepages
+    echo
+ 
+    echo -e "${ORANGE}NOTE: You may need to reboot for the total required hugepages to be created.${NC}"
+    echo
+  else
+    echo -e "${LTCYAN}No hugepages configuration is needed. Skipping ...${NC}"
+    echo
+  fi
+}
+
+configure_hugepages() {
+  echo -e "${LTBLUE}Calculating and Setting Required Hugepages ...${NC}"
+  echo -e "${LTBLUE}---------------------------------------------------------${NC}"
+  echo
+
+  if [ -z ${LIBVIRT_VM_SET_LIST} ]
+  then
+    LIBVIRT_VM_SET_LIST="${LIBVIRT_VM_LIST}"
+  else
+    get_required_hugepages
+
+    set_required_hugepages
+  fi
+}
+
+revert_hugepages() {
+  echo -e "${LTBLUE}Reverting to the Previous Hugepages Setting ...${NC}"
+  echo -e "${LTBLUE}---------------------------------------------------------${NC}"
+  echo
+
+  if [ -e /etc/sysctl.d/99-hugepages.pre ]
+  then
+    echo -e "${LTCYAN}Restoring the previous hugepages setting ...NC}"
+    echo -e "${LTGREEN}COMMAND: sudo mv /etc/sysctl.d/99-hugepages.pre /etc/sysctl.d/99-hugepages.conf${NC}"
+    sudo mv /etc/sysctl.d/99-hugepages.pre /etc/sysctl.d/99-hugepages.conf
+    echo -e "${LTGREEN}COMMAND: sudo sysctl -p /etc/sysctl.d/99-hugepages.conf${NC}"
+    sudo sysctl -p /etc/sysctl.d/99-hugepages.conf
+    echo -e "${LTGREEN}COMMAND: sudo rm -f /etc/sysctl.d/99-hugepages.conf${NC}"
+    sudo rm -f /etc/sysctl.d/99-hugepages.conf
+  elif [ -e /etc/sysctl.d/99-hugepages.orig ]
+  then
+    echo -e "${LTCYAN}Restoring the backed up hugepages config file and setting ...NC}"
+    echo -e "${LTGREEN}COMMAND: sudo mv /etc/sysctl.d/99-hugepages.orig /etc/sysctl.d/99-hugepages.conf${NC}"
+    sudo mv /etc/sysctl.d/99-hugepages.orig /etc/sysctl.d/99-hugepages.conf
+    echo -e "${LTGREEN}COMMAND: sudo sysctl -p /etc/sysctl.d/99-hugepages.conf${NC}"
+    sudo sysctl -p /etc/sysctl.d/99-hugepages.conf
+  else
+    echo -e "${LTCYAN}(No previous config/setting exists. Skipping ...)${NC}"
+    #if [ -e /etc/sysctl.d/99-hugepages.conf ]
+    #then
+    #  echo -e "${LTCYAN}Removing hugepages config file create for lab environment ...${NC}"
+    #  echo -e "${LTGREEN}COMMAND: sudo rm /etc/sysctl.d/99-hugepages.conf${NC}"
+    #  sudo rm /etc/sysctl.d/99-hugepages.conf
+    #
+    #  echo
+    #  echo -e "${LTCYAN}Removing hugepages ...${NC}"
+    #  echo -e "${LTGREEN}COMMAND: sudo sysctl -w vm.nr_hugepages=0${NC}"
+    #  sudo sysctl -w vm.nr_hugepages=0
+    #fi
+  fi
+  echo
+
+  echo -e "${LTGREEN}COMMAND: sudo sysctl vm.nr_hugepages${NC}"
+  sudo sysctl vm.nr_hugepages
+  echo
 }
 

@@ -1,6 +1,6 @@
 ##############  System Test Functions #####################################
-# version: 3.10.5
-# date: 2026-08-14
+# version: 3.10.6
+# date: 2026-09-10
 
 #=========  Hardware Test Functions  =============
 
@@ -284,9 +284,9 @@ test_libvirt_config() {
 
   for LIBVIRT_CFG in ${LIBVIRT_CFG_LIST}
   do
-    if ! [ -e ${LIBVIRT_CFG} ]
+    if ! sudo test -e ${LIBVIRT_CFG}
     then
-      return
+      continue
     fi
 
     if sudo grep -q "^unix_sock_group = .*" ${LIBVIRT_CFG}
