@@ -1,6 +1,6 @@
 #!/bin/bash
-# Version: 2.8.1
-# Date: 2018-06-15
+# Version: 2.9.0
+# Date: 2026-09-09
 
 DEFAULT_CONFIG="config/lab_env.cfg"
 
@@ -106,6 +106,8 @@ remove_new_bridges
 remove_new_vlans
 
 remove_new_nics
+
+revert_hugepages
 
 remove_vmware_vms
 

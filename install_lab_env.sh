@@ -1,6 +1,6 @@
 #!/bin/bash
-# Version: 3.3.2
-# Date: 2019-02-12
+# Version: 3.4.0
+# Date: 2026-09-09
 
 DEFAULT_CONFIG="./config/lab_env.cfg"
 
@@ -163,6 +163,8 @@ extract_register_libvirt_vms
 create_initial_vm_snapshots
 
 create_virtual_bmcs
+
+configure_hugepages
 
 start_libvirt_vms
 
