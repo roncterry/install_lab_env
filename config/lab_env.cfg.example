@@ -1,4 +1,4 @@
-# Config File Syntax Version: 2026032601
+# Config File Syntax Version: 2026090901
 ##############################################################################
 #                          Variables
 ##############################################################################
@@ -191,6 +191,35 @@ MIN_CPUS=1
 # the ".7z.xxx"
 #
 LIBVIRT_VM_LIST=""
+
+
+# A space delimited list of comma delimited lists of VMs that run simultaneously
+#
+# If there are subsets of VMs that will be running at the same time, denote
+# these sets of VMs as comma delimited lists separated by spaces in this 
+# variable. Each set of VMs will be evaluated for things such as hugepages 
+# requirements. In the case of hugepages, the largest amount of hugepages
+# required by any set will be configured in the live system and will be stored
+# persistently in a config file in the /etc/sysctl.d directory.
+#
+# NOTE: If VM sets are not specified then all VMs in LIBVIRT_VM_LIST will be
+#       treated as a single set.
+# 
+# Example: 
+#  LIBVIRT_VM_SET_LIST="management,router,virt01,virt01,virt03 management,router,virt04,virt05,virt06"
+#
+# In the above example 2 sets of VMs are defined:
+#   Set 1 contains the VMs: management, router, virt01, virt02 and virt03
+#   Set 2 contains the VMs: management, router, virt04, virt05 and virt06
+#
+# The set that requires the largest number of hugepages will be determined 
+# and that number of hugepages will be used.
+#
+# NOTE: If hugepages are defined, you may need to reboot after the lab 
+#       environment is installed for all required hugepages to be created.
+#       in the system.
+#
+LIBVIRT_VM_SET_LIST=""
 
 
 # Create an initial snapshot of Libvirt VMs after they have been installed 
