@@ -2147,8 +2147,8 @@ set_required_hugepages() {
       sudo mv /etc/sysctl.d/99-hugepages.conf /etc/sysctl.d/99-hugepages.conf.orig
     else
       echo -e "${LTCYAN}Backing up existing hugepages setting to a config file ...NC}"
-      echo -e "${LTGREEN}COMMAND: sudo sysctl vm.nr_huegpages > \"/tmp/99-hugepages.conf.pre\"${NC}"
-      sudo sysctl vm.nr_huegpages > "/tmp/99-hugepages.conf.pre"
+      echo -e "${LTGREEN}COMMAND: sudo sysctl vm.nr_hugepages > \"/tmp/99-hugepages.conf.pre\"${NC}"
+      sudo sysctl vm.nr_hugepages > "/tmp/99-hugepages.conf.pre"
  
       echo -e "${LTGREEN}COMMAND: sudo cp /tmp/99-hugepages.conf.pre /etc/sysctl.d/${NC}"
       sudo cp /tmp/99-hugepages.conf.pre /etc/sysctl.d/
