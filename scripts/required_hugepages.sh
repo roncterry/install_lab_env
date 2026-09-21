@@ -135,4 +135,4 @@ main() {
   esac
 }
 
-main
+main ${*}
