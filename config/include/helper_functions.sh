@@ -1,6 +1,6 @@
 ##############  Helper Functions #############################################
-# version: 3.16.1
-# date: 2026-09-10
+# version: 3.16.2
+# date: 2026-09-25
 #
 
 configure_nic() {
@@ -2182,7 +2182,7 @@ configure_hugepages() {
   echo -e "${LTBLUE}---------------------------------------------------------${NC}"
   echo
 
-  if [ -z ${LIBVIRT_VM_SET_LIST} ]
+  if [ -z "${LIBVIRT_VM_SET_LIST}" ]
   then
     LIBVIRT_VM_SET_LIST="${LIBVIRT_VM_LIST}"
   else
