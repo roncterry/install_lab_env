@@ -1,6 +1,6 @@
 ##############  Lab Env Install and Configure Functions ######################
-# version: 5.11.0
-# date: 2024-12-04
+# version: 5.12.0
+# date: 2026-09-28
 #
 
 create_directories() {
@@ -1119,6 +1119,84 @@ extract_register_libvirt_vms() {
       ;;
     esac
 
+    #-------------------------------------
+    #   Process ${VM}.cfg file        
+    #-------------------------------------
+    
+    # First see if the ${VM}.cfg file exists.
+    if [ -e "${VM_DEST_DIR}/${COURSE_NUM}/${VM}/${VM}.cfg" ]
+    then
+      source ${VM_DEST_DIR}/${COURSE_NUM}/${VM}/${VM}.cfg
+
+      ##########  Copy the cloud image to the VM's boot disk  ##########
+
+      # Determine the name of the boot disk file.
+      if ! [ -z "${BOOTDISK}" ]
+      then
+        local VM_BOOTDISK=${BOOTDISK}
+      else
+        # set boot disk file to the default
+        local VM_BOOTDISK=disk01.qcow2
+      fi
+      echo
+
+      # Determine the size of the boot disk file.
+      if ! [ -z "${BOOTDISK_SIZE}" ]
+      then
+        local VM_BOOTDISK_SIZE=${BOOTDISK_SIZE}
+      else
+        if [ -e "${VM_DEST_DIR}/${COURSE_NUM}/${VM}/${VM_BOOTDISK}" ]
+        then
+          # examine the existing boot disk file to determine its size
+          local VM_BOOTDISK_SIZE_NUM=$(qemu-image info ${VM_DEST_DIR}/${COURSE_NUM}/${VM}/${VM_BOOTDISK} | grep "virtual size" | head -n 1 | awk '{ print $3 }')
+          local VM_BOOTDISK_SIZE_UNIT=$(qemu-image info ${VM_DEST_DIR}/${COURSE_NUM}/${VM}/${VM_BOOTDISK} | grep "virtual size" | head -n 1 | awk '{ print $4 }')
+          local VM_BOOTDISK_SIZE="${VM_BOOTDISK_SIZE_NUM}${VM_BOOTDISK_SIZE_UNIT:0:1}"
+        else
+          # set it to a default size
+          local VM_BOOTDISK_SIZE=50G
+        fi
+      fi
+      echo
+        
+      # Determine if a cloud image was specified to use as the VMs boot disk
+      # and if so copy it to the VM's boot disk and resize it.
+      if ! [ -z "${BOOTDISK_CLOUD_IMAGE}" ]
+      then
+        if [ -e "${IMAGE_DEST_DIR}/${COURSE_NUM}/${BOOTDISK_CLOUD_IMAGE}" ]
+        then
+          echo -e "${LTBLUE}Copying ${BOOTDISK_CLOUD_IMAGE} to ${VM_BOOTDISK}${NC}" 
+          run cp ${IMAGE_DEST_DIR}/${COURSE_NUM}/${BOOTDISK_CLOUD_IMAGE} ${VM_DEST_DIR}/${COURSE_NUM}/${VM}/${VM_BOOTDISK}
+          echo
+
+          echo -e "${LTBLUE}Resizing ${VM_BOOTDISK} to ${VM_BOOTDISK_SIZE}${NC}" 
+          run qemu-img resize ${VM_DEST_DIR}/${COURSE_NUM}/${VM}/${VM_BOOTDISK} ${VM_BOOTDISK_SIZE}
+        else
+          echo -e "${LTBLUE}Specified cloud image for the boot disk doesn't exist. Skipping ...${NC}"
+        fi
+      else
+        echo -e "${LTBLUE}No cloud image file name specified. Skipping ...${NC}" 
+        # FIX ME: Do we run the disk resize anyway on the existing disk image file?
+      fi
+      echo
+
+      ##########  Generate the cloud-init.iso  ##########
+
+      # Determine if cloud init is being used and if the cloud-init.iso should be generated.
+      case ${REBUILD_CLOUDINIT_ISO} in
+        true)
+          echo -e "${LTBLUE}Generating cloud-init.iso${NC}" 
+          run mkisofs -o ${VM_DEST_DIR}/${COURSE_NUM}/${VM}/cloud-init.iso -V cidata -J -rational-rock ${CLOUDINIT_DIR}
+        ;;
+        *)
+          echo -e "${LTBLUE}Skipping rebuild of cloud-init.iso ...${NC}" 
+        ;;
+      esac
+    else
+      echo -e "${LTBLUE}A ${VM}.cfg file does not exist. Skipping ...${NC}"
+    fi
+
+    echo
+     
     #-------------------------------------
     #     Register VMs with Libvirt        
     #-------------------------------------
