@@ -1,6 +1,6 @@
 ##############  Lab Env Install and Configure Functions ######################
-# version: 5.12.0
-# date: 2026-09-28
+# version: 5.13.0
+# date: 2026-09-30
 #
 
 create_directories() {
@@ -1158,14 +1158,14 @@ extract_register_libvirt_vms() {
       fi
       echo
         
-      # Determine if a cloud image was specified to use as the VMs boot disk
+      # Determine if a bootdisk image was specified to use as the VMs boot disk
       # and if so copy it to the VM's boot disk and resize it.
-      if ! [ -z "${BOOTDISK_CLOUD_IMAGE}" ]
+      if ! [ -z "${BOOTDISK_IMAGE}" ]
       then
-        if [ -e "${IMAGE_DEST_DIR}/${COURSE_NUM}/${BOOTDISK_CLOUD_IMAGE}" ]
+        if [ -e "${IMAGE_DEST_DIR}/${COURSE_NUM}/${BOOTDISK_IMAGE}" ]
         then
-          echo -e "${LTBLUE}Copying ${BOOTDISK_CLOUD_IMAGE} to ${VM_BOOTDISK}${NC}" 
-          run cp ${IMAGE_DEST_DIR}/${COURSE_NUM}/${BOOTDISK_CLOUD_IMAGE} ${VM_DEST_DIR}/${COURSE_NUM}/${VM}/${VM_BOOTDISK}
+          echo -e "${LTBLUE}Copying ${BOOTDISK_IMAGE} to ${VM_BOOTDISK}${NC}" 
+          run cp ${IMAGE_DEST_DIR}/${COURSE_NUM}/${BOOTDISK_IMAGE} ${VM_DEST_DIR}/${COURSE_NUM}/${VM}/${VM_BOOTDISK}
           echo
 
           echo -e "${LTBLUE}Resizing ${VM_BOOTDISK} to ${VM_BOOTDISK_SIZE}${NC}" 
@@ -1179,16 +1179,28 @@ extract_register_libvirt_vms() {
       fi
       echo
 
-      ##########  Generate the cloud-init.iso  ##########
+      ##########  Generate the config.iso  ##########
 
       # Determine if cloud init is being used and if the cloud-init.iso should be generated.
-      case ${REBUILD_CLOUDINIT_ISO} in
+      case ${REBUILD_CUSTOM_CONFIG_ISO} in
         true)
-          echo -e "${LTBLUE}Generating cloud-init.iso${NC}" 
-          run mkisofs -o ${VM_DEST_DIR}/${COURSE_NUM}/${VM}/cloud-init.iso -V cidata -J -rational-rock ${CLOUDINIT_DIR}
+          case ${CUSTOM_CONFIG_ISO_FORMAT} in
+            cloud-init)
+              echo -e "${LTBLUE}Generating config.iso (cloud-init)${NC}" 
+              run mkisofs -o ${VM_DEST_DIR}/${COURSE_NUM}/${VM}/config.iso -V cidata -J -rational-rock ${CUSTOM_CONFIG_DIR}
+            ;;
+            ignition)
+              echo -e "${LTBLUE}Generating config.iso (ignition)${NC}" 
+              run mkisofs -o ${VM_DEST_DIR}/${COURSE_NUM}/${VM}/config.iso -V ignition -J -rational-rock ${CUSTOM_CONFIG_DIR}
+            ;;
+            combustion)
+              echo -e "${LTBLUE}Generating config.iso (combustion)${NC}" 
+              run mkisofs -o ${VM_DEST_DIR}/${COURSE_NUM}/${VM}/config.iso -V combustion -J -rational-rock ${CUSTOM_CONFIG_DIR}
+            ;;
+          esac 
         ;;
         *)
-          echo -e "${LTBLUE}Skipping rebuild of cloud-init.iso ...${NC}" 
+          echo -e "${LTBLUE}Skipping rebuild of config.iso ...${NC}" 
         ;;
       esac
     else
