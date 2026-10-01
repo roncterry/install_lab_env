@@ -1,6 +1,6 @@
 ##############  Lab Env Install and Configure Functions ######################
-# version: 5.13.0
-# date: 2026-09-30
+# version: 5.13.1
+# date: 2026-10-01
 #
 
 create_directories() {
@@ -1148,8 +1148,8 @@ extract_register_libvirt_vms() {
         if [ -e "${VM_DEST_DIR}/${COURSE_NUM}/${VM}/${VM_BOOTDISK}" ]
         then
           # examine the existing boot disk file to determine its size
-          local VM_BOOTDISK_SIZE_NUM=$(qemu-image info ${VM_DEST_DIR}/${COURSE_NUM}/${VM}/${VM_BOOTDISK} | grep "virtual size" | head -n 1 | awk '{ print $3 }')
-          local VM_BOOTDISK_SIZE_UNIT=$(qemu-image info ${VM_DEST_DIR}/${COURSE_NUM}/${VM}/${VM_BOOTDISK} | grep "virtual size" | head -n 1 | awk '{ print $4 }')
+          local VM_BOOTDISK_SIZE_NUM=$(qemu-img info ${VM_DEST_DIR}/${COURSE_NUM}/${VM}/${VM_BOOTDISK} | grep "virtual size" | head -n 1 | awk '{ print $3 }')
+          local VM_BOOTDISK_SIZE_UNIT=$(qemu-img info ${VM_DEST_DIR}/${COURSE_NUM}/${VM}/${VM_BOOTDISK} | grep "virtual size" | head -n 1 | awk '{ print $4 }')
           local VM_BOOTDISK_SIZE="${VM_BOOTDISK_SIZE_NUM}${VM_BOOTDISK_SIZE_UNIT:0:1}"
         else
           # set it to a default size
