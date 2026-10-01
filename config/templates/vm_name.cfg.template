@@ -1,14 +1,14 @@
 ###############################################################################
 # This file can be used to provide additional configuration for the VM such as
-#  whether or not to use a cloud image as the boot disk for the VM. 
+#  whether or not to use a bootdisk image as the boot disk for the VM. 
 # It is not required and if it doesn't exist it is skipped.
 ###############################################################################
 
-# The cloud image to use for the VM's boot disk file
+# The bootdisk image to use for the VM's boot disk file
 #
 # This file is realtive to /home/images/${COURSE_NUM}/
 #
-BOOTDISK_CLOUD_IMAGE=
+BOOTDISK_IMAGE=
 
 
 # The name of the VM's boot disk file
@@ -33,34 +33,46 @@ BOOTDISK=disk01.qcow2
 BOOTDISK_SIZE=
 
 
-# Whether or not to rebuild cloud-init.iso to provide VM config
+# Whether or not to rebuild config.iso to provide VM config
 #
 # Options: true|false
 #
 # Default: true
 #
 # If this is set to true then it is assumed that the VM will have CD-ROM drive
-# with an iso named cloud-init.iso located in the VM's directory attached.
+# with an iso named config.iso located in the VM's directory attached.
 #
-# If you already have a cloud-init.iso confgured the way you want you can set 
-# this to false and the cloud-init.iso will not be rebuilt using the 
-# cloud-init config in the CLOUDINIT_DIR.
+# If you already have a config.iso confgured the way you want you can set 
+# this to false and the config.iso will not be rebuilt using the 
+# custom config in the CUSTOM_CONFIG_DIR.
 #
-REBUILD_CLOUDINIT_ISO=true
+REBUILD_CUSTOM_CONFIG_ISO=true
 
 
-# Directory containing the cloud-init config for the VM
+# Directory containing the custom config for the VM
 #
-# This is the name of the directly that contains cloud-init config files. An
-# iso named cloud-init.iso will be generated containing this files which is 
-# assumed to be attached to the VM's CD-ROM drive whereby providing the 
-# cloud-init config to the VM. 
-# By default it is a direclty name cloud-init inside of the VM's directory. 
+# This is the name of the directly that contains cloud-init or 
+# ignition/combustion config files. An iso named config.iso will be generated 
+# containing this files which is assumed to be attached to the VM's CD-ROM 
+# drive whereby providing the custom config to the VM. 
+# By default it is a direclty name custom-config inside of the VM's directory. 
 # However, you can also provide an absolute path to another directory that 
-# contains the VM specific cloud-init config.
+# contains the VM specific custom config.
 #
-# Default: ${VM_DEST_DIR}/${COURSE_NUM}/${VM}/cloud-init
+# Default: ${VM_DEST_DIR}/${COURSE_NUM}/${VM}/custom-config
 #
-CLOUDINIT_DIR=${VM_DEST_DIR}/${COURSE_NUM}/${VM}/cloud-init
+CUSTOM_CONFIG_DIR=${VM_DEST_DIR}/${COURSE_NUM}/${VM}/custom-config
+
+
+# Format of initial custom configuration to use
+#
+# Both cloud-init and ignition/combustion styles for initial configuration are
+# supported.
+#
+# Options: cloud-init | ignition | combustion
+#
+# Default: cloud-init
+#
+CUSTOM_CONFIG_ISO_FORMAT=cloud-init
 
 
