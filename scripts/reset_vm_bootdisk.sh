@@ -16,7 +16,7 @@ then
   usage
   exit
 else
-  VM=${1}
+  VM="$(echo ${1} | sed 's+/$++')"
 
   if ! [ -e "${VM}" ]
   then
