@@ -1,0 +1,71 @@
+#!/bin/bash
+# combustion: network prepare
+# script generated with https://opensuse.github.io/fuel-ignition/
+
+# Network settings
+umask 077 # Required for NM config
+mkdir -p /etc/NetworkManager/system-connections/
+cat >/etc/NetworkManager/system-connections/enp1s0.nmconnection <<-EOF
+
+[connection]
+id=enp1s0
+type=ethernet
+interface-name=enp1s0
+
+[ipv4]
+dns-search=
+method=auto
+
+[ipv6]
+dns-search=
+addr-gen-mode=eui64
+method=ignore
+EOF
+
+
+if [ "${1-}" = "--prepare" ]; then
+  exit 0
+fi
+
+# Redirect output to the console
+exec > >(exec tee -a /dev/tty0) 2>&1
+
+mount /home
+
+# Configuring user: root (password=linux) ...
+echo 'root:$2a$10$SPcM5pJ0eXVqgM5CHjeH0uC6aDVqIg1ygylMwdMbVy.0NcTtbyAeK' | chpasswd -e
+
+# Configure SSH keys for root
+mkdir -m 700 -p "/root/.ssh"
+{
+  echo "_SSH_PUBLIC_KEY_GOES_HERE_"
+} > "/root/.ssh/authorized_keys"
+# Set correct ownership and permissions
+chown -R root:root "/root/.ssh"
+chmod 600 "/root/.ssh/authorized_keys"
+
+
+# Configuring user: tux (password=linux) ...
+useradd -m -s /bin/bash tux
+echo 'tux:$2a$10$PYY/SXxWp2Fpr7d/hDqV1uXTIo.CaexfyNYr9x33PkTfKkXHON53S' | chpasswd -e
+
+# Configure SSH keys for tux
+mkdir -m 700 -p "/home/tux/.ssh"
+{
+  echo "_SSH_PUBLIC_KEY_GOES_HERE_"
+} > "/home/tux/.ssh/authorized_keys"
+# Set correct ownership and permissions
+chown -R tux:tux "/home/tux/.ssh"
+chmod 600 "/home/tux/.ssh/authorized_keys"
+usermod -aG wheel tux
+
+
+umount /home
+
+
+# Leave a marker
+echo "Configured with combustion" > /etc/issue.d/85-combustion.conf
+echo "Configured with combustion" > /etc/issue.d/85-combustion.issue
+
+# Close outputs and wait for tee to finish.
+exec 1>&- 2>&-; wait;
