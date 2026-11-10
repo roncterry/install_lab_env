@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Version: 0.0.1
-# Date: 2026-11-09
+# Version: 1.0.0
+# Date: 2026-11-10
 
 ##############################################################################
 #  Global Variables and Usage
@@ -443,6 +443,15 @@ main() {
   create_vm_disk_image_files ${*}
   create_config_iso ${*}
   define_vm_and_storage_pool ${*}
+
+  echo
+  echo -e "${ORANGE}+----------------------------------------------------------------+${NC}"
+  echo -e "${ORANGE}| NOTE: Remember to add this VM to the ${NC}LIBVIRT_VM_LIST${ORANGE} variable  |${NC}"
+  echo -e "${ORANGE}|       in the ${NC}config/lab_env.cfg${ORANGE} file.                          |${NC}"
+  echo -e "${ORANGE}+----------------------------------------------------------------+${NC}"
+  echo
+  echo -e "${LTCYAN}###############################################################################${NC}"
+  echo
 }
 
 ##############################################################################
