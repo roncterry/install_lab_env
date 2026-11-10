@@ -1,0 +1,32 @@
+#cloud-config
+# vim:  set syntax=yaml :
+#
+#preserve_hostname: true
+#hostname: 
+#fqdn: 
+#manage_etc_hosts: true
+
+password: linux
+ssh_pwauth: true
+chpasswd:
+  expire: false
+ssh_authorized_keys:
+  - _SSH_PUBLIC_KEY_GOES_HERE_
+
+packages:
+  - qemu-guest-agent
+runcmd:
+  - systemctl enable --now qemu-guest-agent.service
+  - timedatectl set-ntp true
+users:
+  - default
+  - name: root
+    ssh_authorized_keys:
+      - _SSH_PUBLIC_KEY_GOES_HERE_
+write_files:
+  - path: /etc/systemd/timesyncd.conf.d/pool-ntp-org.conf 
+    content: |
+      [ntp]
+      NTP=0.pool.ntp.org
+    owner: 'root:root'
+    permissions: '0644'
