@@ -1,6 +1,6 @@
 ##############  Remove Lab Env Functions ##################################
-# version: 4.8.0
-# date: 2024-12-04
+# version: 4.8.1
+# date: 2026-11-10
 #
 
 remove_libvirt_networks() {
@@ -367,6 +367,10 @@ remove_pdfs() {
 remove_libvirt_vms() {
   if [ -z "${LIBVIRT_VM_LIST}" ]
   then
+    echo -e "${LTBLUE}Removing Libvirt virtual machine course directory ...${NC}"
+    echo -e "${LTBLUE}---------------------------------------------------------${NC}"
+    run sudo rm -rf ${VM_DEST_DIR}/${COURSE_NUM}
+    echo
     return
   fi
   echo -e "${LTBLUE}Removing Libvirt virtual machines ...${NC}"
@@ -407,7 +411,10 @@ remove_libvirt_vms() {
     echo
   done
 
-  run rm -rf ${VM_DEST_DIR}/${COURSE_NUM}
+  echo -e "${LTBLUE}Removing Libvirt virtual machine course directory ...${NC}"
+  echo -e "${LTBLUE}---------------------------------------------------------${NC}"
+  run sudo rm -rf ${VM_DEST_DIR}/${COURSE_NUM}
+  echo
 
   if ! [ -z ${LIBVIRT_AUTOBUILD_VM_CONFIG} ]
   then
