@@ -1,0 +1,7 @@
+Create a directory where the name of the directory is the VM template name. 
+
+In the VM template directory create two files: <vm_template_name>.cfg.template and <vm_template_name>.xml.template (where <vm_template_name> is the name of the VM template that matched the containing directory).
+
+The <vm_template_name>.cfg.template file can be created from the example file in the config/templates/ directory named vm_name.cfg.template.
+
+The <vm_template_name>.xml.template is a templatized version of the Libvirt VM XML definition.
