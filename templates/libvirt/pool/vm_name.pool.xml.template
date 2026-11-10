@@ -1,0 +1,11 @@
+<pool type="dir">
+  <name>_VM_NAME_</name>
+  <capacity unit="bytes">0</capacity>
+  <allocation unit="bytes">0</allocation>
+  <available unit="bytes">0</available>
+  <source>
+  </source>
+  <target>
+    <path>_VM_DIR_PATH_</path>
+  </target>
+</pool>
