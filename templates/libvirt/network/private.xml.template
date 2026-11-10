@@ -1,0 +1,7 @@
+<network>
+  <name>_NETWORK_NAME_</name>
+  <bridge name='_NETWORK_NAME_' stp='on' delay='0'/>
+  <mac address='_NETWORK_MAC_ADDR_'/>
+  <domain name='_NETWORK_NAME_'/>
+</network>
+

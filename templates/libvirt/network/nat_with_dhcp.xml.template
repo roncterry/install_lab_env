@@ -1,0 +1,16 @@
+<network>
+  <name>_NETWORK_NAME_</name>
+  <forward mode='nat'>
+    <nat>
+      <port start='1024' end='65535'/>
+    </nat>
+  </forward>
+  <bridge name='_NETWORK_NAME_' stp='on' delay='0'/>
+  <mac address='_NETWORK_MAC_ADDR_'/>
+  <domain name='_NETWORK_NAME_'/>
+  <ip address='_NETWORK_IP_' netmask='_NETWORK_NETMASK_'>
+    <dhcp>
+      <range start='_NETWORK_DHCP_START_ADDR_' end='_NETWORK_DHCP_END_ADDR_'/>
+    </dhcp>
+  </ip>
+</network>
