@@ -1,0 +1,12 @@
+<pool type='dir'>
+  <name>_COURSE_NUM_-iso</name>
+  <capacity unit='bytes'>0</capacity>
+  <allocation unit='bytes'>0</allocation>
+  <available unit='bytes'>0</available>
+  <source>
+  </source>
+  <target>
+    <path>/home/iso/_COURSE_NUM_</path>
+  </target>
+</pool>
+
