@@ -1,0 +1,121 @@
+###############################################################################
+# This file can be used to provide additional configuration for the VM such as
+#  whether or not to use a bootdisk image as the boot disk for the VM. 
+# It is not required and if it doesn't exist it is skipped.
+###############################################################################
+
+# The bootdisk image to use for the VM's boot disk file
+#
+# This file is realtive to /home/images/${COURSE_NUM}/
+#
+BOOTDISK_IMAGE=
+
+
+# The name of the VM's boot disk file
+#
+# This file is relative to the VM's directory.
+#
+BOOTDISK=disk01.qcow2
+
+
+# Size to make the VM's boot disk file
+#
+# This is the size that the specified BOOTDISK will be resized to.
+#
+# This should be in the format: <number><unit>
+# Where <number is the size< and <unit> is the size unit to use.
+#
+# For example, for a 50 gigabyte disk you would use: 50G
+#
+# If ithis is not set the size will be determined based on the
+# size of the existing BOOTDISK.
+#
+BOOTDISK_SIZE=251G
+
+
+# Disk image format of the Boot Disk
+#
+# Options: qcow2 raw
+#
+# Default: qcow2
+#
+BOOTDISK_FORMAT=qcow2
+
+
+# List of additional VM disks, their sizes and their formats
+#
+# Space delimited list of comma delimited lists. Each comma delimite list describes one foe the VM disks.
+#
+# Format: <disk_name>,<disk_size>,<disk_image_format>
+#
+# Example:a "disk02.qcow2,252G,qcow2 disk03.qcow2,253G,qcow2 disk04.raw,254G,raw"
+#
+ADDITIONAL_DISK_LIST="disk02.qcow2,252G,qcow2 disk03.qcow2,253G,qcow2 disk04.qcow2,254G,qcow2 disk05.qcow2,255G,qcow2 disk06.qcow2,256G,qcow2 disk07.qcow2,257G,qcow2 disk08.qcow2,258G,qcow2 disk09.qcow2,259G,qcow2"
+
+
+# Whether or not to rebuild config.iso to provide VM config
+#
+# Options: true|false
+#
+# Default: true
+#
+# If this is set to true then it is assumed that the VM will have CD-ROM drive
+# with an iso named config.iso located in the VM's directory attached.
+#
+# If you already have a config.iso confgured the way you want you can set 
+# this to false and the config.iso will not be rebuilt using the 
+# custom config in the CUSTOM_CONFIG_DIR.
+#
+REBUILD_CUSTOM_CONFIG_ISO=true
+
+
+# Directory containing the custom config for the VM
+#
+# This is the name of the directly that contains cloud-init or 
+# ignition/combustion config files. An iso named config.iso will be generated 
+# containing this files which is assumed to be attached to the VM's CD-ROM 
+# drive whereby providing the custom config to the VM. 
+# By default it is a direclty name custom-config inside of the VM's directory. 
+# However, you can also provide an absolute path to another directory that 
+# contains the VM specific custom config.
+#
+# Default: ${VM_DEST_DIR}/${COURSE_NUM}/${VM}/custom-config
+#
+CUSTOM_CONFIG_DIR=${VM_DEST_DIR}/${COURSE_NUM}/${VM}/custom-config
+
+
+# Format of initial custom configuration to use
+#
+# Both cloud-init and ignition/combustion styles for initial configuration are
+# supported.
+#
+# Options: cloud-init | ignition | combustion
+#
+# Default: cloud-init
+#
+CUSTOM_CONFIG_ISO_FORMAT=cloud-init
+
+
+# VM Instance Number
+#
+# The instace number of the VM between 2-254. This will be converted into Hex 
+# and used as the 5th field of the VM's NIC MAC addresses. It commonly matches
+# the last octet of the VM's IP address and will commonly be in the VM's name. 
+# For example. of the VM was named node11, VM_INSTANCE_NUM would be 11.
+#
+VM_INSTANCE_NUMBER=
+
+
+# MAC Address prefix
+#
+# THis is the prefix usd in the MAC Addresses of the VM's NICs.
+#
+# The MAC will be: MAC_ADDR_PREFIX:<vm_instance_num_in_hex>:<interface_num>
+#
+# Examples if MAC_ADDR_PREFIX=52:54:00:01 and VM_INSTANCE_NUM=11:
+#  NIC 1: 52:54:00:01:11:01
+#  NIC 2: 52:54:00:01:11:02
+#  NIC 3: 52:54:00:01:11:03
+#  etc.
+# 
+MAC_ADDR_PREFIX="52:54:00:01"
