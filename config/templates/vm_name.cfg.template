@@ -33,6 +33,26 @@ BOOTDISK=disk01.qcow2
 BOOTDISK_SIZE=
 
 
+# Disk image format of the Boot Disk
+#
+# Options: qcow2 raw
+#
+# Default: qcow2
+#
+BOOTDISK_FORMAT=qcow2
+
+
+# List of additioanl VM disks, their sizes and their format
+#
+# Space delimited list of comma delimited lists. Each comma delimite list describes one foe the VM disks.
+#
+# Format: <disk_name>,<disk_size>,<disk_image_format>
+#
+# Example:a "disk02.qcow2,252G,qcow2 disk03.qcow2,253G,qcow2 disk04.raw,254G,raw"
+#
+ADDITIONAL_DISK_LIST=
+
+
 # Whether or not to rebuild config.iso to provide VM config
 #
 # Options: true|false
@@ -76,3 +96,27 @@ CUSTOM_CONFIG_DIR=${VM_DEST_DIR}/${COURSE_NUM}/${VM}/custom-config
 CUSTOM_CONFIG_ISO_FORMAT=cloud-init
 
 
+# VM Instance Number
+#
+# The instace number of the VM between 2-99. This will be used as the 5th field
+# of the VM's NIC MAC addresses. It commonly matches the last octet of the VM's
+# IP address and will commonly be in the VM's name. 
+#
+# For example, if the VM was named node11, VM_INSTANCE_NUMBER would be 11.
+#
+VM_INSTANCE_NUMBER=
+
+
+# MAC Address prefix
+#
+# This is the prefix used in the MAC Addresses of the VM's NICs.
+#
+# The MAC will be: MAC_ADDR_PREFIX:<vm_instance_num>:<interface_num>
+#
+# Examples if MAC_ADDR_PREFIX=52:54:00:01 and VM_INSTANCE_NUMBER=11:
+#  NIC 1: 52:54:00:01:11:01
+#  NIC 2: 52:54:00:01:11:02
+#  NIC 3: 52:54:00:01:11:03
+#  etc.
+# 
+MAC_ADDR_PREFIX="52:54:00:01"
