@@ -224,10 +224,10 @@ LIBVIRT_VM_SET_LIST=""
 
 # Create an initial snapshot of Libvirt VMs after they have been installed 
 #
-#  Creating an initial snapshot immedeatly after a VM has been installed allows for 
-#  an initial revert point. 
-#  Remember that Libvirt snapshot are now protable when using the installer framework
-#  so the VM may already contain shapshots.
+#  Creating an initial snapshot immedeatly after a VM has been installed allows
+#  for an initial revert point. 
+#  Remember that Libvirt snapshots are portable when using the installer
+#  framework so the VM may already contain shapshots.
 #
 LIBVIRT_CREATE_INITIAL_SNAPSHOT=""
 
@@ -576,11 +576,12 @@ MULTI_LM_EXT="multi_lm"
 #   Note: The lab machine number is used for the last octet of the lab machine's
 #         IP address(es).
 #
-#   IMPORTANT: The numbers 1, 2 and 254 MUST NOT be used for the lab machine number
-#              because those are reserved for router endpoints. The lab machine number
-#              is used to create the IP address(es) of the lab machine on the VLANs that
-#              are being created. It must be unique so that it doesn't conflict with any
-#              other lab machine or VM that will be connected to the VLANs.
+#   IMPORTANT: The numbers 1, 2 and 254 MUST NOT be used for the lab machine
+#              number because those are reserved for router endpoints. The lab
+#              machine number is used to create the IP address(es) of the lab
+#              machine on the VLANs that are being created. It must be unique
+#              so that it doesn't conflict with any other lab machine or VM 
+#              that will be connected to the VLANs.
 #
 #   Note: If the VLAN will not have an IP address assigned to it, 
 #         enter - into the VLAN network field. 
@@ -603,11 +604,12 @@ VLAN_LIST=""
 #   Note: The lab machine number is used for the last octet of the lab machine's 
 #         IP address(es).
 #
-#   IMPORTANT: The numbers 1, 2 and 254 MUST NOT be used for the lab machine number
-#              because those are reserved for router endpoints. The lab machine number
-#              is used to create the IP address(es) of the lab machine on the bridges that
-#              are being created. It must be unique so that it doesn't conflict with any
-#              other lab machine or VM that will be connected to the bridges.
+#   IMPORTANT: The numbers 1, 2 and 254 MUST NOT be used for the lab machine
+#              number because those are reserved for router endpoints. The lab
+#              machine number is used to create the IP address(es) of the lab
+#              machine on the bridges that are being created. It must be unique
+#              so that it doesn't conflict with any other lab machine or VM
+#              that will be connected to the bridges.
 #
 #   Note: If the bridge will not have an IP address assigned to it, 
 #         enter - into the bridge network field. 
@@ -641,11 +643,12 @@ BRIDGE_LIST=""
 #   Note: The lab machine number is used for the last octet of the lab machine's
 #         IP address(es).
 #
-#   IMPORTANT: The numbers 1, 2 and 254 MUST NOT be used for the lab machine number
-#              because those are reserved for router endpoints. The lab machine number
-#              is used to create the IP address(es) of the lab machine on the veths that
-#              are being created. It must be unique so that it doesn't conflict with any
-#              other lab machine or VM that will be connected to the bridges.
+#   IMPORTANT: The numbers 1, 2 and 254 MUST NOT be used for the lab machine
+#              number because those are reserved for router endpoints. The lab
+#              machine number is used to create the IP address(es) of the lab
+#              machine on the veths that are being created. It must be unique
+#              so that it doesn't conflict with any other lab machine or VM
+#              that will be connected to the bridges.
 #
 #
 # Example 1: "veth99,4,-"
@@ -672,11 +675,12 @@ VETH_LIST=""
 #   Note: The lab machine number is used for the last octet of the lab machine's
 #         IP address(es).
 #
-#   IMPORTANT: The numbers 1, 2 and 254 MUST NOT be used for the lab machine number
-#              because those are reserved for router endpoints. The lab machine number
-#              is used to create the IP address(es) of the lab machine on the bridges that
-#              are being created. It must be unique so that it doesn't conflict with any
-#              other lab machine or VM that will be connected to the bridges.
+#   IMPORTANT: The numbers 1, 2 and 254 MUST NOT be used for the lab machine
+#              number because those are reserved for router endpoints. The lab
+#              machine number is used to create the IP address(es) of the lab
+#              machine on the bridges that are being created. It must be unique
+#              so that it doesn't conflict with any other lab machine or VM
+#              that will be connected to the bridges.
 #
 #
 #   Note: The physical device is the physical network device to attach to the
