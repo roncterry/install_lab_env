@@ -13,6 +13,9 @@ chpasswd:
 ssh_authorized_keys:
   - _SSH_PUBLIC_KEY_GOES_HERE_
 
+package_reboot_if_required: true
+package_update: true
+package_upgrade: true
 packages:
   - qemu-guest-agent
 runcmd:
